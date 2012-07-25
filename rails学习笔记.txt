@@ -386,6 +386,7 @@ test:
  group :development, :test do
      gem "rspec", "~> 2.0"
      gem "rspec-rails", "~> 2.0"
+     gem "omniauth-douban", :path => '~/project/douban' #这样可以使用开发中的gem
  end
 
 (2)打包gems
