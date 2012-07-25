@@ -1,0 +1,51 @@
+网易开源镜像站,提供FreeBSD，OpenBSD，archlinux，centos，cygwin，debian，fedora，gentoo，kernel，openSUSE，slackware，ubuntu
+代码:
+
+deb http://mirrors.163.com/ubuntu/ oneiric main universe restricted multiverse
+deb-src http://mirrors.163.com/ubuntu/ oneiric main universe restricted multiverse
+deb http://mirrors.163.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-updates universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-proposed universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-proposed universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-backports universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-backports universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-updates universe main multiverse restricted
+
+台湾源
+代码:
+
+deb http://tw.archive.ubuntu.com/ubuntu/ oneiric main universe restricted multiverse
+deb-src http://tw.archive.ubuntu.com/ubuntu/ oneiric main universe restricted multiverse
+deb http://tw.archive.ubuntu.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb-src http://tw.archive.ubuntu.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb http://tw.archive.ubuntu.com/ubuntu/ oneiric-updates universe main multiverse restricted
+deb-src http://tw.archive.ubuntu.com/ubuntu/ oneiric-updates universe main multiverse restricted
+
+SRT Sources
+代码:
+
+deb http://ubuntu.srt.cn/ubuntu/ oneiric main restricted universe multiverse
+deb http://ubuntu.srt.cn/ubuntu/ oneiric-security main restricted universe multiverse
+deb http://ubuntu.srt.cn/ubuntu/ oneiric-updates main restricted universe multiverse
+deb http://ubuntu.srt.cn/ubuntu/ oneiric-proposed main restricted universe multiverse
+deb http://ubuntu.srt.cn/ubuntu/ oneiric-backports main restricted universe multiverse
+deb-src http://ubuntu.srt.cn/ubuntu/ oneiric main restricted universe multiverse
+deb-src http://ubuntu.srt.cn/ubuntu/ oneiric-security main restricted universe multiverse
+deb-src http://ubuntu.srt.cn/ubuntu/ oneiric-updates main restricted universe multiverse
+deb-src http://ubuntu.srt.cn/ubuntu/ oneiric-proposed main restricted universe multiverse
+deb-src http://ubuntu.srt.cn/ubuntu/ oneiric-backports main restricted universe multiverse
+
+网易 Ubuntu 11.10 源（速度很快）
+代码:
+
+deb http://mirrors.163.com/ubuntu/ oneiric main universe restricted multiverse
+deb-src http://mirrors.163.com/ubuntu/ oneiric main universe restricted multiverse
+deb http://mirrors.163.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-security universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-updates universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-proposed universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-proposed universe main multiverse restricted
+deb http://mirrors.163.com/ubuntu/ oneiric-backports universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-backports universe main multiverse restricted
+deb-src http://mirrors.163.com/ubuntu/ oneiric-updates universe main multiverse restricted

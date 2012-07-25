@@ -1,0 +1,2672 @@
+# -*- coding: utf-8 -*-
+----------------------------------------------------------------------
+一.rails 初步熟悉
+
+：：安装初步：：：：：
+#创建项目 
+rails new 项目名
+
+#创建的各种文件夹用途
+Gemfile #設定Rails應用程式會使用哪些Gems套件
+README	#專案說明：你可以用來告訴其他人你的應用程式是做什麼用的，如何使用等等。
+Rakefile#用來載入可以被命令列執行的一些Rake任務
+app/	#放Controllers、Models和Views檔案，接下來的內容主要都在這個目錄。
+app/helpers #对应views的小工具，名陈通常按controller，但每一个helper都可以在任意一个view里面使用
+app/assets #放js,image，css等静态文件
+config/	#應用程式設定檔、路由規則、資料庫設定等等
+config.ru#Rack伺服器設定檔
+db/	#資料庫的結構綱要
+doc/	#用來放你的文件
+lib/	#放一些自定的Module和類別檔案
+lib/tasks #放一些定义任务的脚本，通常和rake相关
+log/	#應用程式的Log記錄檔
+public/	#唯一可以在網路上看到的目錄，這是你的圖檔、JavaScript、CSS和其他靜態檔案擺放的地方
+script/	#放rails這個指令和放其他的script指令
+test/	#單元測試、fixtures及整合測試等程式
+tmp/	#暫時性的檔案
+vendor/	#用來放第三方程式碼外掛的目錄
+config/initializers #这个文件夹下面的rb文件可以在启动时执行
+
+#bundle初步
+bundle或者bundle install 
+检查gemfile里面的gem依存问题，每次这个文件夹更改，就要bundle一次
+bundle package #可以把install后的gem打包到本地的 项目/vendor/cache中,或者.package里面
+bundle install --local #可以从/vendor/cache中的本地包安装
+bundle check #可以查看还缺少哪些gem,然后可以gem install到系统
+bundle show gem_name #可以查看这个gem所在的目录
+bundle open gem_name #可以打开这个gem的目录
+
+#修改Gemfile
+“rails” :path => "~/some/local/path" #可以这样指定已安装的gem
+"sqlite3-ruby" :require => "sqlite3" #指定在程序中require的名称
+"rails" :git => "xxx",branch => "xxx" #使用git作为gem地址
+（有时可以用gem-fast,先用gem装好gem,然后把path指定去系统的rubycache这样会更快）
+
+#获取系统路径#
+Rails.root 可以获取当前rails的系统绝对路径
+
+#使用mysql
+rails3 默认使用sqlite3，要换成mysql
+(1) 修改Gemfile文件，把sqlite3换成mysql2
+(2) 修改 项目/config/database.yml文件,development test production都改下，下面列出其中一个
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: demo_development
+  host: localhost
+  username: "root"
+  password: "xxxxx"
+
+#ubuntu下遇到sqlite问题
+sudo apt-get install libsqlite3-dev
+sudo apt-get install sqlite3
+
+#ubuntu下遇到javascript问题
+Gemfile加上一行
+gem 'therubyracer'
+
+#安装完ruby后某些库没安装，会引起zlib缺失readline缺失等问题#
+可以进入 ruby源文件/ext文件夹有各种库，例如readline
+先编译装好readline的开发安装包（zlib等同理），读一下包内的README文件就可以知道依赖包是什么,然后下源码包或者apt-get,通常装完后系统会有个zlib.h或者readline.h等的东西
+cd readline
+ruby extconf.rb
+make && makeinstall
+
+#启动webrick服务器p
+在rails项目文件夹下,输入命令启动，默认端口是3000
+rails server 
+
+#### Hello World ##########
+(1)命令行 ：rails generate controller welcome
+(2)修改 项目/config/routes.rb
+Demo::Application.routes.draw do
+    get "hello/say_hello" => "hello#say" #加入这行   
+end
+(3)修改 项目/app/controller/hello_controller.rb
+加入 say方法
+(4)修改  项目/app/views/hello/say.html.erb
+加入 <h1>hello world!</h1>
+(5)浏览器访问 http://localhost:3000/hello/say_hello
+
+#设定首页# （例如把helloworld设置为localhost:3000首页）
+先删除public下的index.html文件，修改confit/routes.rb，加入：
+root :to => "hello#say_hello"
+
+#link to初步，在erb模板里
+<%= link_to "fuck",root_path %>
+相当于 <a href="http://localhost:3000">fuck</a>
+
+#helper初步#
+像上述link_to 后面的root_path就是一个helper应用，这通常是一个方法，可以有弹性地指定链接的地址，不用把地址写死
+#数据库初步#
+修改好 config/database.yml后：
+bundle exec rake db:create #rails会自动帮你生成好表
+
+#yml问题#
+YAML格式嚴格要求縮排(建議為兩個空白)，且冒號後面必須有一個空隔。一般我們會預期YAML的值解析出來是字串，因此碰上值是數字或多行內容時，建議加上引號避免字串解析錯誤。例如 password: "123456"。如果沒有加上引號，這串數字會被解析成Fixnum物件而不是字串String。
+
+#scaffold初步#
+scaffold是一个代码生成器，通常用手动生成可控性更好，也可以修改scaffold的模板令我们有更高的开发效率
+（1）运行:
+rails g scaffold person name:string bio:text birthday:date #然后会生成一大堆东西，注意controller里person都变成复数people
+（2）运行：
+bundle exec rake db:migrate #执行生成数据库表操作
+（3）访问：
+http://localhost:3000/people
+
+#rails console#
+输入rais console或者 rails c可以进入rails命令行模式
+
+#migrate初步#
+migrate是管理数据库方面的各种设定，配置的脚本放在 db/migrate/ 下面，脚本可跨数据库执行
+举例在events表添加一列：
+rails g migration add_status_to_eventsp
+
+#执行完上句会生成一个类似的文件，修改之： db/migrate/20110519123819_add_status_to_events.rb
+class AddStatusToEvents < ActiveRecord::Migration
+  def change
+    add_column :events, :status, :string #在events表加入一个status的字段，string类型
+  end
+end
+
+3.1之前的写法是不写在change方法里，而是写在self.up或者self.down里（创建或者移除）
+
+#validation初步#
+validation用于各种验证，例如：
+validates_presence_of :name #加入event model里，说明：name 不能为空
+
+#Layout模板布局初步#
+layout用于所有.erb文件的头部或者尾部，默认的layout在 app/views/layout/application.html.erb
+<%= yield %> 的地方就是会替换成样板的地方
+例如修改title: <title><%= @page_title || 'DEMO FUCK?' %></title>
+然后在controle中的action中加入 @show_title = @event.name
+那该页面的title就会变成event.name 或者 'DEMO FUCK?'的值
+
+#before_filter初步(类似spring的切面)
+例如上面的show edit update等的action里面都有个@event = Event.find(param[:id]),我们可以把他抽取出来,在controller加入：
+  before_filter :find_event, :only => [ :show, :edit, :update, :destroy] #在各种action前先执行find_event方法
+protected 
+def find_event
+  @event = Event.find(param[:id])
+end
+#切面方法使用protected或者private防止方法被认为是action
+
+#分页初步#
+（1）Gemfile中加一个gem gem "kaminari"
+（2）controller里取变成: @events = Event.page(params[:page]).per(5) #5个一页
+（3）view里 <%paginate @events%>
+
+#rails统计行数#
+bundle exec rake stats
+
+#关于调试#
+（1）可以在views里面加<% debug(@event)%>打印出各种属性
+（2）另一种方法是使用log,会记录在log/development.log,可常用 tail -f去查看
+在Rails環境中，你可以直接使用logger或是Rails.logger來拿到這個Logger对象，它有幾個方法可以呼叫：
+  logger.debug 除錯用的訊息，Production環境會忽略
+  logger.info 值得記錄的一般訊息
+  logger.warn 值得記錄的警告訊息
+  logger.error 錯誤訊息，但還不到網站無法執行的地步
+  logger.fatal 嚴重錯誤到網站無法執行的訊息
+例如想看@event的值：
+  Rails.logger.debug("event: #{@event.inspect}")
+
+#一个简单的rake人无#
+脚本写在 lib/tasks里面，要以.rake后缀名
+
+namespace :db do
+    desc "Print migrated versions"
+    task :schema_migrations => :environment do
+	puts ActiceRecord::Base.connection.select_values (
+	    'select version from schema_migrations order by version'
+	)
+    end
+----------------------------------------------------------------------
+二. REST
+#Rest里一种URL代表一种资源(resource),对应四种post/put/get/delete方式，用上面events例子一一对应：
+events/create #post
+events/update #put
+events/show #get
+events/destroy #delete
+
+
+#ruby中建立rest非常简单,在routes.rb里加入 resorces :events,就会自动对应到7个actions（rails规定，需要记下来）：
+get    '/events'          => "events#index",   :as => "events"
+post   '/events'          => "events#create",  :as => "events"
+get    '/events/:id'      => "events#show",    :as => "event"
+put    '/events/:id'      => "events#update",  :as => "event"
+delete '/events/:id'      => "events#destroy", :as => "event"
+get    '/events/new'      => "events#new",     :as => "new_event"
+get    '/events/:id/edit' => "events#edit",    :as => "edit_event"
+#以http的动词去决定action行为，例如url /events，get行为是取events，post行为是create events
+#上述的各种对应地址，在link_to里会使用各种events_path这个方法，有些要传入参数，例如edit delete等，有些不用
+#圣经里面一个关于记忆helper和url和行为各种搭配的方法：
+注意到這七個Action方法的名字，Rails是定好的，無法修改。這一套慣例建議你背起來，你可以這樣記憶：
+  show、new、edit、update、destroy是單數，對單一元素操作
+  index、create是複數，對群集操作
+  event_path(@event)需要參數，根據HTTP動詞決定show、update、destroy
+  events_path毋需參數，根據HTTP動詞決定index、create
+因此，最後我們不寫：
+  link_to event.name, :controller => 'events', :action => :show , :id => event.id
+而改寫成：
+  link_to event.name, event_path(event)
+而且只需記得resources就可以寫出URL Helper。
+  [custom route]_event[s]_path( event ), :method => GET | POST | PUT | DELETE
+#_path結尾是相對網址，而_url結尾則會加上完整Domain網址。
+
+
+####实战修改一个restful版本的CRUD#####
+（1）在routes.rb 里加入 resources :events #加在越上的地方优先级越高
+（2）編輯app/views/events/index.html.erb，修改各個link_to的路徑：
+<% @events.each do |event| %>
+  <li>
+    <%= link_to event.name, event_path(event) %>
+    <%= link_to 'edit', edit_event_path(event) %>
+    <%= button_to 'delete', event_path(event), :method => :delete %>
+  </li>
+<% end %>
+</ul> 
+<%= link_to 'new event', new_event_path %>
+#注意delete里面的 :method => :delete,因为浏览器只有get和post的方法，method delete用于方便rails识别是delete操作，另link_to还有浏览器如果没打开javascript则会失效的问题，可以改成用button_to, 个人感想：这些自动化东西包装得太厉害了，查看网页源码<a>标签有一大堆属性
+
+（3）編輯app/views/events/show.html.erb，修改link_to的路徑：
+<%= @event.name %>
+<%= simple_format(@event.description) %> 
+<p><%= link_to 'back to index', events_path %></p>
+
+（4）修改app/views/events/new.html.erb的表單送出位置如下：
+<%= form_for @event, :url => events_path do |f| %>
+#在本例中，你也可以完全省略:url參數，Rails可以根據@event推算出路由。
+
+（5）修改app/views/events/edit.html.erb的表單送出位置如下：
+<%= form_for @event, :url => event_path(@event), :method => :put do |f| %>
+#:url和:method也可以省略，Rails會根據@event是新建的還是修改來推算出要不要使用PUT。
+
+（6）修改app/controllers/events_controller.rb，將create Action和destroy Action裡的redirect_to改成
+  redirect_to events_url
+而update Action中的redirect_to改成
+  redirect_to event_url(@event)
+（7）一旦完成RESTful之後，我們在上一章一開始設定的典型路由就用不到了，編輯config/routes.rb將以下程式註解掉：
+# This is a legacy wild controller route that's not recommended for RESTful applications.
+# Note: This route will make all actions in every controller accessible via GET requests.
+# match ':controller(/:action(/:id(.:format)))'
+前兩行的註解告訴你，這種典型路由已經不被新的RESTful風格所推薦使用。特別是它會讓所有Actions都可以透過GET讀取到，例如接收表單的create Action最好只允許POST請求，但是打開典型路由就會讓GET請求也可以作用 ☹
+##############################################################
+
+#！！！##使用respond_to ##
+respond_to可以让我们返回各种格式，xml/json/atom等
+
+（1）修改app/controllers/events_controller.rb的index Action加上XML、JSON和Atom的支援，其中to_xml和to_json是ActiveRecord內建的方法：
+def index
+  @events = Event.page(params[:page]).per(5)  
+  respond_to do |format|
+    format.html # index.html.erb
+    format.xml { render :xml => @events.to_xml }
+    format.json { render :json => @events.to_json }
+    format.atom { @feed_title = "My event list" } # index.atom.builder
+  end
+end
+#json处可修改成 {render :json => {id:@event.id,name:@event.name}}去手动指定json的值
+
+（2）如果要在页面生成各种格式的链接，可以在helper的path里面加 :format =>:json 之类的参数，例:
+    <%= link_to " (XML)", event_path(event, :format => :xml) %>
+    <%= link_to " (JSON)", event_path(event, :format => :json) %>
+
+----------------------------------------------------------------------
+三, 环境配置和bundler
+#多重环境#
+rails有development test prodution三种环境，分为开发 测试 上线产品三种
+区别设置在database.yml和config/environments下的三个设置文件，还有设置不同层级的 Log Session Email
+也可以设置自己的模式，如 config/environments/jas.rb
+
+#rails指令#
+指令可以简写，例如rails generate 可以简写成为rails g
+(1)generate 生成mvc中的mv
+rails g model person name:string age:integer birthday:data
+
+(2)console 进入rails命令行
+rails c production #默认是进入develoment环境，可以在进入时指定环境
+rails c --sandbox #沙箱，任何修改都会在推出的时候还原(transaction)
+exit 或者 ctrl+z #退出console
+
+(3)server 开启一个web服务器
+rails s -p 4000 -e production #指定访问端口4000,环境是production
+
+(4)new  建立一個新 Rails 專案
+rails new my_app #將會建立一個叫做 MyApp 的 Rails 專案在 ./my_app 目錄下。它有一些參數可以使用
+--database=DATABASE #可以改變 config/database.yml 的預設值
+--skip-prototype #可以不產生 prototype.js 檔案
+--skip-git #可以忽略為了 Git 版本控制而產生的 .gitignore 和 .gitkeep 檔案
+
+(5)其他指令
+dbconsole #開起一個資料庫主控台 (可簡寫為 rails db)，讓你直接輸入 SQL 指令。
+destroy #刪除 “generate” 所產生的檔案
+benchmarker #產生 benchmark 資訊
+profiler #產生 profiler 資訊
+plugin #安裝 Plugin
+runner #在 Rails 環境中執行一段程式，例如 rails runner “puts Person.count”
+
+#config/application.rb（rails3的服务器设定文件）#
+(1)rails默认自动会读 models,controller,views目录下面的文件，但有时太多models的话可以使用子目录，但是无需修改文件，只要在application.rb里面把文件夹加入autoload_paths就行，例如要添加一个models/foobar的子目录:
+config.autoload_paths += %W( #{config.root}/app/lib #{config.root}/app/models/foobar)
+
+(2)rails载入plugin是按照字母顺序，可以在以下这句手动设定他的顺序，把他们排在:all前面
+config.plugins = [ :exception_notification, :ssl_requirement, :all ]
+
+(3)设置ActiveRecord(orm)的观察者模式，例如数据库有变动就会通知到XX
+# Activate observers that should always be running.
+config.active_record.observers = :cacher, :garbage_collector, :forum_observer
+
+(4)设置默认时区
+config.time_zone = 'Taipei' #把时区设置成台北
+
+(5)设定i18n
+config.i18n.default_locale = :zh_tw
+
+(6)log不记录password
+config.filter_parameters << :password
+
+#config/initialize/下面的各种设定#
+这个目录下面的.rb文件会在rails启动时自动运行
+(1)backtrace silencers 
+可以定义移除exception信息，方便追踪主要逻辑错误
+
+(2)inflections
+rails非常注重单数复数形式，这个文件记录了各种转换规则，例如person会变成people,可以里面自定义自己的规则
+可进入rails c 查看单复数转换
+  $ rails c
+  $ Loading development environment (Rails 3.0.5)
+  $ > "Business".singularize  => "Busines" # 轉單數
+  $ > "moose".pluralize => "mooses"  # 轉複數
+
+(3)mime_types 定义各种request数据文件类型
+
+(4)secret_token 定义cookie的一些加密信息
+
+(5)sesssion_store rails默认把session放在客户端中，也可以把他定义到数据库
+
+#config/environments/develoments#
+(1)config.cache_classes = false
+这是每次修改了脚本之后都可以刷新马上获得新结果的奥秘之处
+false时ruby使用的是load，就是每次都重新读一次
+true时ruby使用的是require, 就是只有第一次读的时候会读入这个依赖文件
+
+(2)config.whiny_nils = true
+对nil呼叫方法時，會出現 NoMethodError。whiny_nils = true 會提示你更多訊息來除錯。這個值在 production 預設是 false。
+
+(3)config.action_mailer.raise_delivery_errors = false
+如果寄信失敗，是否要丟出例外。建議可以改成 true。
+
+#production的设定和develoments类似#
+(1)# config.force_ssl = true
+是否强制所有的链接都使用ssl
+
+(2)# config.cache_store = :mem_cache_store
+設定不同的快取儲存庫，預設是 :memory_store，也就是每個 Rails process 各自用記憶體存放
+
+(3)# config.action_controller.asset_host = "http://assets.example.com"
+預設的靜態檔案位置是目前主機的 public 目錄，你可以透過修改 asset_host 變更位置。主要用于集群使用
+
+#database.yml#
+mysql的设法
+development:
+  adapter: mysql
+  encoding: utf8
+  database: blog_development
+  username: root
+  password:
+test:
+  xxxx
+
+###########################
+#bundler与Gemfile#
+所有require的gem都一定要写到Gemfile里头,rails不写的话require不到
+
+(1)让特定环境才载入特定的gem
+ group :development, :test do
+     gem "rspec", "~> 2.0"
+     gem "rspec-rails", "~> 2.0"
+ end
+
+(2)打包gems
+bundle package #之后会把所有gem都打包到vendor/cache里面
+
+#命名惯例#
+Rails.root 可以获取当前rails的系统绝对路径
+(1)文件名用小写，下划线分开 例如要读入一个 class FootballCoach,rails会自动到auto_paths下面找football_coach.rb
+
+(2)如果是有嵌套的類別或模組，例如 Admin::OrderItem，則會多一層目錄，它會自動載入 admin/order_item.rb 的檔案，也就是 require “admin/order_item”。
+
+一般只要按惯例去写，就不用使用require
+
+#Model 命名#
+類別名稱使用大寫、單數，沒有底線。而檔名使用小寫、單數，用底線。資料庫表格名稱用小寫且為複數。例如：
+  資料庫表格 line_items
+  檔名 app/models/line_item.rb
+  類別名稱 LineItem
+
+#Controller 命名#
+如果使用典型路徑：
+  網址 http://../store/list
+  檔名 app/controllers/store_controller.rb
+  類別名稱 StoreController
+  方法名稱 list
+  Layout 檔案 app/views/layouts/store.html.erb
+  Template 檔案 app/views/store/list.html.erb
+
+如果使用 RESTful 路徑，則 Controller 名稱必為複數，方法名稱依照 RESTful 的慣例有七個 index, show, new, edit, update, create, destroy。
+
+#View 命名#
+例如一個叫做 People 的 controller，其中的 index action：
+  檔名 app/views/people/index.html.erb (或 .builder or .rjs)
+  Helper 名稱 module PeopleHelper
+  檔名 app/helpers/people_helper.rb
+
+#############################
+#rails组件概览#
+Action Pack #Action Pack 是個包含 Action Controller、Action View 和 Action Dispatch 的 gem。也就是 “MVC” 中的 “VC” 部分。
+Action Controller #分离请求与结果,还有session和redirect功能
+Action Dispatch #处理路由
+Action View #表现层
+Action Mailer #邮件
+Active Model #数据库抽象层，定义了一堆接口，可以把Active Record换成其他orm框架
+Active Record #orm框架
+Active Resource #可以把web应用本地化，实用性不大
+Active Support #放了rails的标准函数库，开发时也可以调用
+Railties #核心库
+
+----------------------------------------------------------------------
+四,Routing 路由
+不同于php，url实际是和文件夹结构结合，rails把路由功能直接嵌入到框架，可以用任意url定位到任意的action
+
+#路由的作用#
+(1) 辨識HTTP Request的URL網址，然後對應到設定的Controller Action。
+
+(2)處理網址內的參數字串，例如：/users/show/123送到Users controller的show action時，會將params[:id] 設定為 123
+
+(3)辨識link_to和redirect_to的參數產生URL字串，例如
+  link_to 'hola!', { :controller=> 'welcome', :action => 'say' } #生成<a href="/welcome/say">hola!</a>
+
+#各种路由设定方式#
+修改routes.rb，内里规则也是越上面越优先
+(1)典型路由，rails3 之前的方式（之前上面一个例子使用的）,这种方式
+match '/:controller(/:action(/:id))(.format)' #.format对应.json .xml等
+
+(2)一般路由
+  match 'meetings/:id', :to => 'events#show'
+這裡的events#show表示指向events controller的show action。通常會簡寫成：
+  match 'meetings/:id' => 'events#show'
+
+(3)命名路由 用于产生helper
+match '/meetings' => 'events#index', :as => "meetings" #/meeting 对应events的index action :as后面是会指定一个meetings_path和一个meetings_url的helper,path和url的区别是前者是相对路径，后者是绝对路径
+
+(4)设定首页 
+root_to => 'welcome#show'
+
+(5)http动词指定,通过 :via
+match 'piece/shit' => 'piece#shit', :via => "get"
+match 'piece/shit' => 'piece#shit', :via => [:get,:post]
+或者
+get 'piece/shit' => 'piece#shit'
+
+(6)特殊条件限定 :constraints
+例如限制 :id 必须是整数
+match 'events/show/:id' => 'event#show' :constraints=>{:id=>/\d/}
+
+(6.1) 还可以redirect
+match "/stories" => redirect("/posts")
+match "/stories/:name" => redirect("/posts/%{name}")
+match "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}" }
+match "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
+
+(7)Restful 路由
+a.复数资源
+resource :events
+
+b.单数资源
+resource :map #特别之处在于没有了index action，但是controller仍然是复数maps_controller.rb
+
+c.指定资源只允许哪些action
+resource :map，:only => [:index, :destroy] 
+------
+c.层叠资源
+resources :projects do
+  resources :tasks, :people
+end 
+#产生的url_helper会这样使用：project_tasks_path(@project)和project_task_path(@project, @task)
+使用网址就是 projects/123/people/123,不建议超过两层
+
+如上述例子，url_helper有各种作用
+project_tasks_path(@project, @task) #常规是这样产生url
+url_for([@project, @task]) #url_for 方式产生url !!! 在controller可以直接用url_for方法产生当前action的url
+<%= link_to 'project task', [@project, @task]%> #link_to 也可以这样自动产生url
+---------
+d.自定义action #!!!#
+除了自动生成的7个action,还可以用collection自定义：
+resources :products do
+  collection do
+    get  :sold
+    post :on_offer
+  end
+end
+#如此便會有sold_products_path和on_offer_products_path這兩個URL Helper，產生出如products/sold和products/on_offer這樣的網址。
+
+也可以这样自定义,member的作用是可以产生出xxx_resource_path的url
+resources :products do
+  get :sold, :on => :member
+end
+#或者
+resources :products do
+   member do
+       get :sold
+   end
+end
+#如此會有sold_product_path(@product)這個URL Helper，產生出如products/123/sold這樣的網址。
+
+-----------
+e.namespace方式,namespace解决的是分组问题,下面这个例子是要在app/controllers/下面创建一个admin的文件夹
+namespace :admin do
+  resources :projects
+end
+#如此原先的URL Helper就會變成如admin_projects_path這樣的形式。url则是 admin/projects 这种方式,并且controller定义是 Admin::ProjectsController < Admin::ApplicationController
+
+如果你想Admin::ProjectsController 这里的url不使用 admin前缀，可以:
+scope :module => "admin"  do #多个resource
+    :projects, :posts
+end
+resource :projects, :module => 'admin' #单个resource
+
+如果你想单独使用ProjectsController (不在Admin::的module内), 但又想要 /admin/projects 的url前缀, 可以
+scope '/admin' do #多个
+    :projects, :posts
+end
+resource :projects, :path => '/admin/projects' 
+----------------
+#rake routes#
+使用rake routes，在不清楚有什么路由的时候，这个命令可以把所有路由产生出来
+
+----------------------------------------------------------------------
+五,Action Controllor
+所有预设生成的Controllor 都继承自ApplicationControllor,而ApplictionControllor 继承自ActionControllor::Base,里面的protect_from_forgery方法啟動了CSRF安全性功能，所有非GET的HTTP request都必須帶有一個Token參數才能存取，Rails會自動在所有表單中幫你插入Token參數，預設的Layout中也有一行<%= csrf_meta_tag %>
+
+#产生Controller#
+rails g controller events #如此便會產生app/controllers/events_controller.rb，依照RESTful設計的慣例，所有的Controller命名都是複數，而檔案名稱依照慣例都是{name}_controller.rb。一個Action就是Controller裡的一個Public方法：
+
+# Controller里的环境方法 #
+action_name
+cookies
+headers
+params  #这个最重要
+request #下面有这个对象的详细方法
+response
+session
+
+在Action方法中我們要處理request，基本上會做三件事情: 1. 收集request的資訊，例如使用者傳進來的參數 2. 操作Model來做資料的處理 3. 回傳response結果，這個動作稱作render
+
+#!!!!!!# request各种取值的方法 params[xxx]#
+#注:request 这个就是request对象，可以使用以下的方法
+request_method
+method
+delete?, get?, head?, post?, put?
+xml_http_request? 或 xhr?
+url
+protocol, host, port, path 和 query_string
+domain
+host_with_port
+port_string
+ssl?
+remote_ip?
+path_without_extension, path_without_format_and_extension, format_and_extension, relative_path
+env
+accepts
+format
+mime_type
+content_type
+headers
+body
+content_length
+
+#注意# params這個Hash是ActiveSupport::HashWithIndifferentAccess对象，而不是普通的Hash而已。Ruby的hash[:foo]和hash["foo"]是不一樣的，而在rails中使用ActiveSupport::HashWithIndifferentAccess物件，無論鍵是Symbol或字串，都指涉相同的值，減少麻煩。
+
+# Render(response) #
+Render結果
+在根據request資訊做好資料處理之後，我們接下來就要回傳結果給用戶。事實上，就算你什麼都不處理，Action方法裡面空空如也，甚至不定義Action，Rails預設也還是會執行render方法。這個render方法會回傳預設的Template，依照Rails慣例就是app/views/{controller_name}/{action_name}。如果找不到樣板檔案的話，會出現Template is missing的錯誤。有以下参数可以用：
+a)直接回传结果:
+  render :text => "Hello" 直接回傳字串內容，不使用任何樣板。
+  render :xml => @event.to_xml 回傳XML格式
+  render :json => @event.to_json 回傳JSON格式(再加上:callback就會是JSONP)
+  render :nothing => true 空空如也
+b)指定Template：
+  :template 指定Template
+  :action 指定使用該Action的Template(注意到只是使用它的Template，而不會執行該Action內的程式)
+  :file 指定Template的檔名全名
+c)其他参数：
+  :status 設定HTTP status，預設是200，也就是正常。其他常用代碼包括401權限不足、404找不到頁面、500伺服器錯誤等。
+  :layout 可以指定這個Action的Layout，設成false即關掉Layout
+
+# redirect_to  #
+  redirect_to :controller =>'hello', :action => "show", :id => @event
+  redirect_to :back 回到上一頁。
+
+# 返回流（回传文件二进制之类） #
+send_data(data, options={}) 回傳二進位字串，接受以下參數：
+  data 是二進位的字串
+  :filename 使用者儲存下來的檔案名稱
+  :type 預設是application/octet-stream
+  :disposition inline或attachment
+  :status 預設是200
+
+send_file(file_location, options={}) 回傳一個檔案，接受以下參數：
+  file_location 是檔案路徑和檔名
+  :filename 使用者儲存下來的檔案名稱
+  :type 預設是application/octet-stream
+  :disposition inline或attachment
+  :status 預設是200
+  :buffer_size stream的暫存空間，預設4096 bytes
+  :stream 預設是false，會先將整個檔案先載入記憶體，如果檔案非常大可能造成問題。
+
+# respond_to #
+我們在第六章RESTful應用程式中曾經示範過用法，respond_to可以用來回應不同的資料格式。Rails內建支援格式包括有:html, :text, :js, :css, :ics, :csv, :xml, :rss, :atom, :yaml, :json等。如果需要擴充，可以編輯config/initializers/mime_types.rb這個檔案。
+
+如果你想要設定一個else的情況，你可以用:any：
+
+respond_to do |format|
+  format.html #自动使用对应的view
+  format.xml { render :xml => @event.to_xml }
+  format.json {render :json => @event.to_json}
+  format.any { render :text => "WTF" }
+end
+
+#!!! to_json 的一些参数补充#
+  konata.to_json(:only => [ :id, :name ])
+  # => {"id": 1, "name": "Konata Izumi"}, 使用only可以指定只生成某几个属性
+
+  konata.to_json(:except => [ :id, :created_at, :age ])
+  # => {"name": "Konata Izumi", "awesome": true}, except则是相反
+
+ konata.to_json(:methods => :permalink)
+  # => {"id": 1, "name": "Konata Izumi", "age": 16, "created_at": "2006/08/01", "awesome": true, "permalink": "1-konata-izumi"}, 使用:methods可以生成有些虚拟属性获取的值！这个很有效，因为默认只能生成model里有的字段， attr_accessor生成的instance_variables不能，用这个就可以
+ 
+ konata.to_json(:include => :posts)
+  # => {"id": 1, "name": "Konata Izumi", "age": 16, "created_at": "2006/08/01", "awesome": true, "posts": [{"id": 1, "author_id": 1, "title": "Welcome to the weblog"}, {"id": 2, author_id: 1, "title": "So I was thinking"}]},  还可以include, include还可以嵌套only, except
+
+# Session #
+直接操作session这个hash就可以存入取出，如:
+session[:siki] = JAS.new
+
+rails默认把Session加密放在Cookie，最大只有4K，而且有安全性问题，除了Cookies session storage，Rails也支援其他方式，你可以修改config/initializers/session_store.rb：
+  :active_record_store 用数据库储存
+  :mem_cache_store 使用Memcached快取系統來儲存
+
+# Cookie #
+直接操作cookies这个hash,各种用法：
+  cookies[:user_name] = "david"
+  cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
+  cookies.delete :user_name
+  cookies[:key] = {
+    :value => 'a yummy cookie',
+    :expires => 1.year.from_now,
+    :domain => 'domain.com'
+  }
+  cookies.delete(:key, :domain => 'domain.com')
+加密：
+cookies.signed[:user_preference] = @current_user.preferences
+永久:
+cookies.permanent[:remember_me] = [current_user.id, current_user.salt]
+
+# Flash讯息 #
+flash是一個Hash，其中的鍵你可以自定，常用:notice、:warning或:error
+
+在Action中:
+def fuck
+  xxx#逻辑
+  flash[:notice] = "OK!"
+end
+那么在view中就可以看到:
+<%= flash[:notice] %>
+
+有时想马上让action看到
+flash.now[:notice] = "hehe"
+
+# Filters #
+可以把controller重复的东东抽取出来；定义在进入action之前，运行中，执行后的特别方法(before_filter,after_filter,around_filter);方法接收的参数可以是block，symbol的方法名(private或者protected),或者对象（会执行这个对象的filter方法）；
+
+a)before_filter,可以使用only或者expect
+class EventsControler < ApplicationController
+  before_filter :find_event, :only => :show
+
+  def show
+  end
+
+  protected
+  def find_event
+    @event = Event.find(params[:id])
+  end  
+end
+
+b）around_filter,通常使用方式是直接传入一个filter对象，这个对象的filter方法内的yield的地方就是action执行的地方，例如可以前后包着统计时间来执行action，重要例子：
+class BenchmarkFilter
+    def self.filter(controller)
+     timer = Time.now
+     Rails.logger.debug "---#{controller.controller_name} #{controller.action_name}"
+     yield # 這裡讓出來執行Action動作
+     elapsed_time = Time.now - timer
+     Rails.logger.debug "---#{controller.controller_name} #{controller.action_name} finished in %0.3s" % elapsed_time
+    end
+end
+
+class EventsControler < ApplicationController
+    around_filter BenchmarkFilter
+end
+#注意 filter的顺序是由上到下执行的，可以用prepend_before_filter插入到第一个，或者skip_before_filter 跳过父类的filter
+
+
+# rescue_from(处理exception) #
+    rescue_from ActiveRecord::RecordNotFound, :with => :show_not_found #找不到model的时候用show_not_found的action
+    rescue_from ActiveRecord::RecordInvalid, :with => :show_error #
+
+# Basic验证用户名和密码 #
+（rails3.x写法）
+class PostsController < ApplicationController
+    http_basic_authenticate_with :name => "foo", :password => "bar"
+end
+
+# controller 里面 debug!!!##########################################################
+在action里面某一句写 debugger,如
+def create
+    debugger
+end
+
+启动服务器, rails s --debugger
+然后逻辑渠道create时候irb会进入debug模式，可以debug一下request，在写第三方认证时比较有用
+#补充, 需要先安装一个ruby-debug的gem, 1.9开始要安装 ruby-debug19，但是可能会有找不到头文件的出错提示,解决方法
+
+1)gem install ruby-debug19 -- --with-ruby-include=$rvm_path/src/ruby-1.9.2-head/ #也有人这样用 gem install ruby-debug19 -- --with-ruby-include="$rvm_path/src/$(rvm tools identifier)/"
+#然后在项目的Gemfile加上这一句
+2)gem ‘ruby-debug19′, :require => ‘ruby-debug’
+3)创建'~/.rdebugrc', 加入
+set autolist
+set autoeval
+set autoreload
+set forcestep
+4)Specify how you would like Rails to report deprecation notices for your bugger environment, set 
+config.active_support.deprecation to :log, :notify or :stderr at config/environments/bugger.rb
+5)require 'ruby-debug' in development.rb. Edit source where you want to debug to include : 
+#以上5布在1.9.3上面还是有问题， 再来增加下面几步就成功了
+去http://rubyforge.org/frs/?group_id=8883 下载:
+linecache19-0.5.13.gem 
+ruby_core_source-0.1.5.gem 
+ruby-debug19-0.11.6.gem 
+ruby-debug-base19-0.11.26.gem   
+
+export RVM_SRC='your/path/to/rvm/ruby'
+gem install archive-tar-minitar
+gem install ruby_core_source-0.1.5.gem -- --with-ruby-include=/$RVM_SRC
+gem install linecache19-0.5.13.gem -- --with-ruby-include=/$RVM_SRC
+gem install ruby-debug-base19-0.11.26.gem -- --with-ruby-include=/$RVM_SRC
+gem install ruby-debug19-0.11.6.gem -- --with-ruby-include=/$RVM_SRC
+###########################################################
+
+
+----------------------------------------------------------------------
+六,Action Record
+建立Model:
+  rails g model category
+這個指令會產生幾個檔案
+  category.rb
+  category_test.rb
+  categories.yml
+  xxxxxxxx_create_categories.rb
+
+修改xxxxxxxx_create_categories.rb建立表关联：
+class CreateCategories < ActiveRecord::Migration
+  def change
+    create_table :categories do |t|
+      t.string :name
+      t.integer :position
+      t.timestamps
+    end
+    
+    add_column :events, :category_id, :integer #在events表加一列
+    add_index :events, :category_id #绑定外键
+  end
+end
+
+执行 bundle exec rake db:migrate
+
+# 保存 #
+四个方法 save save! create create! (无惊叹号返回true或者false,有惊叹号出错抛异常，create是new完就save)
+  a = Category.new( :name => 'Ruby', :position => 1 )
+  a.save
+
+  b = Category.new( :name => 'Perl', :position => 2 )
+  b.save!
+        
+  Category.create( :name => 'Python', :position => 3 )
+  c = Category.create!( :name => 'PHP', :position => 4 )
+# 透過 :valiate => false 可以略過驗證 c.save( :validate => false )
+# 批量插入!!!!
+  Article.create([{content:aa},{content:bb}])
+
+# 查询 #
+a)可以用where、limit、select、order查询
+
+b)first/last/all
+  c1 = Category.first
+  c2 = Category.last
+  categories = Category.all # 這會是一個陣列
+
+c)find，直接find id,也可以传如数组一次拿多个，注意如果找不到資料的話，會丟 ActiveRecord::RecordNotFound 例外。如果是 find_by_id 就不會丟出例外，而是回傳 nil。
+
+d)find_by_* 和 find_all_by_*
+find_by_* 和 find_all_by_* 是 Rails 的動態方法，可以自由用 and 組合，例如：
+  c5 = Category.find_by_name('Ruby')
+  c6 = Category.find_by_name_and_position('Ruby', 1)
+  c7 = Category.find_all_by_position(2)
+
+e)find_by_sql
+如果需要手動撰寫 SQL，可以使用 find_by_sql，例如：
+  c8 = Category.find_by_sql("select * from categories")
+
+f)where
+c9 = Category.where( :name => 'Ruby', :position => 1 ) #这样没法用or
+c10 = Category.where( [ "name = ? or position = ?", 'Ruby', 2] ) #这种最安全推荐用这个
+ts = Tag.where("id in (?)",[1,3,5,7,9]) #这样的可以实现 in(?,?,?)的查找
+#注意不要用where("[name = #{xxx}]")这种容易被注入攻击
+#where是懒加载，需要马上使用可以后面用all first last: Category.where( :name => 'Ruby', :position => 1 ).all
+
+#find_by, find_all_by, where的区别 !!!
+find： 根据id查找，返回一个对象
+find_by_*： 返回一个对象
+find_all_by_*：返回Array
+where： 返回ActiveRecord::Relation，操作对象时才执行SQL
+
+g)limit #表示拿多少跳
+limit 可以限制筆數
+ c = Category.limit(5).all
+ c.size # 5
+
+h)order
+order 可以設定排序條件
+  Category.order("position")
+  Category.order("position DESC")
+  Category.order("position DESC, name ASC")
+如果要消去order條件，可以用reorder：
+  Category.order("position").reorder("name") # 改用 name 排序
+  Category.order("position").reorder(nil) # 取消所有排序
+
+i)offset(常和limit配合)#表示从哪里开始拿
+offset 可以設定忽略前幾筆不取出，通常用於資料分頁：
+  c = Category.limit(2)
+  c.first.id # 1
+  Category.limit(2).offset(3)
+  c.first.id # 4
+
+j)select（只取某些字段）
+Category.select("id, name")
+
+k)readonly (读出的对象只读不能写）
+c = Category.readonly.first
+
+l)group having
+#小复习,group by用于聚组函数: select deptno,sum(money) from table group by deptno;
+#having用于作为gourp by后的条件筛选 ：select deptno,sum(money) from table group by deptno having money>2000;
+
+m)find_or_create_by#!!!
+有时候要插入时先看看数据库有没有，有就更新，没有就create，可以使用这个
+# u = User.find_or_create_by_name_and_password_and_email(name:'jas',password:'fuck',email:'gmail') 一个例子
+
+# 串接寫法 #
+以上的 where, order , limit, offset, joins, select 等等，都可以自由串接起來組合出最終的 SQL 條件：
+  c12 = Category.where( :name => 'Ruby' ).order("id desc").limit(3)
+
+# find_each批次处理#
+如果資料量很大，但是又需要全部拿出來處理，可以使用 find_each 批次處理
+Category.where("position > 1").find_each do |category|
+    category.do_some_thing
+end
+預設會批次撈 1000 筆，如果需要設定可以加上 :batch_size 參數。
+
+# reload重新载入 #
+  p = Category.first
+  p.reload
+
+
+# 删除 #
+方法1:
+  c1 = Category.find(1)
+  c1.destroy
+方法2，直接传入ID或者条件:
+  Category.delete(2) #没有callback
+  Category.delete_all(conditions = nil)
+  Category.destroy_all(conditions = nil)  #有callback
+
+# 统计 #
+  Category.count
+  Category.average(:position)
+  Category.maximum(:position)
+  Category.sum(:position)
+可以用where缩小条件：
+  Category.where( :name => "Ruby").count
+
+# 更新update_attributes #
+  c13 = Category.first
+  c13.update_attributes(attributes) #没有验证
+  c13.update_attributes!(attributes) #没有验证
+  c13.update_attribute(attribute_name, value)
+
+# 更新update_all #
+这语句要在ActiveRecord::Relationship对象使用，亦既是where语句查询出来的集合
+如
+as = Article.where("catagory_id=?",1)
+as.update_all :catagory_id=>0 
+
+update_all(updates, conditions, options)
+
+# Scope!! #
+Scope作用是把某些条件的查询变成一个方法，方便搜索出model：
+  class Event < ActiveRecord::Base
+    scope :public, where( :is_public => true ) #public的方法就是筛选is_public是true的这个条件
+    scope :recent_three_days, where(["created_at > ? ", Time.now - 3.days ]) 
+  end
+
+  Event.create( :name => "public event", :is_public => true )
+  Event.create( :name => "private event", :is_public => false )
+  Event.create( :name => "private event", :is_public => true )
+
+  Event.public
+  Event.public.recent_three_days #直接使用，条件也可以叠加
+
+scope也可以带有参数：
+  class Event < ActiveRecord::Base
+    scope :recent, lambda{ |date| where(["created_at > ? ", date ]) } 
+    # 或 scope :recent, Proc.new{ |t| where(["created_at > ? ", t ]) }
+  end
+  Event.recent( Time.now - 7.days )
+不過，筆者會推薦上述這種帶有參數的Scope，改成如下的類別方法，可以比較明確看清楚參數是什麼，特別是你想給預設值的時候：
+##记得使用self,因为是定义类方法
+  class Event < ActiveRecord::Base
+    def self.recent(t=Time.now)
+        where(["created_at > ? ", t ])
+    end
+  end
+  Event.recent( Time.now - 7.days )
+
+#注意！！！！用scope取出来的不是一个独立对象，是一个数组，即使只取出一个元素，都要使用[0]去获取独立对象#
+ 
+# unscope #
+暂时取消scope
+Event.unscoped do
+    Event.all
+    # SELECT * FROM events
+end
+
+#虚拟属性#
+有时要参数未必与字段一一对应，例如fullname对应firstname和lastname,就可以在model这样写:
+ def full_name
+    "#{self.first_name} #{self.last_name}"
+ end
+
+ def full_name=(value)
+    self.first_name, self.last_name = value.to_s.split(" ", 2)  
+ end
+
+#手动sql语句执行!!!#
+ c = ActiveRecord::Base.connection
+ sql = "update from articles set catagory_id=1"
+ c.execute(sql)
+
+ #prepare_statement 安全的做法
+st = ActiveRecord::Base.connection.raw_connection.prepare("update table set f1=? where f2=? and f3=?")
+st.execute(f1, f2, f3)
+st.close
+
+#!!! 修改model id的神技!!
+一般来说model的id是不能new的, 但是可以使用Model.instantiate(id:1,name:"a") 这样来new一个id是1的model出来
+User.find(1) # name:a
+u2 = User.instantiate(id:1, name:"b")
+u2.save!
+User.find(1) #name:"b"
+
+----------------------------------------------------------------------
+六,Migration （屏蔽数据库之间差异，方便发布更改数据库，常用于手动指定数据库）
+rails g migration migration_name
+就会产生（3.x开始一个change搞掂up和down）：
+class MigrationName < ActiveRecord::Migration
+  def up #执行时执行
+  end
+
+  def down #回滚时执行
+  end
+end
+
+在up或down方法裡（change），我們有以下方法可以使用：
+a)對資料表做修改:
+  create_table(name, options) #新增資料表
+  drop_table(name) #移除資料表
+  rename_table(old_name, new_name) #修改資料表名稱
+  change_table #修改資料表欄位
+b)個別修改資料表欄位:
+  add_column(table, column, type, options) #新增一個欄位
+  rename_column(table, old_column_name, new_column_name) #修改欄位名稱
+  change_column(table, column, type, options) #修改欄位的型態(type)
+  remove_column(table , column) #移除欄位
+c)新增、移除索引:
+  add_index(table, columns, options) #新增索引
+  remove_index(table, index) #移除索引
+
+另外，欄位也還有一些參數可以設定：
+  :null 是否允許NULL，預設是允許
+  :default 預設值
+  :limit 用於string、text、integer、binary指定最大值
+  create_table :events do |t|
+    t.string :name, :null => false, :limit => 60, :default => "N/A"
+    t.references :category # 等同於 t.integer :category_id
+  end
+
+d)指定数据库引擎是BLACKHOLE
+create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
+  t.string :name, :null => false
+end
+
+e)对于表关联，可以用:
+t.references :catagory #这样会生成一个catagory_id,references也可以写成belongs_to
+
+
+
+#migrate其他作用#
+在migrate还可以直接使用Model, 例如add_column之后,model.update_all;也可以在这里使用sql语句
+
+#Migration 搭配的 Rake 任務#
+rake db:create 依照目前的 RAILS_ENV 環境建立資料庫
+rake db:create:all 建立所有環境的資料庫
+rake db:drop 依照目前的 RAILS_ENV 環境刪除資料庫
+rake db:drop:all 刪除所有環境的資料庫
+rake db:migrate 執行Migration動作
+rake db:rollback STEP=n 回復上N個 Migration 動作
+rake db:migrate:up VERSION=20080906120000 執行特定版本的Migration
+rake db:migrate:down VERSION=20080906120000 回復特定版本的Migration
+rake db:version 目前資料庫的Migration版本
+rake db:seed 執行 db/seeds.rb 載入種子資料
+rake db:migrate:status !!!可以查看详细migrate信息
+
+#以上任务都可以明确指定env
+rake db:migrate RAILS_ENV='production' #text or development
+
+#已存在表名或字段名 与 model属性不符的情况时#
+有時候你的資料表名稱和主鍵名稱不一定就是 Rails 預設的慣例，也就是表格名稱不是Model名稱的複數型，主鍵不叫id。這時候我們可以手動設定過，例如以下 Model 預設的資料表和主鍵是legacy_comments和id，但是我們想要改成comment和comment_id：
+class LegacyComment < ActeveRecord::Base
+    set_table_name :comment
+    set_primary_key :comment_id
+end
+
+----------------------------------------------------------------------
+七,表关系
+
+#一对一 has_one belongs_to#
+延續Part1的Event Model範例，假設一個Event擁有一個Location。來新增一個Location Model，其中的event_id就是外部鍵欄位：
+  rails g model location name:string event_id:integer
+執行bundle exec rake db:migrate
+分別編輯app/models/event.rb和app/models/location.rb：
+class Event < ActiveRecord::Base
+    has_one :location # 單數
+    #...
+end
+
+class Location < ActiveRecord::Base
+    belongs_to :event # 單數
+end
+
+1)建立并关联
+  e = Event.first
+  l = Location.new( :name => 'Hsinchu', :event => e ) # 等同於 l = Location.new( :name => 'Hsinchu', :event_id => e.id )
+  l.save
+2)从event建立location （xxx.build_yyy）
+  e = Event.first
+  l = e.build_location( :name => 'Hsinchu' )
+3)直接从event建立一个 (xxx.create_yyy)
+  e = Event.first
+  l = e.create_location( :name => 'Hsinchu' )
+
+# 一对多 #
+例如一個Event擁有很多Attendee，來新增Attendee Model：
+  rails g model attendee name:string event_id:integer
+執行bundle exec rake db:migrate產生attendees資料表。
+
+分別編輯app/models/event.rb和app/models/attendee.rb：
+class Event < ActiveRecord::Base
+    has_many :attendees # 複數
+    #...
+end
+
+class Attendee < ActiveRecord::Base
+    belongs_to :event # 單數
+end
+
+1）范例
+  e = Event.first
+  a = Attendee.new( :name => 'ihower', :event => e ) # 或 a = Attendee.new( :name => 'ihower', :event_id => e.id )
+  a.save
+  e.attendees # 這是陣列
+  e.attendees.size
+
+2）build和create
+  e.attendee.build(xxx) #一对多，所以是model.build，不是e.build_model 
+  e.attendee.create(xxx)
+
+3)先建立atendee再放到event
+  a = Attendee.create( :name => 'ihower' )
+  e.attendees << a
+
+4）根據特定的Event查詢Attendee  
+  e.id # 1
+  a = e.attendees.find(3)
+  attendees = e.attendees.where( :name => 'ihower' )
+
+5）删除
+  Event.attendees.destroy_all # 會一筆筆觸發Attendee的destroy回呼
+  Event.attendees.delete_all # 不會觸發Attendee的destroy回呼
+
+# 多对多 #
+例如一个event有多个group，一个group有多个event，实现的方法是写一个中间表有event_id和group_id
+  rails g model group name:string
+  rails g model event_groupship event_id:integer group_id:integer
+  bundle exec db:migrate
+
+分別編輯app/models/event.rb、app/models/group.rb和app/models/event_groupship.rb：
+class Event < ActiveRecord::Base
+    has_many :event_groupships
+    has_many :groups, :through => :event_groupships #关键
+end
+
+class EventGroupship < ActiveRecord::Base
+    belongs_to :event #关键
+    belongs_to :group
+end
+
+class Group < ActiveRecord::Base
+    has_many :event_groupships
+    has_many :events, :through => :event_groupships #关键
+end
+
+範例，建立雙向關聯記錄:
+  g = Group.create( :name => 'ruby taiwan' )
+  e1 = Event.first
+  e2 = Event.create( :name => 'ruby tuesday' )
+  EventGroupship.create( :event => e1, :group => g )
+  EventGroupship.create( :event => e2, :group => g )
+  g.events
+  e1.groups
+  e2.groups
+
+#多态关联!!!#
+有些model会被多个不同model has_many，例如picture 可以同时属于 employee 和 product，那么就可以使用polymorphic多态
+写法
+    class Picture < ActiveRecord::Base
+      belongs_to :imageable, :polymorphic => true
+    end
+     
+    class Employee < ActiveRecord::Base
+      has_many :pictures, :as => :imageable
+    end
+     
+    class Product < ActiveRecord::Base
+      has_many :pictures, :as => :imageable
+    end
+#这样用@employee.pictures就可以拿取到所要的pictrue, @pictrute.imageable也可以拿取到所属的model
+
+生成表是这样:
+#分别有一个id和一个type,id就是所属的model_id, type就是所属model的类型
+    class CreatePictures < ActiveRecord::Migration
+      def change
+	create_table :pictures do |t|
+	  t.string  :name
+	  t.integer :imageable_id
+	  t.string  :imageable_type
+	  t.timestamps
+	end
+      end
+    end
+#可以使用 t.refernces 更方便
+    class CreatePictures < ActiveRecord::Migration
+      def change
+	create_table :pictures do |t|
+	  t.string :name
+	  t.references :imageable, :polymorphic => true
+	  t.timestamps
+	end
+      end
+    end
+
+# 关联参数和方法 #
+a）class_name
+  belongs_to :manager, :class_name => "User" # 外部鍵是user_id
+b)可以變更Foreign Key的欄位名稱，例如改成manager_id：
+  belongs_to :manager, :class_name => "User", :foreign_key => "manager_id"
+c)order has_many可以透過:order參數指定順序：
+  has_many :attendees, :order => "id desc"
+d)dependent 可以設定當物件刪除時，也會順便刪除它的has_many物件：
+    has_many :attendees, :dependent => :destroy
+ #:destroy 會執行attendee的destroy回呼
+ #:delete 不會執行attendee的destroy回呼
+ #:nullify 這是預設值，不會幫忙刪除attendee
+f)joins 和 includes 查詢
+針對Model中的belongs_to和has_many關連，可以使用joins，也就是INNER JOIN
+  Event.joins(:category)# SELECT "events".* FROM "events" INNER JOIN "categories" ON "categories"."id" = "events"."category_id"
+可以一次關連多個：
+  Event.joins(:category, :location)
+joins主要的用途是來搭配where的條件查詢：
+  Event.joins(:category).where("categories.name is NOT NULL")# SELECT "events".* FROM "events" INNER JOIN "categories" ON "categories"."id" = "events"."category_id" WHERE (categories.name is NOT NULL)
+透過joins抓出來的event物件是沒有包括其關連物件的。
+  Event.includes(:category)# SELECT * FROM events # SELECT * FROM categories WHERE categories.id IN (1,2,3...)
+同理，也可以一次載入多個關連：
+  Event.includes(:category, :attendees)
+includes方法也可以加上條件：
+  Event.includes(:category).where( :category => { :position => 1 } )
+
+#!!! includes的nest写法 #
+Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
+
+#个人总结:join和includes的差别,例如一个user对多个post,join的作用是查post id为5的那个user，并不会取出post,include则会同时取出post#
+
+# model中要注意的事项!!!#
+1)controller中的cache问题
+product.orders #第一次取出
+product.orders.size #这时会使用cache, 不会再读库
+product.orders(true).size #传个true给他的话就会强制读库，保证数据一致性
+
+2)注意定义model类名不要和rails里ActiveRecord::Base里面的方法名重名， 这样很容易会重写掉方法,例如attribute, connection
+
+3)创建关联时记得检查有没有在migration里面add_column做外键
+
+4)has_and_belongs_to_many的问题， 一定要记得创建join_table，并且jointable不需要id
+    class Assembly < ActiveRecord::Base
+      has_and_belongs_to_many :parts
+    end
+     
+    class Part < ActiveRecord::Base
+      has_and_belongs_to_many :assemblies
+    end
+
+    class CreateAssemblyPartJoinTable < ActiveRecord::Migration
+      def change
+	create_table :assemblies_parts, :id => false do |t|
+	  t.integer :assembly_id
+	  t.integer :part_id
+	end
+      end
+    end
+
+5)命名在module里面的model的问题
+在同一个module scope里面的两个model可以随便关联，但是在不同module的话就要注意，使用:class_name才行
+    module MyApplication
+      module Business
+	class Supplier < ActiveRecord::Base
+	   has_one :account,
+	    :class_name => "MyApplication::Billing::Account"
+	end
+      end
+     
+      module Billing
+	class Account < ActiveRecord::Base
+	   belongs_to :supplier,
+	    :class_name => "MyApplication::Business::Supplier"
+	end
+      end
+    end
+
+
+6)注意model 关联后取出来的同步问题
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => false
+#上述是因为ActiveRecord没有保存的话不能检测出关联的model的变动,可以使用:inverse_of去保证这东西数据一致（感觉上还是程序员要注意数据一致性要好）
+    class Customer < ActiveRecord::Base
+      has_many :orders, :inverse_of => :customer
+    end
+     
+    class Order < ActiveRecord::Base
+      belongs_to :customer, :inverse_of => :orders
+    end
+#--------
+c = Customer.first
+o = c.orders.first
+c.first_name == o.customer.first_name # => true
+c.first_name = 'Manny'
+c.first_name == o.customer.first_name # => true
+#在through, polymorphic, as里面都不能用，只能用在belongs_to的model里面，像上面的orders, 有has_many的model也无能为力,所以还是不用的好
+
+
+
+----------------------------------------------------------------------
+八,验证 Validation
+#检查取出的model是否为空#
+u = User.find(1)
+u.blank? #空的话返回true
+
+#非空 validates_presence_of#
+class Person < ActiveRecord::Base
+ validates_presence_of :name
+ validates_presence_of :login
+ validates_presence_of :email
+# validates_presence_of :name, :login, :email
+end
+
+#字符长度 validates_length_of#
+class Person < ActiveRecord::Base
+  validates_length_of :name, :minimum => 2 # 最少 2
+  validates_length_of :bio, :maximum => 500 # 最多 500
+  validates_length_of :password, :in => 6..20 # 介於 6~20
+  validates_length_of :registration_number, :is => 6 # 剛好 6
+end
+
+# 确保是数字 validates_numericality_of#
+class Player < ActiveRecord::Base
+  validates_numericality_of :points
+  validates_numericality_of :games_played, :only_integer => true # 必須是整數
+  validates_numericality_of :age, :greater_than => 18
+  #除了 greater_than，還有 greater_than_or_equal_to, equal_to, less_than, less_than_or_equal_to 等參數可以使用。
+end
+
+# 保证唯一 validates_uniqueness_of #
+class Account < ActiveRecord::Base
+  validates_uniqueness_of :email
+end
+
+class Holiday < ActiveRecord::Base
+  validates_uniqueness_of :name, :scope => :year #确保相通的年份中，:name是要唯一的 
+end 
+
+#另外還有個參數是 :case_sensitive 預設是 true，表示要區分大小寫。
+
+# 确保格式正确 validates_format_of(使用正则确保格式) #
+class User < ActiveRecord::Base
+    validates_format_of :email, :with => /\A([\w\.%\+\-]+)@([\w\-]+\.)+([\w]{2,})\z/i
+    validates_format_of :url, :with =>  /(^$)|(^(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(([0-9]{1,5})?\/.*)?$)/ix
+end
+
+# 确保只能是某些值 validates_inclusion_of #
+class Message < ActiveRecord::Base
+    validates_inclusion_of :status, :in => ["pending", "sent"] #只能是pending和send
+end
+# validates_exclusion_of 确保不能是某些值
+
+# 可共用的验证参数(可以用在上述的方法中) #
+allow_nil => true  #允许null
+allow_blank #允许是nil和空白字符串
+message => "出错信息" # validates_uniqueness_of :email, :message => "你的 Email 重複了"
+on => :create(or :update) => #设定在只有建立或者更新时才验证   validates_uniqueness_of :email, :on => :create
+
+#出错信息的补充#
+最好的方法：设置好:message后,先检验model.valid?，如果是false的话就可以看model.errors这个对象，里面的message就是前面set好的message
+
+也可以用这种写法,然后在model.save!的时候捕捉Exception => e , e.message
+validates_presence_of :name, :password, :email, :message => "#{:name} 不能为空"
+
+@model.errors.full_messages 这个就是所有出错信息的数组组合！!!!
+
+
+
+#rails3 里面的整合写法#
+有多个值就用hash，:message直接放hash里面
+validates :name,  :presence => true, 
+                  :length => {:minimum => 1, :maximum => 254}
+               
+validates :email, :presence => true, 
+                  :length => {:minimum => 3, :maximum => 254},
+                  :uniqueness => true,
+                  :email => true
+validates :location, :presence => {:message=>'fuck off'}  #这种写message方法才正确，不用写什么true
+
+#自己补充#
+validates :email, :uninqueness => {:case_sensitive => false } #case_sensitive 默认是true， 设为false才是忽略大小写
+#来自rails源码的例子
+#   validates :password, :confirmation => true
+#   validates :username, :exclusion => { :in => %w(admin superuser) }
+#   validates :email, :format => { :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create }
+#   validates :age, :inclusion => { :in => 0..9 }
+#   validates :first_name, :length => { :maximum => 30 }
+#   validates :age, :numericality => true
+#   validates :username, :presence => true
+#   validates :username, :uniqueness => true
+
+# 自定义验证 #
+使用 validate 方法傳入一個同名方法的 Symbol 即可。
+validate :my_validation
+private
+def my_validation
+    if name =~ /foo/
+        errors[:name] << "can not be foo"
+    elsif name =~ /bar/
+        errors[:name] << "can not be bar"
+    elsif name == 'xxx'
+        errors[:base] << "can not be xxx"
+  	end
+end
+#在你的驗證方法之中，你會使用到 errors 來將錯誤訊息放進去，如果這個錯誤是因為某一屬性造成，我們就用那個屬性當做 errors 的 key
+#例如本例的 :name。如果原因不特別屬於某一個屬性，照慣例會用 :base。
+
+# 验证Callback #
+callback可以在储存过程中修正或加入自己的切面逻辑，通常用在三种情况中：1.在Validation驗證前後 2. 存入数据库前后 3. 删除数据库前后
+以下是當一個物件儲存時的流程，其中1~7就是回呼可以觸發的時機：
+  (-) save
+  (-) valid
+  (1) before_validation
+  (-) validate
+  (2) after_validation
+  (3) before_save
+  (4) before_create
+  (-) create
+  (5) after_create
+  (6) after_save
+  (7) after_commit
+#另外還有after_rollback和after_commit這兩個回呼和Transaction交易有關。
+
+# 举例 #
+設定一個before_validation回呼設定預設值，其中的setup_default方法會在資料驗證前執行：
+class Event < ActiveRecord::Base
+    before_validation :setup_default
+
+    protected
+    def setup_default
+        self.is_public ||= true
+    end
+end
+#注意#
+#1.回呼的方法最好放在protected或private下，確保只能由Model內部呼叫。
+#2.before_validation和before_save的差別在於前者會經過Validation驗證。
+#3.請避免before_開頭的回呼方法中，最後運算的結果不小心回傳false。這樣會中斷儲存程序。如果不確定的話，請回傳return true。這算是常見的地雷，而且不容易除錯(你會發現資料莫名地無法儲存成功)。
+
+----------------------------------------------------------------------
+九, ActiveRecord 进阶
+STI 继承问题
+
+# Transaction #
+a)使用ActiveRecord::Base
+ActiveRecord::Base.transaction do
+  david.withdrawal(100)
+  mary.deposit(100)
+end
+
+b)model对象本身内部也可以使用这种方式transaction
+Account.transaction do
+  balance.save!
+  account.save!
+end
+#save and destroy are automatically wrapped in a transaction
+
+c)exception
+Number.transaction do
+  Number.create(:i => 0)
+  begin
+    # This will raise a unique constraint error...
+    Number.create(:i => 0)
+  rescue ActiveRecord::StatementInvalid
+    # ...which we ignore.
+  end
+  Number.create(:i => 1)
+end
+
+d)rollback
+User.transaction do
+  User.create(:username => 'Kotori')
+  User.transaction(:requires_new => true) do
+    User.create(:username => 'Nemu')
+    raise ActiveRecord::Rollback #关键
+  end
+end
+#only “Kotori” is created. (This works on MySQL and PostgreSQL, but not on SQLite3.)
+
+
+Serialize
+Observers
+
+#Dirty objects#
+Dirty Objects功能可以追蹤Model的屬性是否有改變：
+person = Person.find_by_name('Uncle Bob')
+person.changed?       # => false 沒有改變任何值
+# 讓我們來改一些值
+person.name = 'Bob'
+person.changed?       # => true 有改變
+person.name_changed?  # => true 這個屬性有改變
+person.name_was       # => 'Uncle Bob' 改變之前的值
+person.name_change    # => ['Uncle Bob', 'Bob']
+person.name = 'Bill'
+person.name_change    # => ['Uncle Bob', 'Bill']
+# 儲存進資料庫
+person.save
+person.changed?       # => false 
+person.name_changed?  # => false
+# 看看哪些屬性改變了
+person.name = 'Bob'
+person.changed        # => ['name']
+person.changes        # => { 'name' => ['Bill', 'Bob'] }
+
+
+----------------------------------------------------------------------
+十, ActionView
+::Rails 的Template有两套引擎,erb和builder,html/js用erb,xml/rss/atom用builder，例如:
+show.xml.builder的檔案：
+    people do |p|
+      p.person "test"
+    end
+
+::也有用HAML代替erb的(gem "haml-rails")，例如:
+#content
+  .box
+    test
+会生成
+<div id="content">
+  <div class="box">
+    test
+  </div>
+</div>
+
+# erb标签 #
+<%%> <%= %> <% #单行注解 %> <%- 令程序不输出erb标签换行 -%>
+<%output = false%>
+  <% 多行注解%>
+<% end %>
+
+# layout #
+用于每个页面共用的部分，预设在app/views/layouts/application.html.erb
+
+a)controller指定layout
+  class EventsController < ApplicationController
+    layout "special"
+  end
+這樣就會指定Events Controller下的Views都使用app/views/layouts/special.html.erb這個Layout，你可以加上參數:only或:except表示只有特定的Action：
+  class EventsController < ApplicationController
+    layout "special", :only => :index
+  end
+或是：
+  class EventsController < ApplicationController
+    layout "special", :except => [:show, :edit, :new]
+  end
+
+b)使用symbol动态指定layout
+class EventsController < ApplicationController
+  layout :determine_layout
+  private
+  def determine_layout
+    ( rand(100)%2 == 0 )? "event_open" : "event_closed"
+  end
+end
+
+c)在action中指定layout
+def show
+   @event = Event.find(params[:id])
+	render :layout => "foobar"
+end
+#更常见是直接render :layout=>false 关闭掉它
+
+d)自定义layout
+除了<%= yield %>會載入Template內容之外，我們也可以預先自定一些其他的區塊讓Template可以置入內容。例如，要在Layout中放一個側欄用的區塊，取名叫做:sidebar：
+<div id="sidebar">
+    <%= yield :sidebar %>
+</div>
+<div id="content">
+    <%= yield %>
+</div>
+那麼在Template樣板中，任意地方放:
+<%= content_for :sidebar do %>
+   <ul>
+       <li>foo</li>
+       <li>bar</li>
+   </ul>
+<% end %>
+然后就会放在#sidebar 里面
+
+# Partial局部样板 #
+局部樣板可以將Templaet中重複的程式碼抽出來，例如我們在Part1中示範過的新增和編輯的表單。Partial Template的命名慣例是底線開頭，但是呼叫時不需加上底線，例如：
+<%= render :partial => "common/nav" %>
+這樣便會使用app/views/common/_nav.html.erb這個樣板。如果使用Partial的樣板和Partial所在的目錄相同，可以省略第一段的common路徑。
+
+在Partial樣板中是可以直接使用實例變數的(也就是@開頭的變數)。不過好的實務作法是透過:locals明確傳遞區域變數，這樣程式會比較清楚，Partial樣板也比較容易被重複使用：
+<%= render :partial => "common/nav", :locals => { :a => 1, :b => 2 } %>
+#!!! 这里有一点点歧义！其实:locals不是关键字，意思是可以(render不明确指定:partial) <%= render "common/nav" :one_variable => {xxx}, :another_variable => {xxx} %>, 这样传参数
+#如果像上面的例子明确指定partial => "xxx/xxx", 那么后面就要使用:locals 
+#造成这个原因是render方法会检查，(:partial => xxx, :locals => xxx )这种是传入hash， 另外一种是第一个参数是string
+
+集合型Collection
+像是tr或li這類會一直重複的Template元素，我們可以使用collection參數來處理，Rails有針對集合型的Partial做效率最佳化，例如像以下的程式：
+<ul>
+    <% @people.each do |person| %>
+        <%= render :partial => "person", :locals => { :person => person } %>
+    <% end %>
+<ul>
+可以改使用Collection方式，
+<ul>
+    <%= render :partial => "person", :collection => @people %>
+<ul>
+如此既可以少掉兩行each程式碼，執行的效能又更好。指定locals之后如上述例子可以直接在partial中直接使用person这个对象
+
+#!!! get Controllername in view 在view 里获取controller 的名称
+params[:controller]
+params[:action]
+
+----------------------------------------------------------------------
+十一, ActionView Helper & Asset
+Helper指的是可以在Template中使用的輔助方法，主要用途是可以將資料轉化成輸出用的HTML字串，例如我們已經用過了Rails內建的link_to方法，它可以將字串變成超連結。让我们更容易构建html
+
+Asset（静态文件辅助方法）好处：
+#Rails會合併Stylesheet和JavasSript檔案，可以加速瀏覽器的下載。
+#Rails會編譯Sass和CoffeeScript等透過Assets template engine產生的Stylesheet和JavasSript
+#Rails會在靜態檔案網址中加上時間序號，如果內容有修改則會重新產生。這樣的好處是強迫用戶的瀏覽器一定會下載到最新的版本，而不會有瀏覽器快取到舊版本的問題。
+#變更Assets host主機位址時，可以一次搞定，例如上CDN時。透過Helpers，Rails可以幫所有的Assets加上靜態檔案伺服器網址。
+几个常用tag：
+javascript_include_tag
+stylesheet_link_tag
+image_tag
+video_tag
+audio_tag
+
+# 常用辅助方法 #
+a)simple_format 把回车变成<br>
+
+b)truncate 输出概览，例如把文章输出第一段，后面长的用...补上
+
+c)sanitize 白名單逸出
+預設允許的HTML標籤和屬性如下：
+ActionView::Base.sanitized_allowed_tags
+=> #<Set: {"strong", "em", "b", "i", "p", "code", "pre", "tt", "samp", "kbd", "var", "sub", "sup", "dfn", "cite", "big", "small", "address", "hr", "br", "div", "span", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "dl", "dt", "dd", "abbr", "acronym", "a", "img", "blockquote", "del", "ins"}>
+ActionView::Base.sanitized_allowed_attributes
+=> #<Set: {"href", "src", "width", "height", "alt", "cite", "datetime", "title", "class", "name", "xml:lang", "abbr"}>
+如果需要增加，可以在config/application.rb中新增，例如：
+  config.action_view.santized_allowed_tags = %w[table tr td]
+  config.action_view.santized_allowed_attributes = "rel"
+
+d)strip_tags 移除HTML標籤
+
+e)strip_links 移除HTML超連結標籤
+
+#各种辅助方法#
+a）URL輔助方法
+link_to #文字超連結
+mail_to #E-mail
+button_to #按鈕連結
+
+b）自定標籤輔助方法
+tag
+content_tag
+
+#来自rails文档的content_tag example#
+content_tag(:p, "Hello world!")
+ # => <p>Hello world!</p>
+content_tag(:div, content_tag(:p, "Hello world!"), :class => "strong")
+ # => <div class="strong"><p>Hello world!</p></div>
+content_tag("select", options, :multiple => true)
+ # => <select multiple="multiple">...options...</select>
+
+<%= content_tag :div, :class => "strong" do -%>
+  Hello world!
+<% end -%>
+ # => <div class="strong">Hello world!</div>
+
+c）其他輔助方法
+escape_javascript
+debug
+number_to_currency
+
+d)表单辅助方法
+对应model的：
+<%= form_for @event do |f| %>
+    <%= f.text_field :name %>
+    <%= f.submit %>
+<% end %>
+
+自定义的:
+<%= form_tag "/search" do %>
+    <%= text_field_tag :keyword %>
+    <%= submit_tag %>
+<% end %>
+
+常用表单辅助方法：
+text_field
+text_area
+radio
+check_box
+select
+select_date, select_datetime
+submit
+
+#fields_for 表单关联model的属性设定 (在simple_form里面是simpe_fields_for)#
+假设 user has_one setting
+<%= form_for @user do |f|%>
+   #....blahblah user attribute
+    <%= fields_for @setting do |ff|%> 
+	<%= ff.text :blog_name %>
+    <%end%>
+<%end%>
+
+# 自定义helper #
+要建立自定的Helper，只需要將方法定義在app/helpers/目錄下的任意檔案就可以了。在產生Controller的同時，Rails就會自動產生一個同名的Helper檔案，照慣例該Controller下的Template所用的Helper，就放在該檔案下。如果是全站使用的Helper，則會放在app/helpers/application_helper_rb，例如：
+module ApplicationHelper
+    def gravatar_url(email)
+     gravatar_email = Digest::MD5.hexdigest(email.downcase)
+     return "http://www.gravatar.com/avatar/#{gravatar_email}?s=48"
+    end
+end
+如此便可以在Template中這樣使用：
+  <%= image_tag gravatar_url(user.email) %>
+Helper是全域的，定義在哪一個檔案中沒有關係，檔案名稱也不需要與Controller名稱對應。
+
+----------------------------------------------------------------------
+十二, 静态档案和 Ajax
+Rails 3.1引進了一項新功能叫做Assets pipeline，這個功能可以讓我們突破public目錄限制，可以將靜態檔案依需求放在不同目錄下，Rails會幫你組合並壓縮起來。特別是有一些Rails的外掛套件需要使用JavaScript等靜態檔案，在沒有這個功能之前，我們必須將JavaScript等檔案複製放在public目錄下，這樣瀏覽器才能讀取的到。
+
+Assets的位置在app/assets/下，首先最重要的就是app/assets/javascripts/application.js和app/assets/stylesheets/application.css，
+這兩個檔案看起來充滿註解，其實它是個manifest檔案，列出了所有要載入的靜態檔案，這些檔案的位置依照慣例放在app/assets或vendor/assets目錄下。
+#=require_tree意思是javascripts目录下的所有js文件都会合并
+
+# 处理图片网址 #
+放在app/assets/images下的圖片該怎麼使用呢？在實際佈署後，Rails會將檔案名稱加以編碼，例如rails.png會變成rails-bd9ad5a560b5a3a7be0808c5cd76a798.png。在一般的View中，可以使用image_tag這個Helper：
+<%= image_tag("rails.png") %>
+如果在CSS裡的話，有兩種辦法：一是將檔案命名為erb結尾，例如app/assets/stylesheets/main.css.erb，然後使用asset_path這個Helper：
+  h1 {
+    background-image: url('<%= asset_path("rails.png") %>');
+  }
+另一種方法是使用Sass或SCSS語法。其中SCSS相容於CSS。例如命名為app/assets/stylesheets/main.css.scss，然後使用image-url這個Sass提供的方法：
+  h1 {
+    background-image: image-url("rails.png")
+  }
+如果是js檔案中想要拿圖片的位置，就只能用js.erb的格式，然後內嵌asset_path Helper方法了。
+
+# 编译Assets #
+開發的時候，Rails會自動將Asset的壓縮結果快取在tmp下，rake指令可以產生出來：
+    rake assets:precompile #產生出來的檔案在public/assets/下
+    rake assets:clean #这样可以清除assets
+
+# 自定义Assets方案，使用指定文件 #
+上述的application.js或application.css中，預設會壓縮所有app/assets目錄下的檔案，如果你需要拆開，只需要修改其中的內容把require_tree那行移除，那麼就只會壓縮你所指定的目錄或檔案。
+
+：：例如，要新增新的Manifest檔案的話，
+1）假設叫做app/assets/javascripts/search.js，內容如：
+//= require ./foobar
+2）這樣就會將assets/javascripts/foobar這個目錄下的檔案通通壓縮成search.js，而在View中：
+<%= javascript_include_tag "application" %>
+<%= javascript_include_tag "search" %>
+就會載入。注意到如果啟用了assets功能，javascript_include_tag只能接受一個參數，即Manifest檔案的名稱。
+3）為了讓rake assets:precompile也能產生新的壓縮檔案，你還需要編輯config/environments/production.rb加入：
+config.assets.precompile += %w( search.js )
+
+# 关闭Assets功能 #
+也可以不使用這個功能，請修改config/application.rb將以下設定改成false：
+    config.assets.enabled = false
+這樣的話，在View中就必須列出所有你要載入的Script檔案：
+    <%= stylesheet_link_tag    "reset", "application", :cache => "all" %>
+    <%= javascript_include_tag 'jquery', 'rails', 'application', :cache => "all" %>
+這些檔案都必須放在public目錄下。而加上cache參數Rails會合併這些檔案，但是並不會壓縮。
+
+#link_to ajax #
+在link_to 或者button 加remote => true就行
+<%= link_to 'ajax show', event_path(event), :remote => true, "data-type" => :json, :id => "update_foobar" %>
+JS代码:
+$(function() {
+    $('#update_foobar').bind("ajax:success", function(event, data) {            
+        var foobar = $('#foobar');
+        foobar.html( data.foobar_number );
+    });
+});
+
+#还有几种 ajax的事件#
+ajax:before – right before ajax call
+ajax:loading – before ajax call, but after XmlHttpRequest object is created)
+ajax:success – successful ajax call
+ajax:failure – failed ajax call
+ajax:complete – completion of ajax call (after ajax:success and ajax:failure)
+ajax:after – after ajax call is sent (note: not after it returns)
+
+----------------------------------------------------------------------
+十三, Restful 表单设计
+willdo
+
+----------------------------------------------------------------------
+十四, I18N
+1)config/locales 下，使用 yml 格式。Rails 預設的語系是英文，如果要換成中文，請這樣做：
+  下載 zh-TW.yml http://github.com/svenfuchs/rails-i18n 到 config/locale/ 下，就有預設的 Rails 繁體中文翻譯
+修改 config/application.rb 的預設語系
+  config.i18n.default_locale = "zh-TW"
+
+2)使用I18n.t這個方法來做翻譯詞彙的替換。而在 View 中可以直接使用 t 方法。翻譯關鍵字可以用字串或 Symbol，也可以加上 Scope，例如:
+t("admin.event")
+t(:event, :scope => :admin )
+搭配的 yml 設定範例：
+"zh-TW"
+  admin:
+    event: 活動
+注意 YAML 格式的縮排必須使用兩個空隔，Tab 是不允許的。直接複製貼上可能會有問題，請重新縮排過。
+
+3)要在詞彙內嵌的話，可以使用%{variable_name}：
+"zh-TW"
+    hello: "親愛的%{name}你好!"
+在樣板中傳入參數即可：
+    t(:hello, :name => @user.name) # 親愛的XXX你好
+
+4)搭配Model使用
+在套用上述的翻譯詞彙檔之後，你可能會注意到Model驗證錯誤訊息會變成如Name 不能是空白字元，如果需要近一步中文化欄位名稱，你可以新增config/locales/events.yml內容如下：
+zh-TW:
+  activerecord: 
+    attributes:
+      event:
+        name: "活動名稱"
+        description: "描述"
+其實，翻譯檔檔名叫events.yml、zh-TW.yml、en.yml什麼都無所謂，重要的是YAML結構中第一層要對應locale的名稱，也就是zh-TW，Rails會載入config/locales下所有的YAML詞彙檔案。
+
+5)時區 TimeZone
+a)首先，資料庫裡面的時間一定都是儲存 UTC 時間。而 Rails 提供的機制是讓你從資料庫拿資料時，自動幫你轉換時區。例如，要設定台北 +8 時區：
+    首先設定 config/application.rb 中預設時區為 config.time_zone = “Taipei”，如此 ActiveRecord 便會幫你自動轉換時區，也就是拿出來時 +8，存回去時 -8
+b)如何根據使用者切換時區?
+    首先，你必須找個地方儲存不同使用者的時區，例如 User model 有一個欄位叫做 time_zone:string。然後在編輯設定的地方，可以讓使用者自己選擇時區:
+ <%= time_zone_select 'user','time_zone' %>
+接著在 application_controller.rb 中加入:
+before_filter :set_timezone		
+def set_timezone
+   if logged_in? && current_user.time_zone
+      Time.zone = current_user.time_zone
+    end
+end
+c)Rails中的時間類別使用的是ActiveSupport::TimeWithZone，我們已經知道可以使用Time.zone可以改變時區，其他的用法例如：
+Time.zone = "Taipei"
+Time.zone.local(2011, 8, 3, 9, 0) # 建立一個Taipei當地時間
+=> Wed, 03 Aug 2011 09:00:00 CST +08:00
+t = Time.zone.now # 目前時間
+=> Wed, 03 Aug 2011 22:17:54 CST +08:00
+t.in_time_zone("Tokyo") # 將這個時間換時區
+=> Wed, 03 Aug 2011 23:18:34 JST +09:00
+Time.utc(2005,2,1,15,15,10).in_time_zone # 將UTC時間換Taipei當地時間
+=> Tue, 01 Feb 2005 23:15:10 CST +08:00
+
+----------------------------------------------------------------------
+十五, ActionMailer
+Rails在config/environments目錄下針對不同執行環境會有不同的郵件伺服器設定：
+  config.action_mailer.delivery_method = :test
+#支援的選項包括:test、:sendmail和smtp。在config/environments/test.rb中，預設是:test，也就是並不會實際寄信，而是將信件存在ActionMailer::Base.deliveries陣列中方便做功能測試。sendmail則是使用伺服器的/usr/bin/sendmail程式，不過因為因為不是每台伺服器都有適當安裝sendmail，所以最推薦的方式是採用:smtp協定來寄信
+
+1)使用SMTP用Gmail发信：
+用Gmail寄信的範例，請修改config/environments/development.rb或config/environments/production.rb：
+
+config.action_mailer.smtp_settings = {
+    :address => "smtp.gmail.com",
+    :port => "587",
+    :domain => "gmail.com",
+    :authentication => "plain",
+    :user_name => "example@gmail.com",
+    :password => "123456",
+    :enable_starttls_auto => true
+ }
+
+2)Mailer发送实例
+ 
+a）
+ rails generate mailer UserMailer confirm #如此便會產生 app/mailers/user_mailer.rb 檔案，並包含一個 confirm 的動作，其 template 在 app/views/user_mailer/ 下，也就是 confirm.text.erb (純文字格式)或 confirm.html.erb (HTML格式)。如果兩種格式的樣板檔案都有，那麼Rails會合併成一封Multiple Content Types的Email。
+
+
+b)user_mailer.rb 的程式：
+class UserMailer < ActionMailer::Base  
+    default :from => "foobar@example.org"  
+    def confirm(email) #收件人
+        @message = "Thank you for confirmation!" #这个变量在view里面可以直接读取
+        mail(:to => email, :subject => "Registered")   #设定收件人和主题
+    end  
+end  
+
+c)我們可以在 rails console 中測試，執行 
+    UserMailer.confirm(“someone@example.org”).deliver #发信
+d)通常在注册后发信
+def create
+    user = User.new(params[:user])
+    if user.save
+        UserMailer.confirm(user.email).deliver
+        redirect_to users_path
+    else
+        render :action => :new
+    end
+end
+
+----------------------------------------------------------------------
+十六, Rails其他
+
+1）JSON处理
+ActiveSupport::JSON.encode( [ {:a => 1 , :b => 2 } , "c", "d" ] )#=> "[{\"a\":1,\"b\":2},\"c\",\"d\"]" 	
+ActiveSupport::JSON.decode( "[{\"a\":1,\"b\":2},\"c\",\"d\"]" ) #=> [{"a"=>1, "b"=>2}, "c", "d"] 
+
+Yajl-ruby 則是一套底層用C，比較快的 JSON parser。如果要替換 Rails 內建的 JSON 函式庫，請在 config/application.rb 最下方加入：
+ ActiveSupport::JSON.backend = 'Yajl'
+
+2）pdf
+Prawn 可以產生 PDF，支援 Unicode。
+PDFKit 則是另一個有趣的產生方式，透過 HTML/CSS 轉 PDF。
+
+3)表單
+除了用Rails內建的表單Helper，也有一些提供表單設計更方便的套件：
+simple_form
+formtastic
+
+4)分頁
+will_paginate
+kaminari
+
+5)檔案上傳
+有兩套選擇：
+Paperclip 是目前使用上最為方便的檔案上傳 plugin。
+CarrierWave
+
+6)如何畫圖表
+使用 GoogleCharts 是最簡單的方式。 如果您使用 jQuery，flot 是一套不錯的圖表工具
+
+7)ssl
+ssl_requirement 可以幫助您設定哪些頁面只能只用 HTTPS 或 HTTP 連線。
+
+8)升级Rails
+小版號的升級，通常透過以下步驟即可完成：
+  修改Gemfile的Rails版本： gem 'rails', '3.1.1'
+  執行bundle update
+  執行rake rails:update 會嘗試更新Rails自己產生的檔案，例如config/boot.rb，請一一手動檢查。
+
+9)rake
+rake的各种方法
+  rake db:migrate
+  rake db:drop
+  rake tmp:clear
+  rake notes
+你可以輸入 rake -T 看到所有的 rake 指令。而要在 Rails 環境中撰寫 Rake，請將附檔名為 .rake 的檔案放在 lib/tasks 目錄下即可，例如：
+/lib/tasks/dev.rake
+
+##！！利用rake执行周期性任务
+如果您有週期性的任務需要執行，也可以透過crontab設定去執行rake腳本。例如輸入crontab -e加入：
+  0 2 * * * cd /home/your_project/current/ && RAILS_ENV=production /usr/local/bin/rake cron:daily
+就是每天凌晨兩點執行rake cron:daily這個任務。
+
+
+----------------------------------------------------------------------
+十七, Test 测试
+使用进化的RSpec 取代 Test::Unit
+
+UnitTest 和 RSpec语法对比：
+Unit：
+class OrderTest < Test::Unit::TestCase
+  def setup
+    @order = Order.new
+  end
+
+  def test_order_status_when_initialized
+    assert_equal @order.status, "New"
+  end
+
+  def test_order_amount_when_initialized
+    assert_equal @order.amount, 0
+  end
+end
+RSpec:
+describe Order do
+  before do
+    @order = Order.new  
+  end
+
+  context "when initialized" do
+    it "should have default status is New" do
+      @order.status.should == "New"
+    end
+
+    it "should have default amount is 0" do
+      @order.amount.should == 0  
+    end
+  end
+end
+
+# RSpec范例 #
+1）Gemfile：
+group :test, :development do
+  gem "rspec", "~> 2.0"
+  gem "rspec-rails", "~> 2.0"
+end
+
+2）安装：
+  rails generate rspec:install
+
+3）执行测试：
+  bundle exec rake spec #rake spec會先執行一次rake db:test:prepare建立測試資料庫。
+測試單一檔案，例如：
+bundle exec rspec spec/models/user_spec.rb
+
+4)语法基本用法
+#describe和context幫助你組織分類，都是可以任意套疊的：#
+#describe "#method",可以是代表专门测试一个实例方; context "when open",context则是这个方法的不同情况,每一个it就是一个小测试
+describe Order do
+  describe "#amount" do  
+    context "when user is vip" do
+     # ...
+    end
+
+    context "when user is not vip" do
+      # ...
+    end
+  end
+end
+
+# it和should #
+每個it就是一小段測試，在裡面我們會用should來設定期望，例如：
+describe Order do
+  describe "#amount" do  
+    context "when user is vip" do
+      it "should discount five percent if total >= 1000" do
+        user = User.new( :is_vip => true )
+        order = Order.new( :user => user, :total => 2000 )
+        order.amount.should == 1900
+      end
+  
+      it "should discount ten percent if total >= 10000" { ... }      
+    end    
+    context "when user is vip" { ... }    
+  end
+end
+
+# before和after #
+如同xUnit框架的setup和teardown：
+  before(:each) 每段it之前執行
+  before(:all) 整段describe前只執行一次
+  after(:each) 每段it之後執行
+  after(:all) 整段describe後只執行一次
+ 例如：
+  before(:each) do
+        @user = User.new( :is_vip => true )
+        @order = Order.new( :user => @user )
+  end
+
+# pending #
+pending 可以先列出來打算要寫的測試：
+it "should be true if status is paid or shipping" do
+    pending
+end    
+
+# Matcher # 很方便！
+should 后面可以跟各种方便的matcher(类似link_to里面的Helper)
+target.should be_true # targer.should == true
+target.should be_false # targer.should == false
+target.should be_nil # targer.should == nil
+类别和方法：
+target.should be_a_kind_of(Array) # target.class.should == Array
+target.should be_an_instance_of(Array) # target.class.should == Array
+target.should respond_to(:foo) # target.repond_to?(:foo).should == true
+array和hash
+target.should have_key(:foo) # target[:foo].should_not == nil
+target.should include(4) # target.include?(4).should == true
+target.should have(3).items # target.items.length == 3
+
+# expect to #
+ 期待抛出exception,语法 expect {}.to xxx
+   context "with paid" do
+     it "should update status to shipping" do
+       expect {
+         order.ship!
+       }.to change { order.status }.from("new").to("shipping")
+     end
+   end
+
+#期待丢出例外
+context "with paid" do
+      it "should raise NotPaidError" do
+       expect {
+          order.paid? = false
+          order.ship!
+        }.to raise_error(NotPaidError)
+      end
+    end  
+
+# let 懒加载，可以需要的时候才用到，可以增加测试的速度,let!则是立即加载#
+describe "test let" do
+   context "hell yeah" do
+       let(:users) {User.find(:all)}
+       it "users.size" do
+         users.size.should > 5
+       end
+   end
+end
+
+#更高级应用#
+1)使用subject可以省略receiveer
+describe "sth" do
+  subject {Order.new(name:'fun')}
+  it{should !== nil}
+end
+
+2)its可以省略receiver的方法
+    subject {xxx}
+    its(:hi) {should == 0} #xxx.hi.should == 0
+
+# RSpec Mocks #
+专用于生成假资料，例如要使用平台的接口
+
+-------
+# Rails中使用RSpec#
+1)rails g rspec:install #生成spec目录后原来test目录就不用了
+
+2）新增spec/models/event_spec.rb如下：
+require 'spec_helper'
+describe Event do
+  before do
+    @event = Event.new( :name => "foobar" )
+  end
+
+  describe ".open?" do
+    it "should return true if status is OPEN" do
+      @event.status = "OPEN"
+      @event.open?.should be_true
+    end
+
+    it "should return false if status is not OPEN" do
+      @event.status = "CLOSED"
+      @event.open?.should be_false
+    end
+  end
+end
+輸入bundle exec rake spec就會根據目前的開發資料庫Schema建一個測試用資料庫，然後執行所有spec目錄下的_spec.rb檔案結尾的測試。你也可以單獨執行測試bundle exec rspec spec/models/event_spec.rb。
+
+-----使用guard-spec spork-----
+边编程边快速自动测试
+guard是一个监控文件变动的gem，spork是一个drb server,可以另ruby的单元测试更快速
+几个gem配合使用详细参考gu-da项目,要修改的地方有Guardfile spec/spec_helper.rb
+
+
+
+----------------------------------------------------------------------
+十八, 性能问题 
+# ActiveRecord #
+观察SQL输出，尽量做到一次查询
+1）尽量使用select,不用取的就不去取
+  Event.find(:all, :select => "id, title, description")
+搭配 named_scope 我們可以把常用的 :select 預先設定好，例如：
+  class User < ActiveRecord::Base
+    named_scope :short, :select => "id, name, email"
+  end
+  User.short.find(:all)
+
+2）使用 :INCLUDE
+使用 :include 避免 N+1（多个sql语句查询） 次 queries 的問題。
+  @events = Event.find(:all, :include => [:group] )
+  @events.each do |e|
+    e.group.title
+  end
+如果沒有加 :include 把相關的 groups 一起載入，在迴圈中就會產生 @event.size 次對 group 的個別 SQL 查詢，會非常傷。加了 :include 之後總共只需查詢兩次。
+
+另外一個比較少人知道的是，在設定 Model associations 時，如果有很明顯的情境一定會順道載入二階 association model，可以設定 :include 在 has_many, belongs_to, has_one 上面，例如：
+  class User < ActiveRecord::Base
+    has_one :foo, :include => [:bar]
+  end
+如此便會在載入 @user.foo 的同時，也會提早載入 @user.foo.bar。
+
+3）加索引
+針對 foreign key 要加上資料庫索引 index。在 migration 上透過 add_index 就可以加上去了。
+
+4)特定情況下可用 :JOINS 取代 :INCLUDE
+在只需要用到 :conditions 而不需要載入該 model 的情況下，可以用 :joins 取代 :include。
+  Group.find(:all, :include => [ :group_memberships ], :conditions => [ "group_memberships.created_at > ?", Time.now - 30.days ] ) #使用:joins不应该用:include
+
+5）直接自己写sql
+ActiveRecord 可以直接寫 find_by_sql。
+
+6）在要统计的地方直接添加一个字段用于存放计数器
+
+#全文搜索#
+Sphinx全文搜尋引擎和thinking_sphinx gem
+Apache Solr(Lucenel)全文搜尋引擎和Sunspot gem
+Xapian全文搜尋引擎和xapit gem
+PostgreSQL內建有全文搜尋功能，可以搭配 texticle
+Ferret和acts_as_ferret gem。Ferret是一套純用Ruby實作的全文搜尋引擎。
+
+
+----------------------------------------------------------------------
+十九, 安全问题 
+1）预防javascript注入，过滤html输出（rails3自动做）：
+  "<p>safe</p>".html_safe  
+  raw("<p>safe</p>")
+允许用户使用html标签sanitize()
+
+2）预防CSRF resource攻击
+有人会这样写去令你删除资料
+<img src="/posts/delete_all">
+所以后台要定义好rest，只有post put delete才能更改资料
+rails的post会在view生成验证码，Layout中也有一段<%= csrf_meta_tags %>是給JavaScript讀取驗證碼用的。
+
+3）sql注入
+在Rails ActiveRecord的where方法中使用Hash或Array寫法就會幫你處理，所以請一定都用這種寫法，而不要使用上述的字串參數寫法：
+  Project.where( { :name => params[:name] } )
+  Project.where( ["name = ?", params[:name] ] )
+
+4)!!!!!注意在model中使用attr_accessible(白名单) 和 attr_protected (黑名单),限制可读的字段，最好使用白名单，github也是这样被人黑了
+
+----------------------------------------------------------------------
+二十, 网站部署
+選擇一：全自動模型 Apache/Nginx + Passenger 
+Passenger又叫做mod_rails，是目前佈署Ruby on Rails最好用、設定最簡單的方式，它是一套Apache和Nginx的擴充模組，可以直接支援Rails或任何Rack應用程式。
+
+#apache pessenger#
+1)假设已经安装好apache：
+  sudo gem install passenger
+  sudo passenger-install-apache2-module
+2)/etc/apache2/conf.d/mod_rails檔案之中，例如：
+  passenger_module /usr/local/lib/ruby/gems/1.8/gems/passenger-3.0.7/ext/apache2/mod_passenger.so #模块位置
+  PassengerRoot /usr/local/lib/ruby/gems/1.8/gems/passenger-3.0.7 #gem位置
+  PassengerRuby /usr/local/bin/ruby #ruby位置
+3)在httpd.conf加入
+  <VirtualHost *:80>
+      ServerName www.yourhost.com
+      DocumentRoot /somewhere/public
+    <Directory /somewhere/public>
+      AllowOverride all
+      Options -MultiViews
+    </Directory>
+  </VirtualHost>
+4）重启问题
+如果之後你的Rails有任何修改要重新載入，但是並不想把Apache重開，請在你的Rails應用程式目錄下執行touch tmp/restart.txt即可，這樣Passenger就會知道要重新載入Rails，而不需要重開Apache。
+
+# Nginx + Passenger #
+1）要讓Nginx裝上Passgener不需要先裝Nginx，只需要執行以下指令：
+  sudo passenger-install-nginx-module
+2）修改/opt/nginx/conf/nginx.conf，將server那段改寫成如下：
+  server {
+    listen       80;
+    server_name  www.yourhost.com;
+    root /somewhere/public;
+    passenger_enabled on;
+  }
+
+選擇二：反向代理(Reverse proxy)模型 Apache/Nginx + Thin/Unicorn
+
+# 自动化部署 #
+Capistrano 是Rails 社群中最常使用的佈署工具
+1）sudo gem install capistrano
+2）在你的Rails目錄下執行：
+  capify .
+3）打開config/deploy.rb 
+require 'bundler/capistrano'
+# require 'hoptoad_notifier/capistrano'
+set :application, "your-project-name"
+set :branch, "master"
+set :repository,  "git@github.com:ihower/your-project-name.git"
+set :scm, "git"
+set :user, "rails" # 一個伺服器上的帳戶用來放你的應用程式，不需要有sudo權限，但是需要有權限可以讀取Git repository拿到原始碼
+set :port, "22"
+set :deploy_to, "/home/rails"
+set :deploy_via, :remote_cache
+set :use_sudo, false
+role :web, "111.222.333.444"
+role :app, "111.222.333.444"
+role :db,  "111.222.333.444", :primary => true
+
+namespace :deploy do
+  task :copy_config_files, :roles => [:app] do
+    db_config = "#{shared_path}/database.yml"
+    run "cp #{db_config} #{release_path}/config/database.yml"
+  end
+  
+  task :update_symlink do
+    run "ln -s {shared_path}/public/system {current_path}/public/system"
+  end
+  
+  task :start do ; end
+  task :stop do ; end
+  task :restart, :roles => :app, :except => { :no_release => true } do
+    run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
+  end
+end
+# after "deploy:update_code", "deploy:copy_config_files" # 如果將database.yml放在shared下，請打開
+# after "deploy:finalize_update", "deploy:update_symlink" # 如果有實作使用者上傳檔案到public/system，請打開
+
+4)設定好伺服器的資料之後，在本地端輸入：
+  cap deploy:setup #就會自動登入遠端的伺服器，在登入的帳號下新建current、releases和shared這三個目錄，releases是每次佈署的紀錄，而current目錄則是用symbolic link指向releases目錄下最新的版本。
+
+5)第一次部署，也是在本地端執行：
+  cap deploy:cold #伺服器上的帳號需要有可以git clone專案的讀取權限。
+
+6）之後要佈署，只需要執行：
+  cap deploy
+
+
+#處理Log檔案#
+網站持續運作，log目錄下的production.log可是會越長越肥，因此需要定期整理備份，這裡有幾種方法，一種是修改config/environments/production.rb的設定：
+  config.logger = Logger.new(config.paths["log"].first, 'daily') # 或 weekly,monthly
+  config.logger = Logger.new(config.paths["log"].first, 10, 10*1024*1024) # 10 megabytes 
+
+----------------------------------------------------------------------
+二十一, rails 最佳实践
+1）把重复的代码逻辑从controller移到model,例如在controller中的Posts.find(:all :condition{xxxxx}),可以把这个condition移动到post model里面用 named_scope
+
+2)当有表关联时，尽量利用好表关联，例如user 一对一 post
+不要:
+  @post = Post.new(:params[:post])
+  @post.user_id = current_user.id
+  @post.save
+要：
+  @post = current_user.posts.build(:params[:post])
+
+3)别做不必要的检查
+if @post.user != current_user
+  flash[:notice "用户错"] #错误方式！！
+end #wrong!
+
+@post = current_user.posts.find(:params[:post]) #这种正确，因为在关系中如果当前对象里面找不到post就直接会报错了
+
+4）在一些fullname 对应 注册时的firstname lastname要使用虚拟属性
+
+5）对于验证的方法，多用model callback (before_save,before_update之类)
+
+6)model使用工厂方法创建对象来取代在 controller中用复杂的创建对象
+
+7）活用Rest,Rest折叠，例如post包含comment
+map.resources :posts do |post|
+  post.resources :comments
+end
+
+8)把find放在自己的model里，例如要find comments，那应该放在comment里面不应该放在post里面
+
+9）named_scope named_scope named_scope,常用这个
+
+10)使用元编程 DRY
+
+11）migration里面一定要加index，只要有需要都一定要加
+add_index :comments, :post_id
+add_index :comments, :user_id
+
+12)在controller里面创建对象用切面写好
+before_filter :build_post, :only => ['post','get']
+def build_post
+  @post = xxx
+end
+
+13)never logic code in views!
+
+
+
+----------------------------------------------------------------------
+二十二, Git
+#Windows#
+windows 的 Git 請安裝 msysgit。如果是透過 RailsInstaller 安裝，則已經附帶安裝好了。請參考以下步驟產生 SSH key：
+  $ c:\RailsInstaller\Git\bin\ssh-keygen.exe -t rsa -C "your_email@example.org"
+接著用文字編輯器打開 “%homedrive%%homepath%.ssh\id_rsa.pub” 的內容，即是你的 Public SSH key。
+
+#中文乱码问题#
+git config core.quotepath false
+#Ubuntu#
+$  sudo apt-get install -y git-core
+$  ssh-keygen -t rsa -C "your_email@youremail.com"
+
+2）产生的key在 ~/.ssh/id_rsa.pub
+
+3）編輯 "~/.gitconfig "
+[user]
+   name = Your Name
+   email = your_email@youremail.com
+[color]
+   diff = auto
+   status = auto
+   branch = auto
+   ui = auto
+或者直接用命令：
+git config --global user.name "ihower"
+git config --global user.email "ihower@gmail.com"
+git config --global github.user #usernameSets the GitHub username for all git instances on the system 
+git config --global github.token 0123456789yourf0123456789token #设置token  !!!Github api V3 开始已经不需要设置token！！
+git config --list #可以列出所有目前的设置
+4）建立库
+git init <dir_name> #會在本地新建一個 repo.。
+git clone <remote_location> #會從遠端複製一份 repo 回來。
+
+5）ADD, STATUS, COMMIT (WORKING TREE AND STAGING AREA)
+  Working tree 是你當下的工作目錄，就像 SVN checkout 出來的工作目錄。這裡要特別學習的新概念是 Staging area，這是 Git 獨有的功能。它是一塊暫存的 cached 區域，用來紀錄什麼是你待會要 commit 檔案。
+#add#
+git add . #加入所有檔案，包括所有還沒有被追蹤(untracked)的檔案
+git add -i #進入互動模式，你甚至可以只 Add 檔案裡面其中的一段程式碼到 staging area 去(稱作patch)
+git add -u #只加更新的檔案，不加入還沒有追蹤的檔案 (跟 git commit -a 涵蓋的範圍相同)
+#使用 git add 會將檔案加入 staging area 中，特別注意到待會的 commit 是 commit 你執行 add 時當下的檔案，而不是最後的版本。(也就是如果你 add 完之後又再次修改同個檔案，commit 出去的檔案是第二次修改前的版本)
+
+#status#
+最常用的 git status，會列出以下狀態：
+.Changed but not updated 有修改但是沒有加入 staging area 的檔案
+.Changes to be committed (staging area) 已經加入 staging area 的檔案
+.Untracked 還沒有被追蹤的新檔案
+
+#commit#
+然後是 commit 指令，會把 Staging area 裡面的東西 commit 出去：
+git commit -m "blah" #如果沒加 -m 的話, 會開編輯器輸入 commit log (可以在.gitconfig中設定編輯器)
+git commit -a -m "foobar" #全部修改的檔案都 add 後 commit 出去 (不包括 untracked 的新檔案)
+git commit -v #會開編輯器加上 diff 註解
+
+#diff#
+git diff # 是比較 working tree 跟 staging area
+git diff --cached #是比較 staging area 跟本來的 repo.
+git diff HEAD #是比較 working tree 跟本來的 repo.
+git diff "@{yesterday}" #或者一个特定版本与倒数第二个变更之间：
+git diff 1b6d "master~2" #输出结果都是补丁格式，可以用 git apply 来把补丁打上。也可以试一下：
+git whatchanged --since="2 weeks ago" 
+
+#其他操作#
+git rm foobar #刪除
+git mv old_file new_file #改檔名
+
+#git log#
+git log #可以查看当前git日志，以及hash值,查看之后
+git reset --hard 7eff #只输入hash值前几个值就可以返回去
+
+
+6）回滚
+git reset HEAD filename #會從 staging area 狀態回到 unstaging 或 untracked (檔案內容並不會改變)
+git checkout filename #會從 unstaging 狀態回到最初 repo. 的檔案(檔案內容變回修改前)
+
+#!! 恢复git rm 的文件
+先 git reset HEAD filename
+然后观察 git status 里面的delete
+在git checkout filename
+
+7）不许要跟踪的文件
+.gitignore，這個檔案可以編輯列出哪些檔案是要忽略不需要 tracked 的，像 Rails 就會加入 log/*.log 和 tmp/**/* 。
+#可以修改全局的忽略文件#
+git config --global core.excludesfile ~/.gitignore
+语法："#"用于注释, !用于取反,/结尾当作文件夹
+也可以在当前文件指定
+
+8）branch
+git branch <new_branch_name> #建立本地 local branch
+git branch -m <old_name> <new_name> #改名字 (如果有同名會失敗，改用 -M 可以強制覆蓋)
+git branch #列出目前有那些 branch 以及目前在那個 branch
+git checkout <branch_name> #切換 branch (注意到如果你有檔案修改了卻還沒 commit，會不能切換 branch，解法稍後會談)
+git checkout -b <new_branch_name> (<from_branch_name>) #本地建立 branch 並立即 checkout 切換過去
+git branch -d <branch_name> #刪除 local branch，如果要刪除的 branch 還沒有合併，就會有錯誤訊息。如果真的要強制刪除可以用 -D
+git branch -r #列出远端分支
+
+#merge#
+git merge <branch_name> #合併另一個 branch，若沒有 conflict 衝突會直接 commit。若需要解決衝突則會再多一個 commit。
+git merge --squash <branch_name> #將另一個 branch 的 commit 合併為一筆，特別適合需要做實驗的 fixes bug 或 new feature，最後只留結果。合併完不會幫你先 commit。
+git cherry-pick 321d76f #只合併特定其中一個 commit。如果要合併多個，可以加上 -n 指令就不會先幫你 commit，這樣可以多 pick幾個要合併的 commit，最後再 git commit 即可。
+
+#revert#
+git revert 版本号 #令本地代码还原至xx版本号
+
+#如果要換 branch 的暫時的解決方式是使用 git stash 會先把修改暫存下來，要回復則執行 git stash pop
+
+9）远程库操作 remote Repo
+首先要認識的是 Protocol，像在 Github 上面看自己的 Project，會有分 Public Clone URL 跟 Your Clone URL，這有什麼差?
+  git://github.com/ihower/project.git #這種的是使用 Git 自己的 prototol，優點是速度快，但是沒有認證機制，只適合 read only (port:9418)
+  git@github.com/ihower/project.git #這種的是使用 SSH，可以有認證(SSH key)
+  #.Git 也可以透過 HTTPS 的方式，不過速度較慢，比較適合對 firewall 有限制的情況
+
+#使用#
+git clone <remote_address> 
+git checkout --track -b foobar origin/foobar # 將遠端的 branch checkout 回來並建立一個新的 local branch，加上 --track 表示你之後還要pull、push回去，所以請 Git 記住對應關係。
+git pull (<local_branch_name> origin/<remote_branch_name>) #去遠端 fetch 新版並 merge 進 local branch
+git push #將 local branch 的 commit 紀錄更新到遠端
+#git push 預設的遠端是 origin，並且會將所有有和 remote 有對應的 local branch 都 push 上去。如果要把新的 local branch push 上去，需要下 git push origin <local_branch_name> 指令。
+
+#其他#
+git fetch #把遠端的 branch 更新下載回來，但不會 merge 到 local branch
+git branch -r #顯示 local 有追蹤的遠端 branch。注意到你不能直接修改這個 remote branch，一定要用一個 local branch 對應它。
+git remote show origin #顯示遠端 server 的 branch
+git remote add foobar git:// #可以新增別的 repo. 位置，於是 pull 的時候就可以指定要從哪一個遠端更新回來。
+git push origin :foobar #刪除遠端的 branch
+
+#github官方例子#
+Global setup:
+  git config --global user.name "JAS"
+  git config --global user.email reducm@gmail.com
+      
+Next steps:
+  mkdir
+  cd StudyNotes
+  git init
+  touch README
+  git add README
+  git commit -m 'first commit'
+  git remote add origin git@github.com:reducm/StudyNotes.git
+  git push -u origin master
+      
+Existing Git Repo?
+  cd existing_git_repo
+  git remote add origin git@github.com:reducm/StudyNotes.git
+  git push -u origin master
+
+10）commit后  push前做的事！
+還沒 push 前可以做的壞事，也就是 reset 跟 rebase。
+
+#相較於 SVN 這種 commit 就是送到遠端伺服器，Git 的 commit 其實東西都還是在本地端，所以只要你還沒 push 出去分享給別人，你的 commit logs 是可以修改的!! 這種功能非常的 powerful，可以讓你 undo 和 rewrite commit history。如果你用 Git 只會 git commit 然後接著馬上 git push，那你就沒有學到精隨啊!~
+
+#使用告誡：如果你已經 push 出去了，請千萬不要做 rewrite history 的動作，會天下大亂啊。正確善用 undo changes/rewrite history 的功能，我們可以讓東西準備好弄的整整齊齊才 push 出去給別人 pull。
+
+#reset#
+git reset #砍掉 commit 重來，但是修改的程式還是留在 working tree。
+git reset HEAD^ #就會回到前一版本(一個^表示是前一版)，並把其中的 changes 繼續留在 working tree 中。適合發現前一次 commit 有問題或是想要修改 commit log，可以修改後再重新 commit。
+git reset -soft HEAD #如果加上 –soft 參數則會把 changes 直接加到 staging area。
+git reset -hard HEAD^ #加上 –hard 參數表示不留 staging area 也不留 working tree(完全刪除任何修改記錄)，則會完全抹掉前一次的 commit。
+git reset HEAD filename #常用！把档案从staging移走(但還是留在working tree)
+
+11）分支结构推荐
+主要分支
+master: 永遠處在 production-ready 狀態
+develop: 最新的下次發佈開發狀態
+支援性分支
+Feature branches: 開發新功能都從 develop 分支出來，完成後 merge 回 develop
+Release branches: 準備要 release 的版本，只修 bugs。從 develop 分支出來，完成後 merge 回 master 和 develop
+Hotfix branches: 等不及 release 版本就必須馬上修 master 趕上線的情況。會從 master 分支出來，完成後 merge 回 master 和 develop
+
+
+12）push到github
+git remote add origin git@github.com:username/Hello-World.git #Sets the origin for the Hello-World repo
+git push origin master
+
+13) 删除远端的分支,例如要删除 develop的分支
+git push origin :develop #加一个冒号，如果出错，说明guthub上develop是当前主分支，切换到master就行
+
+14) 发布本地的源码
+git archive --format=tar --prefix=proj-1.2.3/ HEAD #打包成tar
+
+15)git 恢复删除的文件
+git 从使用的角度来说，的确没有svn方便
+svn直接update即可恢复，但git pull却显示already up-to-date
+要查看删除的文件： 
+git ls-files –deleted
+恢复则需要从新checkout：
+git checkout – <deleted_file>
+多个文件同时操作可以使用xargs
+git ls-fies -d | xargs git checkout --
+
+16)git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --"
+
+用完上面这个命令之后，使用git lg 就能输出漂亮的git log
+
+17)使用tig获得更漂亮的log输出
+sudo apt-get install tig
+然后在有git的项目目录下运行 tig #原理是使用 git log -p
+
+18)github-fork!
+例:
+先到github fork ruby-china
+然后把fork出来的pull到本地
+本地再git remote add rubychina https://xxx.git #增加一个remote可以随时把这个remote的更新checkout到自己fork的线上 git pull rubychina (分支)
+----------------------------------
+自定义rails generate !!
+首先
+rails generate generator Initializer
+便会产生这些东西
+create  lib/generators/initializer
+create  lib/generators/initializer/initializer_generator.rb
+create  lib/generators/initializer/USAGE
+create  lib/generators/initializer/templates
+----------------------------------
+关闭掉犯人的webtrick warn信息:
+~/rvm/rubies/ruby-1.9.3-p0/lib/ruby/1.9.1/webrick/httpresponse.rb
+.../ruby-1.9.3-p0/lib/ruby/1.9.1/webrick/httpresponse.rb
+找到这个文件把第205行左右的位置注释掉
+@logger.warn(msg)
+
+----------------------------------
+扩充ActiveRecord::Base
+rails3里先在 application.rb 里加入 config.autoload_paths += %w( #{config.root}/lib/你的目录 )
+然后
+require '你的目录/文件'
+再想在扩充类里面加入
+ActiveRecord::Base.send(:include, MyPlugin) 
+MyPlugin为定义在lib里面的module
+
+----------------------------------
+vim 创建rails的ctags
+有些时候即时 bundle package 后 vendor/cache下面已经有了gem文件后
+ctags -R 仍然不能生成带gem函数的tags
+可以先在项目目录下运行一次 ctags -R
+然后: ctags -aR `bundle show rails`/../*
+
+---------------------------------
+方便打开gem 文件源代码
+先在bashrc文件加入
+export EDITOR='gvim -f'
+然后进入项目bundle open gemfile 
+
+------------------------------------
+在Rails里有三种加载源码的方式：
+
+1.使用 require ，这个是ruby的方式。
+
+2.基于 AcitiveSupport 的 const_missing 机制。如果找不到某个常量（类 或者 模块），就会根据其名称，去加载对应的文件，同时添加到一个已经加载的常量的列表里。比如在代码里使用了 Abc::Def，那么 Rails 就会尝试加载 abc/def.rb 这个文件。文件的搜索路径在 ActiveSupport::Dependencies.autoload_paths 中，可以在 application.rb 中用 config.autoload_paths 中添加。Rails-3 默认没有 'lib' 目录哦。所以默认情况下，使用这种方式加载不了。
+
+3.使用 require_dependency 加载。
+（load 也算一种，但似乎很少用）
+
+使用第一种方式，应用启动后，只加载一次。使用后两种，在development 模式下，每次处理新的请求，都会重新加载。
+
+但是要注意，后两种加载的时候，会把源码所在的文件展开为绝对路径，再去 require 。所以，使用Ruby-1.8.7 的时候要注意了：对于同一个文件，使用不同路径 require文件，Ruby-1.8.7 会加载多次。所以项目中应该统一使用一种方式加载。
+
+另外：如果想让 ActiveSupport::Dependencies.autoload_paths 中的某个目录的子目录只加载一次，可以添加到 config.autoload_once_paths 中。
+
+-----------------------------------
+rails console 技巧from 37signals
+用app这个对象的一些方便工具
+1）查看路由出来的url
+app.topics_path, app.topics_path(1)
+2) 用helper调用helper方法
+helper.link_to(xxxx)
+3) 用source_location查看方法在哪里定义的
+Topic.instance_methods(:destroy_all).source_location
+----------------------------------
+开发模式比webrick更快的服务器
+gem 'thin' 
+rails s thin
+----------------------------------
+use Full Text Search in PostgreSQL
+rails g resource article body:text
+in Migrate:
+def change
+    create_table :articles do |t|
+	t.text :body
+	t.column :search, 'tsvector' #重要，靠这个字段建索引
+
+	t.timestamps
+    end
+end
+
+execute <<-End_SQL
+    CREATE INDEX articles_search_index
+    ON articles USING gin(search)
+
+    CREATE TRIGGER articles_search_update
+    BEFORE INSEAR OR UPDATE ON articles
+    FOR EACH ROW EXECUTE PROCEDURE
+	tsvector_update_trigger (
+	    search,
+	    'pg_catalog.english',
+	    body
+	);
+End_SQL
+###上面的第二行gin是PostgreSQL全文搜索的关键
+using in model:
+class Article < ActiveRecord::Base
+    def self.search(query)
+	sql = sanitize_sql_array(["plainto_tsquery('english', ?)",query])
+	where("search @@ #{sql}").order("ts_rank_cd(search, #{sql}) DESC")
+    end
+end
+
+
+------------------------------------------
+#!!! 错误处理页面
+1)把routes加入exception处理
+config.exceptions_app = routes
+2)在routes.rb加
+match "/404", to: 'errors#not_found'
+
+#!!! 在controller里面使用view 的helper方法
+比较牛X，使用view_context对象，顾名思义，这个是view环境上下文
+in controller:
+    view_context.link_to "a", article_path()
+
+---------------------------------------
+在model里面使用route_helper, 
+Rails.application.routes.url_helpers.posts_path
+Rails.application.routes.url_helpers.posts_url(:host => "example.com")
+
+---------------------------------------
+sprite-factory 使用
+gem rmagick除了重新编译imageMagick外，还可以下面这种快速安装方法
+$ sudo aptitude install imageMagick libMagickWand-dev
+$ sudo gem install rmagick
+gem instal chunky_png

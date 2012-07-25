@@ -1,0 +1,133 @@
+1.?쎍?뼭楹사퍨
+sudo apt-get update
+sudo apt-get upgrade #?뀕?뵪竊뚥폏?뜃瀛㎫내瀯잏뎵?쑍
+
+2.?쎍?뼭?뿶?뿴
+sudo dpkg-reconfigure tzdata
+sudo apt-get install ntp
+sudo ntpdate ntp.ubuntu.com # Update time
+若뚧닇?릮?뵪date?윥?쐦?삸?맔閭ｇ‘
+
+3.岳??뵻hostname
+sudo hostname your-hostname
+sudo vim /etc/hosts #Add 127.0.0.1 your-hostname
+sudo vim /etc/hostname #????궡譯멻ostname????맃?節θ쎔節곈쐭?뭿?댒
+hostname #鈺잞쉈??드룯亦븃쑘?궡??뤺콖節↑춿?듊節?節얗꼥節?玉뚥퍢暎?
+
+4.若됭즳mysql
+sudo apt-get install mysql-server libmysqlclient15-dev
+
+5.岳??뵻~/.gemrc
+:sources:
+- http://gems.rubyforge.org
+- http://gems.github.com
+gem: --no-ri --no-rdoc
+
+7.若됭즳git
+sudo apt-get install git-core
+
+8.若됭즳nginx
+sudo /opt/ruby/bin/passenger-install-nginx-module
+若됭즳??됮」:
+a)1. Select option 1. Yes: download, compile and install Nginx for me. (recommended)#Run the passenger-install-nginx-module once more if you want to add --with-http_ssl_module #若됭즳若뚦릮繹먧빰?쟻?쑉 /tmp訝뗩씊竊? 倻귝옖誤곮즳http_ssl_module弱긷냽瓦먫죱訝?轝∽펽???2竊뚨꽫?릮?뒥?뀯?뢿?빊
+b)2. ?삸?눎藥긺폋瑥묈츎獒?
+
+
+###############################
+?룱訝?燁띹㎗力뺧펽?뀍若됭즳passenger ?쉪gem
+rvmsudo passenger-install-nginx-module
+
+gem install passenger
+passenger-install-nginx-module
+###############################
+
+
+9.?뀓營췲ginx
+?쎍鸚싪?양쉰 http://wiki.nginx.org/Nginx-init-ubuntu
+shell:
+cd
+git clone git://github.com/jnstq/rails-nginx-passenger-ubuntu.git
+sudo mv rails-nginx-passenger-ubuntu/nginx/nginx /etc/init.d/nginx
+sudo chown root:root /etc/init.d/nginx
+
+nginx?뫝餓?
+sudo /etc/init.d/nginx start #凉??맦
+sudo /etc/init.d/nginx status #?듁???
+sudo /etc/init.d/nginx stop #?걶閭?
+sudo /usr/sbin/update-rc.d -f nginx defaults #瓦쇾릉?삸壤삣틫?뀽?뿭
+
+10.若됭즳imagemagick
+#?뎸?뒯若됭즳imagemagick?겳?뀓?릢燁띺본?깺
+sudo apt-get remove imagemagick #?뀍?뜽饔썲럴瀯뤷츎獒끺틙?쉪imagemagick
+sudo apt-get install libperl-dev gcc libjpeg62-dev libbz2-dev libtiff4-dev libwmf-dev libz-dev libpng12-dev libx11-dev libxt-dev libxext-dev libxml2-dev libfreetype6-dev liblcms1-dev libexif-dev perl libjasper-dev libltdl3-dev graphviz gs-gpl pkg-config
+#訝뗨슬煐뽬캂若됭즳imagemagick 
+wget ftp://ftp.kddlabs.co.jp/graphics/ImageMagick/ImageMagick-6.7.7-0.tar.gz
+cd ImageMagick-6.5.0-0
+./configure #?쑉configure若뚧닇?릮訝?若싪쫨?쐦訝?訝뗦???릮?쉪岳→겘竊뚨쐦?쐦?쎑?뀽libjpeg, libpng?똿?삸?맔yes竊뚧닑??꿪rep訝?訝땕peg?쉪渦볟눣竊뚦쫩?옖?삸no誤곲뇥?뼭獒끺??訝땗ibjpeg阿뗧굳?쉪?똿,煐뽬캂訝?轝▼?퐃i?뀬?쉪
+make
+sudo make install
+#倻귝옖?룕?뵟?뵗瑥칌onvert: error while loading shared libraries: libMagickCore.so.2: cannot open shared object file: No such file or directory
+sudo ldconfig
+#若됭즳rmagick gem
+sudo /opt/ruby/bin/ruby /opt/ruby/bin/gem install rmagick
+
+11.弱앲캊?맦?뒯server
+#役뗨캊訝?訝땢ails app:
+rake db:migrate RAILS_ENV=production
+ruby script/server
+#?뀓營췲ginx 凉??맦passenger
+sudo vim /opt/nginx/conf/nginx.conf
+server {
+    listen 80;
+    # server_name www.mycook.com;
+    root /home/deploy/testapp/public;
+    passenger_enabled on;
+}
+#shell
+nginx -t #?윥?쐦nginx?뀓營??삸?맔?쐣?뿮窯?
+nginx restart
+
+$ sudo nginx
+$ sudo nginx -s reload
+$ sudo nginx -s stop
+
+?뇥?맦rails app?뼶力?
+$ cd path/to/your/awesome/project
+$ touch tmp/restart.txt
+
+----------------------
+煐뷴컩libgtk?똿
+sudo aptitude install libgtk2.0-0
+libgtkmm-2.4-dev 
+---------------------
+production?뇤?씊asset溫양쉰
+ config.assets.compress = true
+
+  # Don't fallback to assets pipeline if a precompiled asset is missed
+  config.assets.compile = true
+
+  # Generate digests for assets URLs
+  config.assets.digest = true
+
+  config.assets.js_compressor  = :uglifier
+  config.assets.css_compressor = :scss
+  config.assets.precompile += %w( static.css static.js)
+---------------------
+403 forbident?뿮窯섌?싧만?삸root?뿮窯?
+nginx.conf 
+user root root;
+
+-------------------------------------
+要쏉쉔?꼥節꿱옝鶯삼슛節よ젍?슢?븨?????뜵??뜵節ら슅節ｈ??節녘춠節배???뙣節쇔쐴節쏙슴??뺧쉔nginx??㎼캻ssenger_base_uri
+
+server {
+        listen 80;
+        server_name www.phusion.nl;
+        root /var/www/;
+        passenger_enabled on;
+        passenger_base_uri /blog;
+    }
+after creating the symlink with :
+ln -s /blog_install_dir/public /var/www/blog
+
+To add multiple apps we just have to add more passenger_base_uri options, to the same server and in the same way we addedd the first app

@@ -1,0 +1,43 @@
+1. nav bar完善, 登录, 注册， 
+
+9. user nickname  W
+
+2. edit user页面和controller的password修改
+
+3. article edit页面完善
+
+4. article controller问题处理， 是否登录用户的显示内容
+
+5. article 首页的文章内容预览问题
+
+3. user edit 完善
+
+5. catagory model controller完善
+
+5. markdown 代码问题高亮  X
+
+5. 搞定asspile line的分页面分别加载
+
+2. foot 完善
+
+6. ajax 效果
+
+7. 整体页面布局， 效果完善
+
+4. poduction deployable
+
+5. nav bar serach 搜索功能
+
+8. markdown 使用教程
+
+10. 访问量 redis_object配合
+
+11. 社交网络整合， g+ weibo twitter
+
+13. 页面 ajax 等待中的处理效果
+
+14. 页面 弹出 提示框的处果
+
+12. seo 访问url使用题目表示， tags
+
+13. unit test rspec

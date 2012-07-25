@@ -1,0 +1,294 @@
+开始装的
+yum -y --disablerepo=\* --enablerepo=c5-media install gcc gcc-c++ autoconf \
+libjpeg libjpeg-devel libpng libpng-devel freetype freetype-devel libxml2 \
+libxml2-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel bzip2 \
+bzip2-devel  ncurses ncurses-devel curl curl-devel e2fsprogs e2fsprogs-devel \
+krb5 krb5-devel libidn libidn-devel openssl openssl-devel libtool  libtool-libs \
+libevent-devel libevent openldap openldap-devel nss_ldap openldap-clients \
+openldap-servers libtool-ltdl libtool-ltdl-devel bison
+
+sudo wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz
+sudo wget "http://downloads.sourceforge.net/mcrypt/libmcrypt-2.5.8.tar.gz?modtime=1171868460&big_mirror=0"
+sudo wget "http://downloads.sourceforge.net/mcrypt/mcrypt-2.6.8.tar.gz?modtime=1194463373&big_mirror=0"
+sudo wget http://pecl.php.net/get/memcache-2.2.6.tgz
+sudo wget "http://downloads.sourceforge.net/mhash/mhash-0.9.9.9.tar.gz?modtime=1175740843&big_mirror=0"
+sudo wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.12.tar.gz
+sudo wget http://bart.eaccelerator.net/source/0.9.6.1/eaccelerator-0.9.6.1.tar.bz2
+sudo wget http://pecl.php.net/get/PDO_MYSQL-1.0.2.tgz
+sudo wget ftp://mirror.aarnet.edu.au/pub/imagemagick/ImageMagick-6.6.9-9.tar.gz
+sudo wget http://pecl.php.net/get/imagick-3.0.0.tgz
+
+------------------------------------------------------------
+这里是自己的开始：注意更新 perl php的 设置用no2
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+解决zlib问题
+/usr/bin/ld: /usr/local/lib/libz.a(crc32.o): relocation R_X86_64_32 against `a local symbol' can not be used when making a shared object; recompile with -fPIC
+/usr/local/lib/libz.a: could not read symbols: Bad value
+解决方法如下：
+cd zlib-1.2.3 //进入zlib目录
+CFLAGS="-O3 -fPIC" ./configure   //使用64位元的方法进行编译
+make
+make install
+make clean
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+mysql
+
+ sudo cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_cisudo
+
+shell> cd /usr/local/mysql
+shell> chown -R mysql .
+shell> chgrp -R mysql .
+shell> scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data --user=mysql
+shell> chown -R root .
+shell> chown -R mysql data
+
+1、 设置开机自启动
+shell> cp support-files/my-medium.cnf /etc/mysql/my.cnf
+shell> cp support-files/mysql.server /etc/init.d/mysqld
+shell> chkconfig mysqld on
+2、设置环境变量
+在/etc/environment文件的PATH下添加/usr/local/mysql/bin
+
+vi /data0/mysql/my.cnf
+
+GRANT ALL PRIVILEGES ON *.* TO root@localhost IDENTIFIED BY "123456";
+fulsh privileges;
+ 
+[client]
+default-character-set=utf8
+port    = 3306
+socket  = /tmp/mysql.sock
+ 
+[mysqld]
+character-set-server = utf8
+replicate-ignore-db = mysql
+replicate-ignore-db = test
+replicate-ignore-db = information_schema
+user    = mysql
+port    = 3306
+socket  = /tmp/mysql.sock
+basedir = /usr/local/webserver/mysql
+datadir = /data0/mysql/data
+log-error = /data0/mysql/mysql_error.log
+pid-file = /data0/mysql/mysql.pid
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+apache
+
+#./configure   --prefix=/usr/local/apache2 --sysconfdir=/etc/httpd  --with-z=/usr/local/zlib --with-included-apr  --enable-so --enable-ssl --enable-deflate=shared  --enable-expires=shared  --enable-rewrite=shared --enable-static-support --enable-module=so  
+
+(1)no SSL-C headers found
+configure: error: ...No recognized SSL/TLS toolkit detected
+解决办法：
+安装openssl-devel  
+ubuntu 下：装 libssl-dev
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+freetype
+# ./configure --prefix=/usr/local/freetype 
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+libmcrypt
+
+tar zxvf libmcrypt-2.5.8.tar.gz
+cd libmcrypt-2.5.8
+./configure
+make
+make install
+/sbin/ldconfig
+ 
+cd libltdl/
+./configure --enable-ltdl-install
+make
+make install
+--------------------------------------------------------------------------------------------------------------------------------------------------
+PHP
+tar xvf php-5.3.6.tar.gz
+cd php-5.3.6
+
+::::要编译::::
+libmcrypt libxml freetype
+::::要装的包::::
+libcurl4-openssl-dev  libjpeg8-dev libpng12-dev
+ 
+./configure --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc \
+--with-mysql=/usr/local/mysql --with-mysqli=/usr/local/mysql/bin/mysql_config \
+--with-iconv-dir=/usr/local --with-freetype-dir --with-jpeg-dir --with-png-dir --with-zlib \
+--with-libxml-dir=/usr --enable-xml --disable-rpath  --enable-safe-mode --enable-bcmath \
+--enable-shmop --enable-sysvsem --enable-inline-optimization --with-curl --with-curlwrappers \
+--enable-mbregex  --enable-fpm  --enable-mbstring --with-mcrypt --with-gd --enable-gd-native-ttf \
+--with-openssl --with-mhash --enable-pcntl --enable-sockets --with-ldap --with-ldap-sasl --with-xmlrpc \
+--enable-zip --enable-soap
+
+2)
+sudo ./configure  --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc --with-mysql=/usr/local/mysql --with-mysqli=/usr/local/mysql/bin/mysql_config --with-iconv-dir=/usr/local --with-freetype-dir=/usr/local/freetype --with-jpeg-dir --with-png-dir --with-zlib-dir=/usr/local/zlib --with-libxml-dir=/usr/local/libxml2 --enable-xml --disable-rpath  --enable-safe-mode --enable-bcmath --enable-shmop --enable-sysvsem --enable-inline-optimization --with-curl=/lib/curl --with-curlwrappers --enable-mbregex --with-mcrypt=/usr/local/libmcrypt --with-gd --enable-gd-native-ttf --with-mhash --enable-pcntl --enable-sockets --with-ldap-sasl --with-xmlrpc --enable-zip --enable-soap --enable-debug --enable-mbstring=all --with-apxs2=/usr/local/apache2/bin/apxs
+后面应加上 with-apxs2=file...但apache2/bin/apxs 脚本可能有问题，要制定perl的位置
+ 
+make ZEND_EXTRA_LIBS='-liconv'
+make install
+
+！！！！！！没找到libmysqlclient.so.15 那么解决方法。
+cp /opt/module/mysql/lib/libmysqlclient.so.15 /usr/lib
+再次make install 搞定！
+
+：：：：：：复制创建php.ini：：：：：：：：：：：：：
+cp -f php.ini-production /usr/local/webserver/php/etc/php.ini
+配置php.ini
+date.timezone = Asia/Shanghai
+error_reporting = E_ALL & ~E_DEPRECATED
+display_errors = On
+
+：：：：：：：：：：：：：：：：：：：：：：：：：：：：：
+
+
+：：：：：：：：：：：：：：：：：：：：：：：：：：：：：：：：：：
+a)在httpd.conf里面设置 ：
+<IfModule dir_module>
+    DirectoryIndex index.php index.html
+</IfModule>
+AddType application/x-httpd-php .php
+AddType application/x-httpd-php-source .phps
+
+LoadModule php5_module modules/libphp5.so
+应该有这一句:LoadModule php5_module modules/libphp5.so
+
+Alias /english /home/jas/workspace/JASEnglish
+<Directory "/home/jas/workspace/JASEnglish">
+    AllowOverride None
+    Options Indexes
+    Order allow,deny
+    Allow from all
+</Directory>
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+！！！！！！！！！错误处理！！！！！！！！！！！！！
+b)phpize增加php模块
+安装php模块
+下面我以soap安装为例子
+cd /home/zhangy/php-5.2.6/ext/soap                #ext目录下面放的是php的模块库
+/usr/local/php/bin/phpize
+#确定php-config文件在不在，调用php-config，安装后.so文件会自动放到extension_dir里面
+./configure --enable-soap  --with-php-config=/usr/local/php/bin/php-config
+make && make install
+安装完后会有这样的东西
+See any operating system documentation about shared libraries for
+more information, such as the ld(1) and ld.so(8) manual pages.
+
+Build complete.
+Don't forget to run 'make test'.
+Installing shared extensions:     /usr/local/php/lib/php/extensions/no-debug-non-zts-20060613/
+三，查看.so文件，以及修改php.ini
+cd /usr/local/php/lib/php/extensions/no-debug-non-zts-20060613/
+ls -al |grep soap
+-rwxr-xr-x 1 root  root   763334 Feb  9 10:51 soap.so
+vi /usr/local/php/lib/php.ini
+在加载模块的地加上一行extension=soap.so
+
+!!!!!!!!!!!!!!!!!!!!!!!!!autoconf错误解决
+    运行时，可能会报错：Cannot find autoconf. Please check your autoconf installation and the $PHP_AUTOCONF environment variable is set correctly and then rerun this script.“，需要安装autoconf：
+    yum install autoconf（RedHat或者CentOS）、apt-get install autoconf（Ubuntu Linux）
+
+！！！！！！！！！！！！！apache apxs2的脚本错误处理
+首先, 通过错误提示, 我们得知"I cannot run apxs". 我一直以为是apxs安装有问题, 但找了很久仍未得到合理的解释和解决方法. 
+  
+于是我直接运行"/usr/local/apache/bin/apxs"这个脚本, 得到下面的错误提示:  
+  
+bash: ./apxs: /replace/with/path/to/perl/interpreter: bad interpreter: No such file or directory 
+  
+哦, 给人的感觉很像仍然是apxs程序有问题, 但问题在哪里呢? "interpreter"是什么呢? interpreter是"解释程序"! 
+  
+嗯, 看来我们接近答案了, 运行"head -1 /usr/local/apache/bin/apxs"得到下面内容:  
+  
+#!/replace/with/path/to/perl/interpreter -w 
+  
+天啊, 这里没有指明正确的perl执行程序的位置! 原来这就才是真正的问题原因所在!!! 
+  
+把这一行更改为"#!/usr/bin/perl -w". 再运行php的configure, 一切正常!  
+  
+至此, 问题已解决.  
+  
+*** Sorry, I cannot run apxs. *** 
+
+
+--------------------------------------------------------------------------------------------------------------------------
+Memcache扩展
+
+tar xvf memcache-2.2.6.tgz
+cd memcache-2.2.6
+/usr/local/webserver/php/bin/phpize
+./configure --with-php-config=/usr/local/webserver/php/bin/php-config
+make
+make install
+cd ../
+--------------------------------------------------------------------------------------------------------------------------
+eaccelerator加速器
+　　eaccelerator是一个自由开放源码PHP加速器，优化和动态内容缓存，提高了性能php脚本的缓存性能，使得PHP脚本在编译的状态下，对服务器的开销几乎完全消除。 它还有对脚本起优化作用，以加快其执行效率。使您的PHP程序代码执效率能提高1-10倍；
+
+tar jxvf eaccelerator-0.9.6.1.tar.bz2
+cd eaccelerator-0.9.6.1/
+/usr/local/webserver/php/bin/phpize
+./configure --enable-eaccelerator=shared --with-php-config=/usr/local/webserver/php/bin/php-config
+make
+make install
+cd ..
+
+　5、配置eAccelerator加速PHP：
+　　创建缓存存放目录
+
+mkdir -p /usr/local/webserver/eaccelerator_cache
+vi /usr/local/webserver/php/etc/php.ini
+
+[eaccelerator]
+zend_extension="/usr/local/webserver/php/lib/php/extensions/no-debug-non-zts-20090626/eaccelerator.so"
+eaccelerator.shm_size="64"
+eaccelerator.cache_dir="/usr/local/webserver/eaccelerator_cache"
+eaccelerator.enable="1"
+eaccelerator.optimizer="1"
+eaccelerator.check_mtime="1"
+eaccelerator.debug="0"
+eaccelerator.filter=""
+eaccelerator.shm_max="0"
+eaccelerator.shm_ttl="3600"
+eaccelerator.shm_prune_period="3600"
+eaccelerator.shm_only="0"
+eaccelerator.compress="1"
+eaccelerator.compress_level="9"
+--------------------------------------------------------------------------------------------------------------------------
+PDO_MYSQL
+　
+　　PDO_MYSQL是一个驱动程序，它实现了PHP数据对象(PDO)的接口，以实现从PHP访问MySQL的3.x，4.x和5.x的数据库。
+
+tar zxvf PDO_MYSQL-1.0.2.tgz
+cd PDO_MYSQL-1.0.2/
+/usr/local/webserver/php/bin/phpize
+./configure --with-php-config=/usr/local/webserver/php/bin/php-config --with-pdo-mysql=/usr/local/webserver/mysql
+make
+make install
+--------------------------------------------------------------------------------------------------------------------------
+ImageMagick
+　　ImageMagick是一套稳定的工具集和开发包，可以用来读、写和处理超过89种基本格式的图片文件，包括流行的TIFF, JPEG, GIF, PNG, PDF以及PhotoCD等格式。
+
+tar xvf ImageMagick-6.6.9-9.tar.gz
+cd ImageMagick-6.6.9-9
+./configure
+make
+make install
+cd ..
+--------------------------------------------------------------------------------------------------------------------------
+Imagick
+　　Imagick(PHP的原生函数库)是一个功能强大的图像处理库，Imagick是PHP下针对ImageMagick这个强大软件包的API接口。Imagick依赖于ImageMagick。
+
+tar zxvf imagick-3.0.0.tgz
+cd imagick-3.0.0/
+/usr/local/webserver/php/bin/phpize
+./configure --with-php-config=/usr/local/webserver/php/bin/php-config
+make
+make install
+cd ..
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+
+http://www.mike.org.cn/articles/centos56-x64-compile-install-lemp/5/

@@ -1,0 +1,111 @@
+----------------------附------------------------
+二十三,SASS (css的框架，方便我们复用css代码)
+
+a)支持变量方式,存取变量和计算
+/*scss代码
+$blue: #3bbfce;
+$margin: 16px;
+
+.content-navigation {
+  border-color: $blue;
+  color:
+    darken($blue, 9%);
+}
+
+.border {
+  padding: $margin / 2;
+  margin: $margin / 2;
+  border-color: $blue;
+}
+*/
+#变量还可以用作字符串，和#{}配合使用，类似ruby
+$side = top;
+#fuck {border-#{$side}-color: orange;}
+
+b)支持结构嵌套
+/*scss代码
+table.hl {
+  margin: 2em 0;
+  td.ln {
+    text-align: right;
+  }
+}
+
+li {
+  font: {
+    family: serif;
+    weight: bold;
+    size: 1.2em;
+  }
+}
+*/
+
+c)mixin 比变量更有效的东西，甚至可以传参数
+/*
+@mixin table-base {
+  th {
+    text-align: center;
+    font-weight: bold;
+  }
+  td, th {padding: 2px}
+}
+
+@mixin left($dist) {
+  float: left;
+  margin-left: $dist;
+}
+
+#data {
+  @include left(10px);
+  @include table-base;
+}   
+*/
+
+#方法参数还可以指定默认值 
+@mixin tab($num,$str:10px){}
+
+d)继承，多用于class
+/*
+.error {
+  border: 1px #f00;
+  background: #fdd;
+}
+.error.intrusion {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.badError {
+  @extend .error;
+  border-width: 3px;
+}    
+*/
+#对于使用自身的引用可以使用&
+a {
+    &:hover {
+	color:red;
+    }
+}
+
+e)import,_xxx.scss 类似partial
+/* _rounded.scss */
+@mixin rounded($side, $radius: 10px) {
+  border-#{$side}-radius: $radius;
+  -moz-border-radius-#{$side}: $radius;
+  -webkit-border-#{$side}-radius: $radius;
+}
+
+/* style.scss */
+@import "rounded";
+#navbar li { @include rounded(top); }
+#footer { @include rounded(top, 5px); }
+#sidebar { @include rounded(left, 8px); }
+
+f)更多应用
+#scss和sass互换#
+$ sass-convert style.sass style.scss
+$ sass-convert style.scss style.sass
+#从scss生成css#
+sass input.scss output.css
+sass --watch input.scss:output.css #这样可以用观察模式看着css的变化
+#更多的详细设置文档：http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#plugin

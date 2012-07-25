@@ -1,0 +1,216 @@
+-------------------------------------------------
+二十四,coffeescript 一个方便写javascript的语言
+基本语法：
+# Assignment:
+number   = 42
+opposite = true
+
+# Conditions:
+number = -42 if opposite
+
+# Functions:
+square = (x) -> x * x
+
+# Arrays:
+list = [1, 2, 3, 4, 5]
+
+# Objects:
+math =
+  root:   Math.sqrt
+  square: square
+  cube:   (x) -> x * square x
+
+# Splats:
+race = (winner, runners...) ->
+  print winner, runners
+
+# Existence:
+alert "I knew it!" if elvis?
+
+# Array comprehensions:
+cubes = (math.cube num for num in list)
+
+#在命令行使用coffee解析环境
+1）下载nodejs源码包安装
+2)sudo npm install coffee-script
+---------------------提高------
+#function可以使用默认值,多行的function使用缩进就行
+a = (n="xxx") -> print xxx
+b =
+    f: "c"
+    d: 123
+#object 的写法类似yaml
+
+#if else unless#
+mood = greatlyImproved if singing
+
+if happy and knowsIt
+  clapsHands()
+  chaChaCha()
+else
+  showIt()
+
+date = if friday then sue else jill #三目运算
+
+options or= defaults #||=
+
+
+#方法参数，最后一个使用...省略，可以接收后面的全部参数并编程数组#
+f = (a,b...) -> type of b
+也可以直接把数组作为参数传入，coffee会自动帮你匹配好下标位置
+f ["asd",123,"ccc"]... #这种方式不要漏了省略号
+
+
+#数组循环，在循环中还可以拿出当前下标值#
+#普通循环
+eat food for food in ['toast', 'cheese', 'wine']
+
+#获取下标值，然后每次循环中把两个参数交给menu()
+courses = ['greens', 'caviar', 'truffles', 'roast', 'cake']
+menu i + 1, dish for dish, i in courses
+
+#使用when is when isnt，当不是巧克力的时候就使用eat()
+foods = ['broccoli', 'spinach', 'chocolate']
+eat food for food in foods when food isnt 'chocolate'
+
+a = (num for num in [10..1]) #这样会把10到1变成一个数组返回给a
+a = (num for num in [10..1] by 2) #跳过2
+
+
+#遍历object,json,hash,使用for key,value of xxx#
+yearsOld = max: 10, ida: 9, tim: 11
+
+ages = for child, age of yearsOld
+  "#{child} is #{age}"
+
+#while,与原来不同就是可以返回表达式,表达式内容是每一次循环的集合#
+lyrics = while num -= 1
+  "#{num} little monkeys"
+
+#do,循环中使用do，确保循环内的变量都close掉，如nodejs中的文件#
+for filename in list
+  do (filename) ->
+    fs.readFile filename, (err, contents) ->
+      compile filename, contents.toString()
+
+#数组中使用范围.. ...#
+numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+copy = numbers[0...numbers.length] #全部拿出
+numbers[3..6] = [-3, -4, -5, -6] #把3-6替换成后面的数组
+
+#coffee 会把==编程===,令程序歧义变少#
+#is to ===; isnt to !==
+#not and or
+#true yes on to true
+#false no off to false
+#then 可以区分开 条件语句与表达式
+#@变量相当于使用了this.property,代表是对象变量
+
+
+#?可以在条件语句里面确保变量非空,类似ruby的nil?#
+if mind? #=>if ((typeof mind !== "undefined" && mind !== null)
+speed ?= 75 #||= 
+zip = lottery.drawWinner?().address?.zipcode #也开用在链式表达式里面确保function有值
+
+-------面向对象---
+class Animal
+  constructor: (@name) -> #构造方法
+
+  move: (meters) ->
+    alert @name + " moved #{meters}m."
+
+class Snake extends Animal
+  move: ->
+    alert "Slithering..."
+    super 5
+
+class Horse extends Animal
+  move: ->
+    alert "Galloping..."
+    super 45
+
+sam = new Snake "Sammy the Python"
+tom = new Horse "Tommy the Palomino"
+
+sam.move()
+tom.move()
+
+#使用::可以让你直接接触类的prototype(可以编写类变量或者类方法,实例方法)
+String::dasherize = ->  # 位String类添加一个静态方法
+  this.replace /_/g, "-"
+
+#数组赋值，方便一一对应赋值#
+[city, temp, forecast] = ["gz",123,"dark"] #如此可以一一对应复制到左边数组对应的变量
+#甚至极端赋值到以下这种情况，使用Hash
+futurists =
+  sculptor: "Umberto Boccioni"
+  painter:  "Vladimir Burliuk"
+  poet:
+    name:   "F.T. Marinetti"
+    address: [
+      "Via Roma 42R"
+      "Bellagio, Italy 22021"
+    ]
+
+{poet: {name, address: [street, city]}} = futurists
+
+#用=>来明确绑定好this（预防callback等方法导致this变换）#
+Account = (customer, cart) ->
+  @customer = customer
+  @cart = cart
+
+  $('.shopping_cart').bind 'click', (event) =>
+    @customer.purchase @cart #这里的@customer会自动绑定上面的this
+
+#嵌入式javascript,直接使用js代码,在``之间#
+
+#switch用法#
+switch day
+  when "Mon" then go work
+  when "Tue" then go relax
+  when "Thu" then go iceFishing
+  when "Fri", "Sat"
+    if day is bingoDay
+      go bingo
+      go dancing
+  when "Sun" then go church
+  else go work
+
+#try/catch/exception没啥特别的#
+try
+  allHellBreaksLoose()
+  catsAndDogsLivingTogether()
+catch error
+  print error
+finally
+  cleanUp()
+
+#令string保留源缩进, 多行string#
+html = """
+       <strong>
+         cup of coffeescript
+       </strong>
+       """
+#生成html = "<strong>\n  cup of coffeescript\n</strong>";
+
+#多行注释，使用三个# #
+###
+    lalalalallala
+###
+
+
+#除了多行string，多行注释，还有多行正则#
+OPERATOR = /// ^ (
+  ?: [-=]>             # function
+   | [-+*/%<>&|^!?=]=  # compound assign / compare
+   | >>>=?             # zero-fill right shift
+   | ([-+:])\1         # doubles
+   | ([&|<>])\2=?      # logic / shift
+   | \?\.              # soak access
+   | \.{2,3}           # range or splat
+) ///
+
+---------------------------------------
+sudo npm install coffee-script
+coffee -c xxx.coffee #生成 xxx.js
+可以指定 -o 输出目录

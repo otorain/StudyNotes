@@ -1,0 +1,297 @@
+Passenger+Nginx配置摘记
+【Passenger的安装与卸载管理】
+===========================================================
+推荐方式是使用Pushion Passenger和Nginx的绑定install方式，这种方式可以分为：交互式和非交互式
+交互式的方式下会显示并提示安装过程中输入各种参数。非交互式的方式可以运行：
+
+  sudo passenger-install-nginx-module --help 
+  
+查看各种静默安装的参数。其中有几个是比较关键的：
+
+  --auto                   自动确认"按下Enter键继续"
+  --prefix=DIR         设置Nginx安装目录(默认是/opt/nginx)
+  --auto-download  自动下载和安装Nginx 
+
+另外一种是通过手工配置和便宜Nginx。在下载Nginx的源代码后进行编译时，添加如下的参数
+
+  ./configure -add-module=/path-to-passenger-root/ext/nginx
+
+这里path-to-passenger-root是Passenger的根目录。有两种方式可以获得这路径：如果是通过gem方
+式安装的。可以简单运行如下命令获得Passenger的根目录：passenger-config --root 如果是通过源码
+安装的，那么指定源代码解压后的根目录就可以了。
+
+在编译完成后，修改Nginix的配置文件(/opt/nginx/conf/nginx.conf)，在HTTP模块内添加如下一行后
+重启Nginix即可
+
+  passenger_root /path-to-passenger-root;
+  
+如果是升级或者降级Nginx或者Passenger，也是同样的步骤。  
+
+如果要临时去除Passenger的支持又不想完全卸载Passenger的话，只要把Nginx中所有关于Passenger
+的配置参数全部注释掉(通常都是以passenger-xxx打头的)，并重启Nginx就可以了。
+
+要彻底删除Passenger，首先把Nginx配置文件中所有关于Passenger的配置选项全部删除。接下来如果
+是通过gem方式安装的，执行：gem uninstall passenger 或者直接删除Passenger的安装目录。然后重
+新编译和安装Nginx即可。
+===========================================================
+
+
+【为Passenger指定Ruby的运行目录】
+===========================================================
+如果系统安装了多个Ruby解析器，需要指定一个Ruby运行目录。如果是通过RVM来安装Ruby解析器的，
+那么RVM会将默认使用的Ruby解析器添加到PATH环境变量下。可以运行echo $PATH检测，如果没有的
+话则手工添加到$PATH的最前面。
+
+administrator@RoR-PRD:~$ rvm list
+
+rvm rubies
+
+   ruby-1.9.2-p290 [ i686 ]
+=> ree-1.8.7-2011.03 [ i686 ]
+
+administrator@RoR-PRD:~$ echo $PATH
+/home/administrator/.rvm/gems/ree-1.8.7-2011.03@release/bin: \
+/home/administrator/.rvm/gems/ree-1.8.7-2011.03@global/bin: \
+/home/administrator/.rvm/rubies/ree-1.8.7-2011.03/bin: \
+/home/administrator/.rvm/bin: \
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+===========================================================
+
+
+【重新发布一个Rails应用】
+===========================================================
+重新发布一个Rails应用，只需要再次上传文件后，通知Passenger重启应用就可以。这里有两种方式：
+
+第一种是重启Nginx。另外一种是每次在发布之前，通过如下命令新建或者更新一个名为restart.txt的文
+件，让Nginx检测到文件更新(timestamp改变)而自动在下次请求到来时重启应用。
+
+  touch /webapps/mycook/tmp/restart.txt
+
+必须注意的是：Passenger并不会自动为部署的应用创建好DB的环境，依然需要在发布新的应用之后，
+手工执行：rake db:migrate RAILS_ENV=production  
+===========================================================
+
+
+【Nginx中配置项的覆盖问题】
+===========================================================
+server {
+        listen       80;
+        server_name  localhost;
+        root /home/administrator/deploy/demo/public/;   # <--- be sure to point to 'public'!
+        passenger_enabled on;
+        
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+｝
+
+上面的配置选项中，一开始将root指定为对应的Rails应用的public目录，但是在下面的location / {...}中
+又将root指定为当前目录下的index.html或者index.htm，所以会覆盖前面的root配置，当在浏览器下
+输入：http://localhost/时，显示的不是应用的根目录，而是Nginx的欢迎页面。
+
+不过不建议这样配置，因为这样会令到当站点无法访问时，无法判断是Nginx的问题还是应用的问题。如
+果要在本机再配置，可以这些写：
+
+ server {
+      listen 80;
+      server_name 127.0.0.1;
+      root /home/administrator/deploy/demo/public/;   # <--- be sure to point to 'public'!
+      passenger_enabled on;
+ }
+ 
+但是URL就要变成这样：http://127.0.0.1:80/，如果使用localhost，则Nginx会默认使用server_name
++ port 来分派请求，所以当输入：http://localhost:80/时依然会被Nginx默认的服务器拦截，返回Nginx
+的默认页面
+===========================================================
+
+
+【部署为一个URI】 
+===========================================================
+假设现在已经有了一个server配置：
+
+ server {
+        listen 80;
+        server_name www.phusion.nl;
+        root /websites/phusion;
+ }
+
+我想将新的应用部署在这个sever下面，并且请求的URL是这样的：http://www.phusion.nl/rails。
+
+首先在现有的root下面创建一个soft link，指向改Rails应用：
+  sudo ln -s /home/administrator/deploy/demo/public /opt/nginx/html/demo
+ 
+然后在原有的sever下添加如下配置：
+
+ server {
+        listen       80;
+        server_name  localhost;
+        passenger_enabled on;         # 新添加的
+        passenger_base_uri /demo;  # 新添加的
+  }
+  
+然后重启Nginx: sudo /etc/init.d/nginx restart。重新访问：http://localhost/demo
+通过这一点，我可以实现将多个Rails应用部署在同一台机器下面的问题：只要指定不同的passenger_base_uri
+===========================================================
+
+
+【Passenger的配置选项】
+===========================================================
+>> passenger_root <directory> 
+指定Passenger的安装根目录
+
+>> passenger_ruby <filename> 
+指定Passenger使用的Ruby解析器的目录(按照安装过程中推荐的值即可)
+
+>> passenger_enabled on|off
+可以定义在http/server/location/if ，默认off
+
+>> passenger_base_uri <uri>
+可以定义在http/server/location/if 中多次定义，为同一VPS配置多个应用
+
+>> passenger_use_global_queue <on|off>
+
+默认情况下Passenger使用一个全局队列(Global queue)来存放请求。当有请求到来时会首先看后端的处
+理进程是否有空闲的，有的话将该请求转发给请求进程。没有的话则存储在自己的队列里面。当该功能被
+关闭时，会在各个后台进程的内部自己维护一个独立的队列，而不是全局共享的。这样会出现一个情况：
+
+假如某个后台进程因为挂起的request数量比较少，那么Passenger会把新的请求都分配到该进程。如果新
+的请求都是属于比较耗时的请求，那么会造成该进程压力非常大，响应速度变慢。但其它已经处理完请求
+的空闲进程却无法派上用场。
+
+默认情况下这个参数的值是on
+
+>> passenger_buffer_response <on|off>
+
+当这个参数被配置为on时，Passenger会对页面的输出进行缓存。也就是将response缓存到Passenger
+中，然后逐步发送到客户端。这样做的目的是为了避免在response的内容比较大时，整个应用的实例被
+锁住，直到所有的内容都被完全发送到客户端为止。
+
+默认情况下这个参数的值是on
+
+>> passenger_friendly_error_pages on|off 
+
+可以让passenger在错误发生时以一种友好的形式来显示错误信息(包括堆栈调用，启动信息，建议等)。
+强烈建议在生产环境下关闭该参数
+
+默认情况下这个参数的值是on
+
+>> passenger_max_pool_size <integer>
+
+这个参数用于配置Passenger同一时刻可以并行的RoR/Rack应用实例的数量(注意是所有Rails应用)。推荐
+的参数值至少等于CPU(内核的数目)。如果有2G的RAM，那么可以配置为30个。如果是只有256M内存
+的VPS则建议配置为2
+
+这个参数只能在http block中定义，默认值是6
+
+>> passenger_min_instances <integer>
+
+这个参数用于指定Passenger应该保留的Rails应用的数目。它会在应用第一次被访问时，让Passenger启
+动等于这个数目的实例并一直保持在内存中。即便是一直处于空闲状态或者到了清除时间。
+
+注意这个参数并不会pre-start应用！也即是说只有在应用第一次被访问时，才会创建对应数目的实例，而
+不会在Nginx启动时就预先加载。所以第一次访问时有可能会比较慢。如果需要需要预加载，需要配合另外
+一个参数passenger_pre_start
+
+这个参数的默认值是1
+
+>> passenger_max_instances_per_app <integer>
+
+这个参数和上面max_pool_size的区别是，max_pool_size是限定Passenger可以同时启动的所有Rails/
+Rack应用的数目(可以是多个app instance的总和)，而这个参数是用于单独指定某个app instance的数量
+的。这个参数可以限制某个app instance占用了所有的pool和CPU时间片。
+
+这个参数的值必须小于passenger_max_pool_size，0代表单个应用的实例数量没有限制(最大值等于
+max_pool_size)。
+
+这个参数只能在http block中定义，默认值是0
+
+>> passenger_pool_idle_time <integer>
+
+这个参数指定了每个app instance最长的空闲时间。当一个应用在指定的时间内都没有接收到请求而处于
+空闲状态的时候，它将会被销毁而回收所占用的内存。
+
+推荐的配置时间是应用页面平均访问时间 * 2。如果设置的值过小意味着应用会经常被实例化和销毁，这
+个过程比较耗时。如果是在非共享的主机环境下，或者需要7*24小时的响应，应该设置为0
+
+当时设置为0不意味着永远不会被销毁。当另外一个app instance需要启动一个worker process但Pass-
+enger已经没有工作线程了时，会强制将一个空闲状态的app instance回收以空出worker process
+
+这个参数只能在http block中定义，默认值是300秒
+
+>> passenger_pre_start <url>
+
+这个参数可以让Passenger在Nginx启动时，预先加载指定的应用。但要注意的是即便是预先加载的应用
+在passenger_pool_idel_time 到达时，也会被销毁。如果需要继续保留在内存中，就要搭配前面提到的
+passenger_min_instances。
+
+URL支持完整的server_name，也可以是sub-URI
+
+这个参数只能在http block中定义，可以被定义无限次。
+
+>> passenger_log_level <integer>
+
+这个参数可以指定Passenger如何往Nginx的日志文件中写日志。参数值越大写入的内容越详细。总共
+分为4级：0 仅显示错误和异常；1 显示有用的调试信息(供管理员定位错误用)；2 显示更加详细的信息
+(供开发过程使用)；3 显示所有日志信息。
+
+这个参数只能在http block中定义，默认的级别是0
+
+>> passenger_debug_log_file <filename>
+
+这个参数可以指定Passenger将错误和调试信息写到何处。
+
+这个参数只能在http block中定义，默认情况下日志会写到Nginx的全局日志文件
+
+>> rails_env <string>
+
+这个参数允许针对不同的应用，设置不同的环境。可以在http/server/block/if block中定义，每处一次
+
+这个参数的默认值是production
+===========================================================
+
+
+【分析工具】
+===========================================================
+>> passenger-memory-stats
+
+这个命令需要在root用户下执行。可以使用 rvmsudo passenger-memory-stats 来查看所有的内存情况
+
+>> passenger-status
+
+这个命令同样需要在root用户下执行。可以使用 rvmsudo passenger-status 来查看Passenger的情况
+
+  ----------- General information -----------
+  max       = 6   # 等同于passenger_pool_max_size
+  count    = 0   # 当前存活的用例，小于等于max值
+  active    = 0   # 当前活跃的用例，小于等于count值
+  inactive = 0   # 当前空闲的用例，等于count-active
+  Waiting on global queue: 0
+  
+  ----------- Domains -----------
+  /var/www/projects/app1-foobar:
+  PID: 9617      Sessions: 0    Processed: 7       Uptime: 2m 23s
+  
+  Sessions: 0    # 当前应用有多少客户端连接等待处理
+  Processed:7  # 截至当前为止总共处理了多少个请求  
+  
+  ----------- Application groups -----------
+
+如果应用是基于Ruby on Rails的，当进程被kill掉时，日志会写在应用自身的日志文件中，而不是Nginx
+的日志文件。所以先检查production.log，如果没有异常信息再检查Nginx的error.log文件
+===========================================================
+
+
+【其它】
+===========================================================
+假设在Rails应用下有Gemfile，那么Passenger会自动执行Bundle.setup()方法
+
+当应用部署为Sub-uri的形式时，由于根路径发生了变化，所以静态资源(图片，CSS，JS)的相对路径都会
+发生变化。这个时候如果使用静态路径那么所有静态资源都将找不到文件，所以无论在何种部署情况下，
+都推荐使用Rails提供的帮助方法：image_tag、stylesheet_link_tag、javascript_include_tag 来创建
+相对的资源路径。
+===========================================================

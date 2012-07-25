@@ -1,0 +1,26 @@
+sudo apt-get update
+sudo apt-get upgrade
+---------------------------
+设置时区:
+cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 
+date 查看一下发现已经切换成北京时间了。
+Thu Nov 10 20:35:00 CST 2011
+---------------------------
+设置域名:
+sudo hostname www.gu-da.com
+vim /etc/hosts #add 127.0.0.1 www.gu-da.com
+vim /etc/hosts #add www.gu-da.com
+最后用 hostname 查看一下是否设置成功
+---------------------------
+mysql:
+sudo apt-get install mysql-server libmysqlclient15-dev
+---------------------------
+修改 ~/.gemrc
+:sources:
+- http://gems.rubyforge.org
+- http://gems.github.com
+gem: --no-ri --no-rdoc
+---------------------------
+安装ruby-ee：
+依赖包:sudo apt-get install build-essential bison openssl libreadline7 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libsqlite3-0 libsqlite3-dev sqlite3 libxml2-dev libxslt-dev autoconf libc6-dev ncurses-dev
+

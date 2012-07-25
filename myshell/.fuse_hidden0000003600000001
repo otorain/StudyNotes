@@ -1,0 +1,5 @@
+#! /bin/sh
+a=`echo ~/`
+`cp -r ~/StudyNotes/vim/ ~/.vim`
+`cp -r ~/StudyNotes/vimrc.txt ~/.vimrc`
+`su -c "cp $a.vim/autoload/blackboard.vim /usr/share/vim/vim73/colors"`

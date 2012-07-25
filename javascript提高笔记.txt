@@ -1,0 +1,131 @@
+::call 方法可以用来代替另一个对象调用一个方法。call 方法可将一个函数的对象上下文从初始的上下文改变为由 thisObj 指定的新对象。如果没有提供 thisObj 参数，那么 Global 对象被用作 thisObj。 
+var first_object = { 
+    num: 42 
+}; 
+var second_object = { 
+    num: 24 
+}; 
+function multiply(mult) { 
+    return this.num * mult; 
+} 
+multiply.call(first_object, 5); // returns 42 * 5 
+multiply.call(second_object, 5); // returns 24 * 5 
+
+::apply方法 apply方法的第一个参数也是要传入给当前对象的对象，即函数内部的this。后面的参数都是传递给当前对象的参数。 
+对于apply和call两者在作用上是相同的，但两者在参数上有区别的。对于第一个参数意义都一样，但对第二个参数：apply传入的是一个参数数组，也就是将多个参数组合成为一个数组传入，而call则作为call的参数传入（从第二个参数开始）。 
+如 func.call(func1,var1,var2,var3)对应的apply写法为：func.apply(func1,[var1,var2,var3])同时使用apply的好处是可以直接将当前函数的arguments对象作为apply的第二个参数传入。 
+-------------------------------------
+arguments
+arguments对象是函数里面的参数数组
+arguments是不可变数组，不能在其中使用pop,shift那些数组方法,jquery的makeArray可以把她转成数组
+var newArray = $.makeArray(arguments)
+
+-------------------------------------
+::caller 属性 
+返回一个对函数的引用，即调用了当前函数的函数体。 
+functionName.caller :functionName 对象是所执行函数的名称。 
+说明: 对于函数来说，caller 属性只有在函数执行时才有定义。 如果函数是由 JScript 程序的顶层调用的，那么 caller 包含的就是 null 。如果在字符串上下文中使用 caller 属性，那么结果和 functionName.toString 一样，也就是说，显示的是函数的反编译文本。(可直接获取函数的string！！)
+
+：：callee属性 
+返回正被执行的 Function 对象，也就是所指定的 Function 对象的正文。 
+[function.]arguments.callee:可选项 function 参数是当前正在执行的 Function 对象的名称。 
+说明: 
+callee 属性的初始值就是正被执行的 Function 对象。 
+callee 属性是 arguments 对象的一个成员，它表示对函数对象本身的引用，这有利于匿 
+函数的递归或者保证函数的封装性，例如下边示例的递归计算1到n的自然数之和。而该属性 
+仅当相关函数正在执行时才可用。还有需要注意的是callee拥有length属性，这个属性有时 
+用于验证还是比较好的。arguments.length是实参长度，arguments.callee.length是 
+形参长度，由此可以判断调用时形参长度是否和实参长度一致。 
+
+::bind 
+var first_object = { 
+    num: 42 
+}; 
+var second_object = { 
+    num: 24 
+}; 
+function multiply(mult) { 
+    return this.num * mult; 
+} 
+Function.prototype.bind = function(obj) { 
+    var method = this, 
+    temp = function() { 
+	return method.apply(obj, arguments); 
+    }; 
+    return temp; 
+} 
+var first_multiply = multiply.bind(first_object); 
+first_multiply(5); // returns 42 * 5 
+var second_multiply = multiply.bind(second_object); 
+second_multiply(5); // returns 24 * 5 
+
+-------------------------------------------------
+prototype
+function独有的原型
+1)prototype里面添加的方法应该要理解成是添加实例方法, 因为无论在哪里定义 类.prototype.fuck =function(){}; 然后这个类的所有实例都会有了这个fuck()方法，并且里面的this就是当前对象
+
+2)prototype原型类似一个模板对象，他上面的属性被用来初始化一个新对象；任何一个对象都可以作为另外一个对象的原型对象，用以共享属性，这个多用于继承或者为实例添加方法；
+    Animal.prototype = new OldAnimal();//这样所有的Animal就马上继承了OldAnimal的属性
+    //有时每次要new OldAnimal会造成内存占用，可以使用一个空方法去做，因为需要的其实只是OldAnimal的属性
+    var temp = function(){};
+    temp.prototype = OldAnimal.prototype
+    Animal.prototype = new temp();
+
+------------------------------------------------
+this 在函数调用位置里面的变化
+有时要把对象的function传到一些其他的方法中调用，这是方法里面的this会容易发生变化，我们应该先用变量保存下来
+var clicky = {
+    wasClicked: function(){
+	///
+    },
+
+    addListeners: function() {
+	var self = this; //这里先保存一下this,那下面在其他上下文调用这个对象的时候就保证this不会变化
+	$('#click').click(function(){
+	    self.wasClicked();
+	});
+    }
+}
+
+//上面的例子可以通过apply写得更优雅，把回调包在另外一个匿名函数中，保持上下文
+var proxy = fucntion(func, thisObject){
+    return function(){
+	return func.apply(thisObject,arguments);
+    }
+}
+//上面的回调就可以写成
+$("#click").click(proxy(this.wasClicked,this));
+
+------------------------------------
+javascript的私有属性
+我们可以把私有属性都定义到一个匿名函数里面，让外部不能访问
+var Person = fucntion(){};
+(function(){
+    var findById = function(){/*xxxx*/};
+    Person.find = function(id) {
+	return findById(id);
+    }
+})();
+//这个例子findById这个属性是不能通过Person.findById访问的
+
+------------------------------------
+jquery的delegate 和 bind的对比
+如果用bind或者直接绑定function到选择器，会每一个匹配元素都会绑定上事件处理函数，这样很浪费性能，delegate则只会委托一份
+$("ul li").click(function(){})//dont do this!!!
+$("ul").delegate("li", "click", [data], function(){}) //这样可以只绑定一个函数，性能更好，并且新加入的dom元素也会委托到,类似live
+------------------------------------
+jquery的trigger自定义事件
+$(".class").bind('refresh.fuck', function(){})
+$(".class").trigger('refresh.fuck')
+
+-----------------------------------
+修改浏览器后退行为的方法
+利用window.location.hash
+$("#jas").click(function(){
+    window.location.hash = $(this).val();
+}); //把东西保存到window.location.hash
+
+$(window).bind('hashchange', function(){
+    $('#jas').val  = window.location.hash
+});//每次window退后就会把东西填回到div里面
+

@@ -1,0 +1,18 @@
+http://smarthosts.sinaapp.com/hosts
+
+http://smarthosts.googlecode.com/svn/trunk/hosts
+
+修改hosts复活Google
+
+原来虽然Google退出中国大陆，但它在北京的服务器还是在继续使用的。通过修改hosts文件（位于C:\Windows\System32 \drivers\etc\），将Google各项服务的域名指向北京的服务器IP上，Google的各项服务大部分都能正常使用了。
+
+修改了hosts后，正常打开Google，使用Google的网页快照，Pisaca网络相册，Google+等在墙外的服务，提升Gmail访问速度，用Google搜索也不会时不时地挂掉了。我试着搜索上届主席，并打开了他的维基词条的Google缓存。畅通无阻的感觉就是爽！
+
+首先需要Google北京服务器的IP，打开cmd，ping www.google.cn或者ping www.g.cn。会得到IP地址，大概是203.208.46.XXX。我试出了四个地址，分别是：
+
+    203.208.46.145
+    203.208.46.146
+    203.208.46.147
+    203.208.46.148
+
+这几个地址都是可以用的，当然也可以ping出新的地址。

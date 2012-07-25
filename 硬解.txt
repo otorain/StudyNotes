@@ -1,0 +1,56 @@
+在Ubuntu 10.04(Lucid Lynx) AMD64上面设置ATI Mobile Readon 3470硬解加速成功,mplayer播放高清视频时CPU占有率大大降低，大约只有原来的1/10。使用Ubuntu 9.10时也曾经试图硬解，但没成功。具体设置/安装方法记叙如下。
+
+首先A卡要支持UVD(Unified Video Decoder)，比较新的显卡应该都是支持到UVD2的，另外Lucid自带的ATI驱动在我的机器上不支持UVD功能。
+cat /var/log/Xorg.0.log | grep UVD
+如果输出如下字样
+(II) fglrx(0): UVD2 feature is available
+则表明支持驱动UVD特性
+我的卡子在未安装ATI官方最新驱动ATI Catalyst Display Driver 10.4以前是不支持UVD2的。ATI驱动如何安装请参考ATI官方文档。
+
+A卡现在在linux平台上能够进行硬解得益于intel与开源社区开发的vaapi(Video Acceleration API)，只要安装相应的后端驱动，vaapi可以支持A卡和N卡，A卡的后端就是xvba-video,N卡的后端是vdpau-video.
+
+安装完ATI最新的官方驱动后，下载相应平台的libva包安装，当然也可以下载源码进行安装，http://www.splitted-desktop.com/~gbeauchesne/上有详细的说明。还要把libva的开发包一并安装，因为后面编译带vaavpi扩展的mplayer要用到。我安装的是最新的 libva1_0.31.0-1+sds13_amd64.deb和libva-dev_0.31.0-1+sds13_amd64.deb
+
+然后下载并安装xvba-video。安装完成后测试一下vaapi是否就绪
+$ vainfo
+我的输出如下
+libva: libva version 0.31.0-sds6
+Xlib: extension “XFree86-DRI” missing on display “:0.0″.
+libva: va_getDriverName() returns 0
+libva: Trying to open /usr/lib/va/drivers/fglrx_drv_video.so
+libva: va_openDriver() returns 0
+vainfo: VA API version: 0.31
+vainfo: Driver version: Splitted-Desktop Systems XvBA backend for VA API – 0.6.11
+vainfo: Supported profile and entrypoints
+VAProfileMPEG2Simple : VAEntrypointIDCT
+VAProfileMPEG2Main : VAEntrypointIDCT
+VAProfileH264High : VAEntrypointVLD
+VAProfileVC1Advanced : VAEntrypointVLD
+最重要的是后面输出的profile，如果有内容输出应该问题就不大了。
+
+最后就是让mplayer来支持vaapi了，发行版自带的版本目前是不支持此特性的，所以要重新编译。先执行
+$sudo apt-get build-dep mplayer
+然后下载mplayer-vaapi-latest-FULL.tar.bz2 ,解开后执行$ ./checkout-patch-build.sh即可。
+编译完成后生成的mplayer在mplayer-vaapi目录下面。
+
+$./mplayer -vo vaapi -va vaapi path_to_movie
+如果有以下字样输出
+VO: [vaapi] 1280×720 => 1280×720 H.264 VA API Acceleration
+则说明硬件加速成功。
+enjoy it!
+
+---------------------------------------------------------------------------------------------
+n卡：
+如果你能够用n卡在Mplayer上打开硬解，就说明已经成功了80％，可是有些人安装了Smplaer之后调用Mplayer 无法硬解，原因根据自己的经验有这么几个。
+
+1、确保 Smplayer 调用的是已经能够硬解的那个Mplayer 可执行文件，打开 Smplaer - Option - Prefrence - General 中第一行 Mplayer Executabke 设置具体的调用路径，把你编译好或者从第三方源安装好的支持硬解的 Mplayer 添加进去。
+
+2、Smplayer 版本不能过低，0.68及以上
+
+3、Smplayer - Option - Prefrence - Video 里边的 Output Driver 选择 Vdpau ，如果没有这个选项，说明你的 Mplayer 有问题，并不支持硬解。
+
+4、播放高清影片时，点击 Smplayer 上面蓝色 "i" 按钮( View Info And Proteries)，在出现的对话框查看 Demuxer 、Video Codec 、Audio Codec 是否调用的正确，例如 mkv 文件，Demuxer 应该是 Matroska Demuxer，Video Codec 应该是 带有“VDPAU”字样的 Codec， 对于 H264/x264编码文件，一般为 FFmpeg H264（VDPAU），如果不对，就要手动选择，保存修改。如果安装正确的Smplayer ，组件也齐全，这里播放器会自动选择正确的高清播放 Demuxer 、Video Codec 、Audio Codec 
+
+5、禁用 Smplayer 的截图功能， Smplaer - Option - Prefrence - General 将 Screen Shots 的目录设定为空，新版本的 Smplayer 去掉 Enable Screen Shots 前面的对号。
+
+以上几个步骤就可以基本保证 Smplayer 能够调用 Mplayer 正确打开硬解，但是在在此之前将Mplayer 编译成支持硬解的步骤，那又是另外一个话题了。

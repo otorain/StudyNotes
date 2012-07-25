@@ -1,0 +1,2 @@
+#! /bin/sh
+ps -el | grep $1

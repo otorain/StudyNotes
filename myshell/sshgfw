@@ -1,0 +1,2 @@
+#! /bin/sh
+ssh -D 7001 jojo@gu-da.com
