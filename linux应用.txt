@@ -168,3 +168,14 @@ sed
 ------------------------------
 awk
 ps aux | grep chrome | awk '{print $2}'
+
+-------------------------
+iptables
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+先清理一下过去的规则，注意要用sudo
+
+打开你的dns端口，输入如下命令：
+iptables -A INPUT -i ppp0 -p udp -sport 53 -j ACCEPT
