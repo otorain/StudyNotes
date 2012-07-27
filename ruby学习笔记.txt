@@ -1598,6 +1598,15 @@ rvm use 1.9.3@rails2
 
 #有时候gem install rails 之后系统提示找不到rails的话，创建一个软链接就好了
 ln -s /home/jas/.rvm/gems/ruby-1.9.3-p125/gems/railties-3.2.2/bin/rails /usr/local/bin/rails
+
+升级rvm
+rvm get stable
+rvm get head
+或者这样升级
+$ curl -L https://get.rvm.io | bash -s stable # update to stable
+$ curl -L https://get.rvm.io | bash -s head   # update to head
+$ rvm reload
+
 ------------------------------------
 编程习惯
 把数据插入到string变量的时候，不要使用+，用<<追加,例如:

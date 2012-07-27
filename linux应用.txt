@@ -179,3 +179,12 @@ iptables -t nat -X
 
 打开你的dns端口，输入如下命令：
 iptables -A INPUT -i ppp0 -p udp -sport 53 -j ACCEPT
+
+-----------------------
+tmux
+send prefix之后的一些操作
+$ session改名
+& 关闭当前窗口
+? 列出所有key_binding
+[ 复制模式
+] 粘贴模式
