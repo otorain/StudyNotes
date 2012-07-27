@@ -2488,6 +2488,10 @@ Existing Git Repo?
   git remote add origin git@github.com:reducm/StudyNotes.git
   git push -u origin master
 
+#在github 当你fork人创建自己的分支时，别人的分支更新后用这种方式pull别人的更新
+git fetch upstream
+git merge upstream/master
+
 10）commit后  push前做的事！
 還沒 push 前可以做的壞事，也就是 reset 跟 rebase。
 

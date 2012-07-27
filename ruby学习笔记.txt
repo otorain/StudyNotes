@@ -288,6 +288,11 @@ def method1(*args)
   method2(*args)
 end
 
+(8)respond_to? 可以检查一个对象有没有这个方法(消息，变量)
+eric = Dog.new
+eric.respond_to?('wo')
+#要注意respond_to?方法不能识别method_missing所创建的方法,因此每当使用method_missing的时候都要重写repond_to?方法
+
 --------------------------------------------------------------------------------------
 第三章 ： 容器 块 遍历器(containers blocks iterators) proc lambda
 (1) 数组
@@ -439,7 +444,7 @@ delete_at(下标) #可以删除下标位置的元素
 (4)块 闭包 block proc lambda
 ::在{}或者 do end之间，可以把它想象成匿名方法，在使用时想象成是一个额外的参数,巨大的作用是：把原来函数里一些变量可以带出函数外用，函数功能动态扩展
 
-::block内可以读取block的变量并改写，所以要注意变量名的问题
+::block内可以读取block外的变量并改写，所以要注意变量名的问题
   1.9里头，只要在||中定义可能会有重名的变量时，前面加个分号，就表明这个是闭包的变量
 例如 
 square = "some shape"
@@ -500,6 +505,7 @@ eg.use_proc(99)
 produces:
 The parameter is 99
 #上面的例子就是先把一个block传进对象变量里，然后用call可以调用
+#!!proc对象前再加回一个&的话，又变回一个块,可以传送到其他地方
 
 ::写一个中间类来存储block的例子（block威力：可用在动态代码处理）
 def create_block_object(&block)
@@ -1375,7 +1381,7 @@ String.instance_method(:reverse)
 "s".send(:reverse,*args) #send第一个参数是方法名，后面则是调用这个方法的参数
 
 ::define_method在类中动态创建方法
-Moduel#define_method(),他会自己动态创建一个实例方法
+Moduel.define_method(),他会自己动态创建一个实例方法
 
 class MyClass
     define_method :new_method do |args1|
@@ -1398,9 +1404,15 @@ end
 
 l = Lawyer.new
 l.fuck
+#要注意respond_to?方法不能识别method_missing所创建的方法,因此每当使用method_missing的时候都要重写repond_to?方法
+#!!注意有时想在method_missing定义新方法的时候，要注意有可能和类本来继承而来的方法重名， 这样想使用method_missing方法就失效了,解决方法是先在代理类删除集成而来的方法(白板类), 
+#Module#undef_method  删除所有方法
+#Module#remove_method 只会删除接收者的方法
+
+还有const_missing()方法
+当引用一个不存在的常量的时候，这个常量会作为符号传给const_missing方法
 
 #!!!!!########################################
-
 ::序列化对象
 例如有个对象c
 写到文件：
@@ -1413,6 +1425,81 @@ File.open("object","r") {|f|
  o= Marsha1.load(f)
 }
 -----------------------------------------------------------------------
+ruby实现的动态代理 delegate
+require 'delegate'
+class Assistant
+    def initalize(name)
+	@name = name
+    end
+
+    def read_email
+	"#{@name} is reading email for manager"
+    end
+end
+
+class Manager < DelegateClass(Assistant)
+    def initialize(assistant)
+	super(assistant)
+    end
+
+    def meeting
+	"go to metting"
+    end
+end
+
+eric = Assistant.new('eric')
+jas = Manager.new(eric)
+jas.metting #=> "go to metting"
+jas.read_email #=> "eric is reading email for manager"
+
+原理是Manager创建时会把method_missing的方法交给代理的Assistant
+-----------------------------------------------------------------------
+作用域,作用域门,scope研究 
+#ruby有三作用域门,class,module,def,在这些关键字出现的时候会创建一个域，这扇门不会给之前的变量通过,怎样实现通过呢?看下面例子:
+var a = 'xxx'
+class Xo
+    '这里怎样才能获取a呢'
+end
+#要知道block可以获取同域的变量，成为一个闭包,以前我们可以用Class.new去创建一个类，这个方法接收一个block,举一反三地,define_method, Module.new 也可以通过block获取
+
+Xo = Class.new do
+    p a
+    define_method :my_method do
+	p a
+    end
+end
+
+#如此通过block可以从一个作用域看到另外一个作用域的变量，实现了用方法去代替门, 可以称之为扁平作用域(flattening the scope/Flat Scope)
+
+#!!有了扁平作用域就可以随便折腾各种作用域,例如:
+def aa
+    b = 0
+    Kernel.send :define_method, :counter do
+	p b
+    end
+end
+
+counter #=>b 这样可以随处都获取a方法里面的一个变量
+-----------------------------------------------------------------------
+instance_eval 的一些little trick
+class A
+    def initialize()
+	@v = 1 
+    end
+end
+a = A.new
+a.instance_eval do
+    self #=> a
+    @v #=>1
+end
+instance_eval后面跟的block作用域里头的self就是调用instance_eval的对象，这个self十分强大，甚至可以访问私有方法和实例变量
+
+#ruby 1.9 新增一个instance_exec,除了有instance_eval的作用之外，还增加传入参数
+A.new.instance_exec(10) {|temp| @v + temp} #=>11
+
+由于这东西功能太强大恐怖，所以多用于irb打开对象，真实环境需要慎用
+-----------------------------------------------------------------------
+
 补充
 一. Time和Date
 （1）Time 使用C语言的原生时间戳
