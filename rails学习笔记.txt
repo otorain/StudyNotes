@@ -2675,3 +2675,16 @@ gem rmagick除了重新编译imageMagick外，还可以下面这种快速安装�
 $ sudo aptitude install imageMagick libMagickWand-dev
 $ sudo gem install rmagick
 gem instal chunky_png
+
+--------------------------------------
+表单form_tag check_box_tag
+form_tag(url_for_options = {}, options = {}, &block)
+check_box_tag(name, value = "1", checked = false, options = {})
+submit_tag(value = "Save changes", options = {})
+select_tag(name, option_tags = nil, options = {})
+hidden_field_tag(name, value = nil, options = {})
+
+<%= form_tag xxx_path, :remote => true, :id => "add_write_off" do %> 
+    <%= submit_tag "Write off", :id => "set_write_off" %><br/>
+    <%= text_area_tag 'comment', nil, :size => "100x5", :id => "write_off_comment" %> 
+<% end %>
