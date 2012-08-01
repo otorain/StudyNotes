@@ -1499,6 +1499,27 @@ A.new.instance_exec(10) {|temp| @v + temp} #=>11
 
 由于这东西功能太强大恐怖，所以多用于irb打开对象，真实环境需要慎用
 -----------------------------------------------------------------------
+当前类
+在定义class的时候，方法外的self就是当前类
+class MyClass
+    self #这个代表当前类MyClass
+    def my_method
+	#因此这是MyClass的一个实例方法
+    end
+end
+
+#!! class_eval
+class_eval可以给指定上下文的类执行一个块
+通过下面的方法使用class_eval给一个类动态添加方法呢
+def add_method(a_class)
+    a_class.class_eval do
+	def m;"Hello";end
+    end
+end
+
+add_method(String)
+"abc".m #=> "Hello" 
+
 
 补充
 一. Time和Date
