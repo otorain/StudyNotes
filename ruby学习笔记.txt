@@ -1520,6 +1520,135 @@ end
 add_method(String)
 "abc".m #=> "Hello" 
 
+#类实例变量, 注意和实例变量（对象变量区分）
+class C
+    @var = 1 #在类中方法外定义的实例变量是类实例变量（类似静态变量，实质是类C对象的实例变量）
+    def self.read
+	@var
+    end
+
+    def write(var)
+	@var = var
+    end
+end
+
+cc = C.new
+cc.write 2
+cc.read #=>2 对象修改的是自己的@var
+C.read #=>1 类的@var不会改变
+
+#还有一种是类变量@@var，这种可以给类和实例共用,但这东西不好之处在于其实他是属于main的，也就是属于Object的，所以可以给其他类改写，所以一般都不会使用
+#########################
+--------------------------------------------
+单件方法 #只给单个对象添加的方法
+首先是使用def给某个对象实例添加方法
+str = "123"
+def str.title?
+    self.upcase == self
+end
+str.title? #=> true 
+str.singleton_methods #=>[title?] 
+
+!!如果结合之前的概念去理解,定义类的时候，其实类只是对象，类名是常量, 所以定义类方法就是定义类的单件方法
+class C;end
+def C.some_method
+    #和上面定义str的单间方法相似吧，只有C这个class上才能跑的方法
+end
+
+--------------------------------------------
+类宏 #可以使用在类定义中的方法都叫类宏,例如 attr_XXX
+attr_accessor这种定义在Module中的方法，可以到处使用
+attr_accessor :fucker 看上去好像关键字，其实只是执行了一个方法
+
+--------------------------------------------
+Eigenclass eigenclass 单件类!!!!!!!!!!!!!!!
+问题:
+如上面的str.title?定义好的单件方法，这个方法究竟存在于哪里呢?
+首先不可能存在于str对象里，因为它不是一个类,其次也不可能存在于String中，不然每个String的实例都会有这个方法
+其实单件方法存在于ruby的Eigenclass里面
+
+Eigenclass是ruby每一个对象的特有隐藏类,ruby的对象在查找方法时，第一个先会查找eigenclass
+有总特殊的关键字可以让你进入某个对象的eigenclass
+class << an_obj
+    #写入到eigenclass的代码
+end
+
+如果想获得eigenclass的引用，只要在这种特殊书写方式中最后返回个self就行
+obj = Object.new
+eigenclass = class << obj
+    self
+end
+eigenclass.class #=> class 
+
+#eigenclass特点:只有一个实例，不能被继承，是对象的单件方法存放的地方
+
+所以有种技巧只给类添加属性
+class C
+    class << self
+	attr_accessor :c
+    end
+end
+C.c = 'fuck'
+
+!!用module给class定义类方法
+module Jas
+    def self.cry;'jas';end
+end
+
+class Xo
+    include Jas
+end
+Xo.cry #=> no_method error, 出错的原因是,类include module的时候，他只能获取module的实例方法，不能获取module的类方法
+#!!我们可以通过这个class的单件类来帮忙,在module里定义的是实例方法，然后在class中的eigenclass中导入
+
+修改成:
+module Jas
+    def cry;'jas';end
+end
+
+class Xo
+    class << self
+        include Jas
+    end
+end
+Xo.cry #=> jas 
+#上面这种技术叫类扩展 !!########### 
+#在引申出去的话，可以成为对象扩展
+obj = "fuck"
+class << obj
+    include Jas
+end
+obj.cry #=> jas 
+
+##!!如果觉得这样定义单件类比较麻烦，可以使用Object#extend方法，这是一个ruby让你定义eigenclass的快捷方式
+obj.extend Jas
+class SomeClass
+    extend Jas
+end
+--------------------------------------------
+方法别名， 环绕别名
+alias :new_method :old_method #注意alias是一个关键字而不是一个方法，所以两个符号之间没有逗号
+
+环绕别名, #先定义别名,再重新定义方法,别名可以把原方法绑定下来，然后使用原方法名定义的新方法可以对原方法做处理，看下面例子
+String.class_eval do
+    alias :real_length :length
+    def length
+	real_length > 5 ? "long" : "short"
+    end
+end
+"fuck that shit".length #=> long
+"fuck that shit".real_length #=> 5
+步骤:
+1 给方法定义一个别名
+2 重新定义这个方法
+3 在新方法中调用老方法（使用别名）
+
+注意:
+环绕别名是一种猴子补丁
+环绕别名不要加载两次，不然会另程序崩溃?
+
+--------------------------------------------
+
 
 补充
 一. Time和Date
@@ -1689,3 +1818,13 @@ class A
 end
 
 A.new(yy).fuck() #会调用@yy的fuck方法
+
+
+---------------------------------
+针对当时常量不能在method里面动态赋值，可以先用扁平作用域先把要赋值的东西交给和常量同一作用域的一个变量，然后在这个地方赋值给常量
+c = Module.new(something) do
+    blahblabhla
+end
+
+Config = c
+---------------------------------
