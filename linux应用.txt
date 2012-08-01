@@ -188,3 +188,5 @@ $ session改名
 ? 列出所有key_binding
 [ 复制模式
 ] 粘贴模式
+
+在ssh上客户端机打开tmux后, 客户端的家伙也打开shell并使用tmux attach，大家可以同步输入命令东东了
