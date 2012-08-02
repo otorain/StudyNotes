@@ -184,9 +184,16 @@ iptables -A INPUT -i ppp0 -p udp -sport 53 -j ACCEPT
 tmux
 send prefix之后的一些操作
 $ session改名
+s 查看session并且可以在session之间跳转
 & 关闭当前窗口
+x 关闭pane
 ? 列出所有key_binding
-[ 复制模式
+[ 复制模式 不同的tmux有不同的设置，默认是空格键开始选择，回车确定选择,(也有可以进入vim的v模式选择，也有emacs的ctrl+@进入选择alt+w复制)
 ] 粘贴模式
+# 列出buffer
+= 选择复制粘贴的buffer
+alt+上下左右 resizepane + 5 
+ctrl+上下左右 resizepane + 1
 
 在ssh上客户端机打开tmux后, 客户端的家伙也打开shell并使用tmux attach，大家可以同步输入命令东东了
+

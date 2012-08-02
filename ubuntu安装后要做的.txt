@@ -564,4 +564,7 @@ $python -V #3.2
 ack http://betterthangrep.com
 sudo apt-get install aptitude
 sudo aptitude install ack-grep
-
+------------------------
+sl
+sudo apt-get install sl 
+sl #一辆火车呼啸而过
