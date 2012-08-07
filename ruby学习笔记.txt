@@ -436,7 +436,7 @@ end
 
 #其他常用数组集合方法!!!#
 select {|a| a.length == 0} #需要集合中元素长度==0的才能留下
-reject {|a| a.length == 0} #yu与上面相反，集合==0的就不要
+reject {|a| a.length == 0} #与上面相反，集合==0的就不要
 inject {|n,i| n*i} #n是当前这个元素，i是下一个元素，这个意思是整个集合这个元素*下一个元素
 join(',') #把数组每个元素用,链接起来并且返回str
 delete_at(下标) #可以删除下标位置的元素
@@ -1625,6 +1625,11 @@ obj.extend Jas
 class SomeClass
     extend Jas
 end
+
+总结：
+1.类中包含模块，模块的方法会变成类的实例方法
+2.在类的eigenclass包含模块，模块的方法会变成类方法
+3.在任意对象的eigenclass中包含模块，模块的方法会变成这个对象的单件方法
 --------------------------------------------
 方法别名， 环绕别名
 alias :new_method :old_method #注意alias是一个关键字而不是一个方法，所以两个符号之间没有逗号
@@ -1648,7 +1653,54 @@ end
 环绕别名不要加载两次，不然会另程序崩溃?
 
 --------------------------------------------
+关于几个eval的binding对象
+几个eval方法的第二个参数都可以传入一个Binding对象,用以指定上下文
+Kernel#binding
+class MyClass
+    def my_method
+	@x = 1
+	binding
+    end
+end
+b = MyClass.new.my_method
+eval "@x", b
 
+还可以使用Ruby顶级作用域的常量,TOPLEVEL_BINDING
+
+可以把Binding对象看成是一个比块更纯的闭包，因为他只包含作用域，不带代码
+--------------------------------------------
+嵌套irb，可以在irb中指定上下文
+s = "abc"
+irb s #指定irb上下文
+reverse #=>"cba" 
+exit #back_to irc0
+
+--------------------------------------------
+hook 钩子方法
+ruby里面钩子方法的作用是，当类被继承，module被包含的时候会触发这些钩子方法，我们可以改写这些钩子方法，让程序更灵活的基于某些事件去执行代码
+例如inherited方法就是当类被集成的时候就执行这个方法，默认为空，可以重写
+class String
+    def self.inherited(subclass)
+	puts "#{self} was inherited by #{subclass}"
+    end
+end
+class MyString < String;end 
+
+还有各种钩子方法:
+Module#included(receiver) #参数是要mixin这个module的类或模块
+Module#extend_object() #可以在模块扩展类时执行代码
+Module#method_added, method_removed(), method_undefined(), 方法相关事件的代码,参数是method的引用
+
+除了使用self.included的方法外，还可以自己重写本来的include(注意这里是include不是included)来实现钩子
+class JAS
+    def self.include(*args)
+	puts "fuck that shit"
+	super #这样既有了钩子代码，include的时候也能扔给super去mixin模块
+    end
+
+    include XO
+end
+--------------------------------------------
 
 补充
 一. Time和Date
@@ -1706,6 +1758,54 @@ undef 方法名
 remove_method() #只取消本类的方法名，不取消父类
 
 
+------------------------------------------------------
+补一些技巧
+#空指针保护
+多用||= 这样可以杜绝返回nil
+
+#方法参数的技巧，解决参数固定顺序的麻烦,实质是最后一个参数使用了hash，但调用时可以省略大括号
+def my(args)
+    p args
+end
+
+my(1, name:'jas',sex:'mail') #=> [1,{:name=>'jas',sex:'mail'}] ,使用时就不必再理会name和sex的顺序了
+
+#长方法链时候使用tap检验中间可能出错的环节,如：
+%w(a b c ).push('d').shift.upcase.next
+假如shift可能会出错,可以中间插入tap方法检验
+%w(a b c ).push('d').shift.tap{|x|puts s}.upcase.next
+tab的原理,yield self给block做检验，最后还会返回self
+def tap
+    yield self
+    self
+end
+
+yield self还能这么用，在initialize里面yield出来用以设定一些初始值
+spec = Spec.new do|s|
+    s.name = 'xxx'
+    s.age = 'yyy'
+end
+####################
+
+#Symbol#to_proc 这诡异的东西相当流行
+我们对集合使用map的时候
+[1,2,3].map{|x| x.fuck} 有时候会觉得这样经常用{}很麻烦
+
+ruby1.9开始使用to_proc的写法
+to_proc的代码:
+class Symbol
+    def to_proc()
+	Proc.new {|x| x.send self}
+    end
+end
+[1,2,3].map(&:fuck.to_proc)
+简化后是
+[1,2,3].map(&:fuck)
+
+1.9的to_proc甚至支持多个参数
+[1,2,5].inject(0){|memo,obj| memo+obj} #=>8 
+#new
+[1,2,5].inject(0,&:+) #=>8 ,so cool!
 ------------------------------------------------------
 附录:
 
