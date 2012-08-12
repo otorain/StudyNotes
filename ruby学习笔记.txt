@@ -766,7 +766,7 @@ puts "nercpyitno".gsub(/(.)(.)/, '\2\1') #=>enrcpyitno
 :: 跟在正则后面的各种参数
 i 大小写忽略;o 只匹配一次;m .号不匹配换行；x 复杂模式，很长的正则里面，不会匹配空格和换行
 
-:: match方法,//.mathc(str) 成功时返回一个MatchData对象，失败时候返回nil
+:: match方法,//.match(str) 成功时返回一个MatchData对象，失败时候返回nil
 name = 'Fats Waller'
 /a/.match(name)#=> #<MatchData "a">
 
@@ -790,6 +790,9 @@ show_regexp('Mississippi', /(\w+)\1/) # => M->ississ<-ippi
 date = "12/25/2010"
 date =~ %r{(\d+)(/|:)(\d+)(/|:)(\d+)}[$1,$2,$3,$4,$5] # => ["12", "/", "25", "/", "2010"]
 date =~ %r{(\d+)(?:/|:)(\d+)(?:/|:)(\d+)}[$1,$2,$3] # => ["12", "25", "2010"]
+
+::match只能匹配一个,ruby没有//g这种用法，可以使用scan，scan会返回一个匹配成功的数组
+"abcabcabz".scan(%r{abc}).each {|item| puts item} # 输出2行abc
 
 --------------------------------------------------------------------------------------
 第七章 方法 函数的更多应用

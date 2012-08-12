@@ -42,6 +42,22 @@ $$添加set时为set排序，
 zadd set名称  顺序 值//设入
 zrange set名称 0 -1//取出时会按照 上面的顺序排序
 
+(5) hash
+HEXISTS key field// Determine if a hash field exists
+HGET key field //Get the value of a hash field
+HGETALL key //Get all the fields and values in a hash
+HINCRBY key field increment //Increment the integer value of a hash field by the given number
+HINCRBYFLOAT key field increment //Increment the float value of a hash field by the given amount
+HKEYS key //Get all the fields in a hash
+HLEN key //Get the number of fields in a hash
+HMGET key field [field ...] //Get the values of all the given hash fields
+HMSET key field value [field value ...] //Set multiple hash fields to multiple values
+HSET key field value //Set the string value of a hash field
+HSETNX key field value //Set the value of a hash field, only if the field does not exist
+HVALS key //Get all the values in a hash
+中间有M的代表multiple 可以设置多个
+hmset hash名称 键1 值1 键2 值2
+
 ----------------------------------------------------------------
 Rediska
 
