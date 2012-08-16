@@ -197,3 +197,24 @@ ctrl+上下左右 resizepane + 1
 
 在ssh上客户端机打开tmux后, 客户端的家伙也打开shell并使用tmux attach，大家可以同步输入命令东东了
 
+
+---------------------------------
+notify-send
+sudo aptituede install notify-send
+notify-send "信息"
+
+登入终端后想发给其他用户时，先查询那些用户在X-display里头
+$ who
+markmerk3 tty7         2010-09-23 10:59 (:0)
+markmerk3 pts/1        2010-09-30 13:30 (:0.0)
+fschmitt pts/2        2010-10-08 11:44 (ip-77-25-137-234.web.vodafone.de)
+markmerk3 pts/0        2010-09-29 18:51 (:0.0)
+seamonkey pts/6        2010-09-27 15:50 (:1.0)
+markmerk3 pts/5        2010-09-27 14:04 (:0.0)
+seamonkey tty8         2010-09-27 15:49 (:1)
+markmerk3 pts/13       2010-09-28 17:23 (:0.0)
+markmerk3 pts/3        2010-10-05 10:40 (:0.0)
+
+看tty,可以见到 markmerk3 在0, seamonkey在1
+然后
+DISPLAY=:0 sudo -u markmerk3 notify-send "fuck that shit" 就可以发送给markmerk
