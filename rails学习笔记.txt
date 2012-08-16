@@ -2688,3 +2688,49 @@ hidden_field_tag(name, value = nil, options = {})
     <%= submit_tag "Write off", :id => "set_write_off" %><br/>
     <%= text_area_tag 'comment', nil, :size => "100x5", :id => "write_off_comment" %> 
 <% end %>
+
+--------------------------------------
+rack 
+rack是一种接口API，作用是解藕web server和web framwork,时web framwork可以随便轻松换web server
+实现web很简单，只要一个对象，写他的call函数,扔入env(请求参数),返回一个数组["状态码","content type/或跳转的地址","内容"]就实现了rack,下面实现简单两个rack app例子：
+用rackup方式:
+Simpletest = proc {|env|["200",{"Content-Type" => "text/plain"}, ["ok"]]}# 因为ruby proc里面自己就有call方法
+run Simpletest
+命令行: rackup 这个文件
+
+用ruby启动方式
+require 'rack'
+class Redirect
+    def self.call(env)
+	if env["QUERY_STRING"] =~ /method=redirect/
+	    ["302",{"location" => "http://www.gu-da.com"}, []]
+	else
+	    ["200",{"Content-Type" => "text/plain"}, ["ok"]]
+	end
+    end
+end
+
+Rack::Server.new(:app => Redirect).start
+用ruby跑一下这个文件,加段参数?method=redirect就会跳到域名
+
+#rack middleware
+是一个拦截器,可以组成middleware chain,可以处理添加一些常用功能特性
+rack本来自己带了很多模组例如static阿request阿response阿之类的方便功能,用上面的例子添加一个Middleware:
+Rack::Server.new(
+    :app => Rack::Static.new(Ridriect, :urls => ["/assets"], :root => 'public', :index => 'index.html') 
+).start #使用了Static模块先过滤了一下assets目录，然后在执行上面的Redirect的rack app
+
+#使用Rack的Request和Response模组重写一下上面的redirect
+class Redirect
+    def self.call(env)
+	request = Rack::Request.new(env)
+	response = Rack::Response.new("ok")
+	response.redirect("http://www.gu-da.com") if request.params["method"]=="redirect"
+	response
+    end
+end
+Rack::Server.new(app:Redirect).start
+
+#把目录共享出去
+run Rack::Directory.new("~/") #rackup this.ru
+
