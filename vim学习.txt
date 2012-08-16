@@ -605,3 +605,7 @@ zm #关上当前层级折叠
 zM #关上所有折叠
 :mkview #可以把折叠保存， 打开文件时loadview就行
 :set foldmethod=indent #已缩进做折叠
+
+----------------------
+ctrl+z
+ctrl-z 退出vim 后 输入fg可以返回

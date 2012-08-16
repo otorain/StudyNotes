@@ -2734,3 +2734,32 @@ Rack::Server.new(app:Redirect).start
 #把目录共享出去
 run Rack::Directory.new("~/") #rackup this.ru
 
+#在rails中添加middleware
+class STH < Rails::Railtie
+    config.app_middleware.use Redirect
+end
+
+--------------------------------------
+railtie rails的核心，提供了一些钩子方法，让你扩展和修改rails的启动流程
+class Railtie只有一个实例,还可以添加rake任务和generator
+
+用回上面的例子
+class STH < Rails::Railtie
+    config.app_middleware.use Redirect #继承了Railtie之后可以访问这个config对象，他包含的配置是被所有railties和rails application共享的
+
+    initializer "STH FIRST" do
+	p "1"
+    end
+
+    initializer "STH SECOND", :before => "STH FIRST" do #注意这里是before first,所以会先p出2
+	p "2"
+    end
+end
+
+--------------------------------------
+engine
+class Engine < Railtie
+
+
+
+
