@@ -87,7 +87,9 @@ else
 将脚本添加到crond任务，定时执行即可。
 # echo "*/30 * * * * root /root/satools/freemem.sh" >> /etc/crondtab
 
-
+#!!查看某个进程的内存占用
+pmap -x pid 
+rss就是这个进程的总占用
 ---------------------------------------------------
 tar 压缩解压
 01-.tar格式
