@@ -188,6 +188,8 @@ OK
 redis> bgsave
 Background saving started
 
+注意redis只有一个线程，每次bgsave都会令把所有内存数据写到硬盘，不是增量式写入,所以数据量大时会另server hang住，不推荐使用
+
 2、获取某个key的类型
 redis> type mylist
 list
