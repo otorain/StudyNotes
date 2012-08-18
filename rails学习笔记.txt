@@ -924,6 +924,43 @@ as.update_all :catagory_id=>0
 
 update_all(updates, conditions, options)
 
+#!!添加一些update和update_all的例子
+#update_all
+update_all(updates, conditions = nil, options = {})
+updates - A string, array, or hash representing the SET part of an SQL statement.
+conditions - A string, array, or hash representing the WHERE part of an SQL statement. See conditions in the intro.
+options - Additional options are :limit and :order, see the examples for usage.
+例子:
+# Update all customers with the given attributes
+Customer.update_all :wants_email => true
+
+# Update all books with 'Rails' in their title
+Book.update_all "author = 'David'", "title LIKE '%Rails%'"
+
+# Update all avatars migrated more than a week ago
+Avatar.update_all ['migrated_at = ?', Time.now.utc], ['migrated_at > ?', 1.week.ago]
+
+# Update all books that match conditions, but limit it to 5 ordered by date
+Book.update_all "author = 'David'", "title LIKE '%Rails%'", :order => 'created_at', :limit => 5
+
+# Conditions from the current relation also works
+Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
+
+# The same idea applies to limit and order
+Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
+
+##update
+update(id, attributes)
+id - This should be the id or an array of ids to be updated.
+attributes - This should be a hash of attributes or an array of hashes.
+例子:
+# Updates one record
+Person.update(15, :user_name => 'Samuel', :group => 'expert')
+
+# Updates multiple records
+people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+Person.update(people.keys, people.values)
+-----------------------
 # Scope!! #
 Scope作用是把某些条件的查询变成一个方法，方便搜索出model：
   class Event < ActiveRecord::Base
@@ -1439,6 +1476,15 @@ end
 #1.回呼的方法最好放在protected或private下，確保只能由Model內部呼叫。
 #2.before_validation和before_save的差別在於前者會經過Validation驗證。
 #3.請避免before_開頭的回呼方法中，最後運算的結果不小心回傳false。這樣會中斷儲存程序。如果不確定的話，請回傳return true。這算是常見的地雷，而且不容易除錯(你會發現資料莫名地無法儲存成功)。
+
+#上面是写的callback(hook)
+#下面还有读的callback
+after_initialize #任何new或从数据库读出来都触发
+after_find #从数据库读出来后触发
+
+after_find do |model|
+    p "#{model.id}"
+end
 
 ----------------------------------------------------------------------
 九, ActiveRecord 进阶
@@ -2761,5 +2807,8 @@ engine
 class Engine < Railtie
 
 
+--------------------------------------
+在rails中model很多属性方法在生成实例才动态生成,因此在类中使用alias会失效
+rails提供alias_attribute :new_method, :old_method 的方法
 
 

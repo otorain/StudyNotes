@@ -199,6 +199,10 @@ redis> keys *
 1) "name"
 2) "mylist"
 
+keys 还可以用patten
+keys article* #=> "article:1:visit"  "article:6:visit"
+
+
 4、随机返回一个key，
 redis> randomkey
 "mylist"
