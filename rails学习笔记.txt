@@ -160,6 +160,7 @@ end
 bundle exec rake stats
 
 #关于调试#
+#日志
 （1）可以在views里面加<% debug(@event)%>打印出各种属性
 （2）另一种方法是使用log,会记录在log/development.log,可常用 tail -f去查看
 在Rails環境中，你可以直接使用logger或是Rails.logger來拿到這個Logger对象，它有幾個方法可以呼叫：
@@ -171,16 +172,23 @@ bundle exec rake stats
 例如想看@event的值：
   Rails.logger.debug("event: #{@event.inspect}")
 
-#一个简单的rake人无#
+  写入log:
+Rails.logger.info "something"
+
+#一个简单的rake任务#
 脚本写在 lib/tasks里面，要以.rake后缀名
 
 namespace :db do
-    desc "Print migrated versions"
+    desc "Print migrated versions" #描述下面的任务，rake -T可以看到描述
     task :schema_migrations => :environment do
 	puts ActiceRecord::Base.connection.select_values (
 	    'select version from schema_migrations order by version'
 	)
     end
+end
+
+执行时可以指定哪个环境
+rake RAILS_ENV=production db:schema_migrations
 ----------------------------------------------------------------------
 二. REST
 #Rest里一种URL代表一种资源(resource),对应四种post/put/get/delete方式，用上面events例子一一对应：
@@ -2810,5 +2818,22 @@ class Engine < Railtie
 --------------------------------------
 在rails中model很多属性方法在生成实例才动态生成,因此在类中使用alias会失效
 rails提供alias_attribute :new_method, :old_method 的方法
+
+------------------------------------
+capistrano
+Capfile:
+role :libs, "www.gu-da.com"
+set :user, "root"
+
+task :test_cap do
+  run 'ls -l'
+end
+
+运行cap test_cap就可以到远端执行 ls -l的命令
+除了把脚本写到capfile,也支持简单执行单行命令
+cap invoke COMMAND="echo 'Hello World'" SUDO=1
+
+
+
 
 

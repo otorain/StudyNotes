@@ -160,3 +160,13 @@ ALTER TABLE bbabase CHANGE news_id id VARCHAR(5) NOT NULL;
 
 8、在表中的content后增加一字段：
 ALTER TABLE bbabase ADD leave_time DATETIME NOT NULL AFTER
+
+----------------------
+update 多条并每条指定条件的技巧
+update article
+    set visit=( case id
+	when 1 then 10
+	when 2 then 30
+	end
+    )
+where id in (1,2) //最后这句where很关键，不然其他条目的visit会变成null

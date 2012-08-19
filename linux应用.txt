@@ -220,3 +220,7 @@ markmerk3 pts/3        2010-10-05 10:40 (:0.0)
 看tty,可以见到 markmerk3 在0, seamonkey在1
 然后
 DISPLAY=:0 sudo -u markmerk3 notify-send "fuck that shit" 就可以发送给markmerk
+
+-----------------------------
+查看硬盘使用情况
+df -h /
