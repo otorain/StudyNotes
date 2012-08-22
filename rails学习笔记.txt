@@ -2890,6 +2890,12 @@ ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table_name}")
 1）加个标记软删除，并不是删除，只是标记这个东西已删除
 2)开个新表，把要删的东西insert过去，insert比delete块很多
 
+#这条来自ruby-china
+有时候单要model的某一个值的时候，可以用pluck，返回的不是model,就只是一个值
+Post.all.map(&:id)
+# vs
+Post.pluck(:id)
+
 ---------------------
 !!在rails直接获取mysql链接!
 r = ActiveRecord::Base.connection.execute("select * from articles ")
