@@ -2833,7 +2833,70 @@ end
 除了把脚本写到capfile,也支持简单执行单行命令
 cap invoke COMMAND="echo 'Hello World'" SUDO=1
 
+------------------------------------
+rake 中处理大量数据库(mysql)时候的一些注意问题和推荐的方法
+拿把redis东西存入mysql来说,参看自己gu-da项目的jcounter
+直接使用ActiveRecord的话会有创建对象还要跑完多个callback/validation的问题，因此最好用native sql(嫌写sql麻烦可以使用http://sequel.rubyforge.org/ --sequel)
+#以下内容都参考xdite的blog: http://blog.xdite.net/posts/2012/08/22/rails-with-massive-data/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+xxddite+%28Blog.XDite.net%29
 
+#多用update_all, 少用each
+避免:
+posts = Post.where(:board_id => 5)
+post.each do |post|
+  post.board_id = 1
+  post.save
+end
 
+使用
+Post.update_all({:board_id => 1}, {:board_id => 5})
+
+#多笔sql记录时，使用find_in_batchs
+Post.find_in_batches(:conditions => "board_id = 5", :batch_size => 1000) do |posts|
+  posts.each do |post|
+    post.board_id = 1
+    post.save
+  end
+end
+#batch_size可以设置一次获取一笔多少条，默认是2000
+
+#rails每笔都会单独一个transaction, 尽量一次transaction搞定
+Post.find_in_batches(:conditions => "board_id = 5", :batch_size => 1000) do |posts|
+  Post.transaction do
+    posts.each do |post|
+      post.board_id = 1
+      post.save
+    end
+  end
+end
+
+#使用update_volumn,而不是save,因为save要跑完n多hooks
+posts.each do |post|
+  post.update_column(:board, 1)
+  post.save
+end
+但 update_column 的缺點是一次只能 update 一個欄位，如果你有 update 多個欄位的需求，可以用sneacky-save 這套 gem。
+
+#!!使用rails内置接口delegate,直接把多内容的column扔去令一个表
+
+#记得打index
+
+#delete 和 destroy代价昂贵，因为删操作的时候其实还要更新(update_index)表
+注意destroy要跑完callback,而delete不用, delete_all和destroy_all也同样
+
+#清空db的时候不要使用delete_all,用mysql的truncate table
+ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table_name}")
+
+#删除真的很慢，可以通过两个方法去“模拟”删除
+1）加个标记软删除，并不是删除，只是标记这个东西已删除
+2)开个新表，把要删的东西insert过去，insert比delete块很多
+
+---------------------
+!!在rails直接获取mysql链接!
+r = ActiveRecord::Base.connection.execute("select * from articles ")
+r.each do |row|
+    dosth with row
+end
+
+r.to_a 直接获取结果的数组
 
 
