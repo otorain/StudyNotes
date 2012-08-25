@@ -1860,6 +1860,8 @@ $ curl -L https://get.rvm.io | bash -s stable # update to stable
 $ curl -L https://get.rvm.io | bash -s head   # update to head
 $ rvm reload
 
+rvm requirements 查看安装ruby尚欠什么包
+
 ------------------------------------
 编程习惯
 把数据插入到string变量的时候，不要使用+，用<<追加,例如:
