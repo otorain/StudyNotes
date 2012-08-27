@@ -2556,9 +2556,17 @@ git merge upstream/master
 #reset#
 git reset #砍掉 commit 重來，但是修改的程式還是留在 working tree。
 git reset HEAD^ #就會回到前一版本(一個^表示是前一版)，並把其中的 changes 繼續留在 working tree 中。適合發現前一次 commit 有問題或是想要修改 commit log，可以修改後再重新 commit。
-git reset -soft HEAD #如果加上 –soft 參數則會把 changes 直接加到 staging area。
-git reset -hard HEAD^ #加上 –hard 參數表示不留 staging area 也不留 working tree(完全刪除任何修改記錄)，則會完全抹掉前一次的 commit。
+git reset --soft HEAD^ #如果加上 –soft 參數則會把 changes 直接加到 staging area。
+git reset --hard HEAD^ #加上 –hard 參數表示不留 staging area 也不留 working tree(完全刪除任何修改記錄)，則會完全抹掉前一次的 commit。
 git reset HEAD filename #常用！把档案从staging移走(但還是留在working tree)
+!!
+git reset到上一版本HEAD^，会把HEAD的东西清掉，所以如果只想回到历史查看，最好使用git checkout (log md5)
+
+通常soft的用法例如HEAD commit不满意,那么:
+git reset --soft HEAD^ #把commit回归到上一版本，这时只会修改index staging area,不会修改working tree
+xxxx操作 #
+git commit -a -m "new" #修改好做个新的commit
+
 
 11）分支结构推荐
 主要分支
@@ -2603,6 +2611,22 @@ sudo apt-get install tig
 先到github fork ruby-china
 然后把fork出来的pull到本地
 本地再git remote add rubychina https://xxx.git #增加一个remote可以随时把这个remote的更新checkout到自己fork的线上 git pull rubychina (分支)
+
+19).gitconfig文件的一些其他应用
+[core]
+    editor = vim
+[alias]
+    ci = commit -a -v
+    throw = reset --hard HEAD
+    throw = reset --hard HEAD^
+
+20)git rebase
+如果两人共同使用github,每次更新本地库都用简单的git pull的话，很容易会产生出不干净的历史（默认会加一条merge log）,比较好的做法是
+git fetch
+git rebase origin/master #举例假设是从远端的master带过来的
+git push #这样log能保持干干净净
+
+
 ----------------------------------
 自定义rails generate !!
 首先
