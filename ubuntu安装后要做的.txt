@@ -355,6 +355,7 @@ ssh jojo@192.168.1.106
 
 传文件: 
 scp 文件 jas@192.168.1.100:/home/jas/  //相当与把文件传到远程JAS的目录下
+scp -r root@xxx.com:/home/xxx /home/jas/ //将远端目录复制到本地
 -------------------------------------    
 shell
 ln -s ./下载 download
