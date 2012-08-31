@@ -99,6 +99,11 @@ default
 #索引
 create index 索引名 on 表名(字段1,字段2)
 在建表时也可以加入 index 索引名(字段1,字段2)
+索引是增加了读的速度
+查看索引
+show keys from 表名;
+show index from 表名;
+
 
 #表类型
 Myisam #全文索引,快读,不支持事务
