@@ -2919,6 +2919,9 @@ ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table_name}")
 Post.all.map(&:id)
 # vs
 Post.pluck(:id)
+$ User.uniq.pluck(:email)
+(0.2ms) SELECT DISTINCT email FROM "users"
+=> ["james@example.com", "dana@example.com", "summer@example.com"]
 
 ---------------------
 !!在rails直接获取mysql链接!
@@ -2929,4 +2932,107 @@ end
 
 r.to_a 直接获取结果的数组
 
+------------------
+追加rails技巧，来源 http://ruby-china.org/topics/5289
+1)在rails 项目添加todo功能！
+class UsersController < ApplicationController
+  # TODO:  Make it possible to create new users.
+end
 
+class User < ActiveRecord::Base
+  # FIXME: Should token really  be accessible?
+  attr_accessible :bil, :email, :name, :token
+end
+
+然后用rake notes查看，也可以指定只看todo ==> rake notes:todo
+
+2)用rails generate的时候，就给migration添加索引
+rails g resource user name:index email:uniq token:string{6} bio:text
+生成的migrate,会给name,email打上index，并且email要唯一:
+class CreateUsers < ActiveRecord::Migration
+  def change
+    create_table :users do |t|
+      t.string :name
+      t.string :email
+      t.string :token, :limit => 6
+      t.text :bio
+      t.timestamps
+    end
+
+    add_index :users, :name
+    add_index :users, :email, :unique => true
+  end
+end
+
+3)生成model的时候就指定关联关系，并自动打上index
+rails g resource article user:references subject body:text
+class CreateArticles < ActiveRecord::Migration
+  def change
+    create_table :articles do |t|
+      t.references :user
+      t.string :subject
+      t.text :body
+      t.timestamps
+    end
+    add_index :articles, :user_id
+  end
+end
+
+class Article < ActiveRecord::Base
+  belongs_to :user
+  attr_accessible :body, :subject
+end
+
+4)覆盖关联关系
+class Car < ActiveRecord::Base
+  belongs_to :owner
+  belongs_to :previous_owner, class_name: "Owner"
+
+  def owner=(new_owner)
+    self.previous_owner = owner
+    super
+  end
+end
+car更改 owner 时，如果有了 new_owner，就把原 owner 赋给 previous_owner，注意要加上 super
+
+5)instantiate 假数据
+Catagory.instantiate(id:0,name:"默认分类"),这样可以作个假分类，不会存到数据库
+
+6)自动写文件，rails扩充了一下File的API
+class Comment < ActiveRecord::Base
+  # ...
+  Q_DIR = (Rails.root + "comment_queue").tap(&:mkpath)
+  after_save :queue_comment
+  def queue_comment
+    File.atomic_write(Q_DIR + "#{id}.txt") do |f|
+      f.puts "Article: #{article.subject}"
+      f.puts "User:    #{user.name}"
+      f.puts body
+    end
+  end
+end
+
+7)合并相同key的hash, 主要用deep_merge
+$ rails c
+>> {nested: {one: 1}}.merge(nested: {two: 2})
+#=> {:nested=>{:two=>2}}
+>> {nested: {one: 1}}.deep_merge(nested: {two: 2})
+#=> {:nested=>{:one=>1, :two=>2}}
+
+8)hash的except，取反
+$ rails c
+>> params = {controller: "home", action: "index", from: "Google"}
+#=> {:controller=>"home", :action=>"index", :from=>"Google"}
+>> params.except(:controller, :action)
+#=> {:from=>"Google"}
+
+10)之前的关于自定义exception出错页面的方法，这里再详细写下
+class Application < Rails::Applicationc 
+# 设置
+  config.exceptions_app = routes
+end
+路由里头:
+match "/404", :to => "errors#not_found"
+
+想在development环境下也可以读（开发环境默认是给debug信息）:
+set config.consider_all_requests_local to false in your config/environments/development.rb

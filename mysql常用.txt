@@ -97,12 +97,24 @@ null (not null) #设定
 default 
 
 #索引
+创建索引
 create index 索引名 on 表名(字段1,字段2)
+用alter的方法创建索引:
+alter table table_name add index index_name (column_list) ;
+alter table table_name add unique (column_list) ;
+alter table table_name add primary key (column_list) ;
+
 在建表时也可以加入 index 索引名(字段1,字段2)
 索引是增加了读的速度
+
 查看索引
 show keys from 表名;
 show index from 表名;
+
+删除索引
+drop index index_name on table_name ;
+alter table table_name drop index index_name ;
+alter table table_name drop primary key ;
 
 
 #表类型
