@@ -7,8 +7,60 @@ git clone git://github.com/ChrisJohnsen/tmux-MacOSX-pasteboard.git
 brew install reattach-to-user-namespace
 cd xxx
 编译这软件
-make reattach-to-user-namespace && cp reattach-to-user-namespace ~/bin
+make reattach-to-user-namespace && cp reattach-to-user-namespace ~/bin #/////
 再把这脚本加到.tmux.conf
 set-option -g default-command "reattach-to-user-namespace -l zsh"
 
 键盘上没有了 pageUp 和 pageDown的话可以进入copy模式再用emacs方式翻页
+
+
+---------------------------------------
+brew install mysql 后要做的事
+可以用brew info mysql 查看以下的一些信息
+以下是配置顺序，熟悉一下以前php的东西
+#my.cnf
+在安装目录(/usr/local/Cellar/mysql/xxx/support-file)下有很多种配置文件，
+cp xxxx.cnf /etc/my.cnf
+
+放一个最小
+[client]
+port = 3306
+socket = /tmp/mysql.sock
+default-character-set = utf8
+[mysqld]
+collation-server = utf8_unicode_ci
+character-set-server = utf8
+init-connect ='SET NAMES utf8'
+max_allowed_packet = 64M
+bind-address = 127.0.0.1
+port = 3306
+socket = /tmp/mysql.sock
+
+#set up databases to run AS YOUR USER ACCOUNT with:
+unset TMPDIR
+mysql_install_db --verbose --user=`whoami` --basedir="$(brew --prefix mysql)" --datadir=/usr/local/var/mysql --tmpdir=/tmp #/#////
+
+
+#为root用户创建密码
+/usr/local/Cellar/mysql/5.5.27/bin/mysqladmin -u root password 'new-password'
+/usr/local/Cellar/mysql/5.5.27/bin/mysqladmin -u root -h jojotekiMacBook-Pro.local password 'new-password'
+
+#to start the mysql
+mysql.server start
+
+#用root登陆进去删掉没用的用户，创建新用户去
+
+
+#To launch on startup:
+* if this is your first install:
+mkdir -p ~/Library/LaunchAgents
+cp /usr/local/Cellar/mysql/5.5.27/homebrew.mxcl.mysql.plist ~/Library/LaunchAgents/
+launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+
+* if this is an upgrade and you already have the homebrew.mxcl.mysql.plist loaded:
+launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+cp /usr/local/Cellar/mysql/5.5.27/homebrew.mxcl.mysql.plist ~/Library/LaunchAgents/
+launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+
+You may also need to edit the plist to use the correct "UserName".
+
