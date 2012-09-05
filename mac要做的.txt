@@ -1,0 +1,14 @@
+安装
+homebrew rvm xcode(with comandline tool) paragon-ntfs macvim
+---------------------------------------
+让tmux支持系统的pbcopy pbpaste命令
+git clone git://github.com/ChrisJohnsen/tmux-MacOSX-pasteboard.git
+或者直接
+brew install reattach-to-user-namespace
+cd xxx
+编译这软件
+make reattach-to-user-namespace && cp reattach-to-user-namespace ~/bin
+再把这脚本加到.tmux.conf
+set-option -g default-command "reattach-to-user-namespace -l zsh"
+
+键盘上没有了 pageUp 和 pageDown的话可以进入copy模式再用emacs方式翻页
