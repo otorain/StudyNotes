@@ -2748,11 +2748,22 @@ Rails.application.routes.url_helpers.posts_path
 Rails.application.routes.url_helpers.posts_url(:host => "example.com")
 
 ---------------------------------------
-sprite-factory 使用
+sprite-factory 使用 还有rmagick
 gem rmagick除了重新编译imageMagick外，还可以下面这种快速安装方法
 $ sudo aptitude install imageMagick libMagickWand-dev
 $ sudo gem install rmagick
 gem instal chunky_png
+
+mac 下面用brew快速安装rmagick
+sudo brew install ghostscript
+sudo brew install imagemagick
+#上面这一步如果little-cms有问题的话，就做下面这几步
+sudo brew edit little-cms
+replace
+url 'http://www.littlecms.com/lcms-1.19.tar.gz'
+with
+url 'http://www.imagemagick.org/download/delegates/lcms-1.19.tar.gz' #(or an URL where you could find “lcms-1.19.tar.gz”)
+sudo gem install rmagick
 
 --------------------------------------
 表单form_tag check_box_tag

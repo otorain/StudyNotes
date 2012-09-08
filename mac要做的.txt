@@ -15,6 +15,38 @@ set-option -g default-command "reattach-to-user-namespace -l zsh"
 
 
 ---------------------------------------
+一些mac本来的快捷键
+cmd+~ 同一应用多窗口切换
+cmd+shift+3 截图保存到桌面,+多个ctrl就保存到粘贴板
+cmd+shift+4 选取截图
+
+command+shift(+option)+4然后按下空格键，鼠标变成小相机，选择某一窗口后点击鼠标左键对单个窗口截图。不必担心其它窗口的遮挡。 6.按command+shift(+option)+4然后画一个抓取的区域，不要松开鼠标，接着 (1)按住空格可以移动这个区域 (2)按住Shift将锁定X或者Y轴进行拖动 (3)按住option后将按照区域圆心进行放大
+
+开机时按住C键：光盘开机
+开机时按住N键：网络开机
+开机时按住T键：硬盘开机
+开始时按option键：选择开机磁盘
+开机时按command+option+shift+delete组合键：以外接储存装置内的系统开机
+开机时按shift键：安全模式开机
+开机时按V键：进入Verbose模式
+开机时按S键：进入Single-User单人模式
+开机时按住鼠标（左）键：将光盘强制退出
+开机时按command+option+O+F组合键：进入Open Firmware模式
+开机时按住command+option+P+R直到第二声开机声完后放开：清除PRAM
+开机时按住command+option+N+V组合键：清除NV RAM
+开机时按住Mute静音键：静音开机
+
+让mac唱歌...
+osascript -e 'say "Dum dum dum dum dum dum dum he he he ho ho ho fa lah lah lah lah lah lah fa lah full hoo hoo hoo" using "Cellos"'
+
+osascript -e 'say "Dum dum dee dum dum dum dum dee Dum dum dee dum dum dum dum dee dum dee dum dum dum de dum dum dum dee dum dee dum dum dee dummmmmmmmmmmmmmmmm" using "Pipe Organ"'
+
+osascript -e 'say "Dum dum dee dum dum dum dum dee Dum dum dee dum dum dum dum dee dum dee dum dum dum de dum dum dum dee dum dee dum dum dee dummmmmmmmmmmmmmmmm" using "Hysterical"'
+
+osascript -e 'say "oh This is a silly song silly song silly song this is the silliest song ive ever ever heard So why keep you listening listening listening while you are supposed to work to work to work to work its because i hate my job hate my job hate my job its because i hate my job more than anything else No its because youve no life youve no life youve no life and you better go get one after forwarding this crap" using "cellos"'
+---------------------------------------
+
+
 brew install mysql 后要做的事
 可以用brew info mysql 查看以下的一些信息
 以下是配置顺序，熟悉一下以前php的东西
@@ -64,3 +96,44 @@ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
 
 You may also need to edit the plist to use the correct "UserName".
 
+-----------------------
+让mac默认读写ntfs分区
+sudo mv /sbin/mount_ntfs /sbin/mount_ntfs.orig #备份以下
+touch /sbin/mounnt_ntfs
+vim /sbin/mount_ntfs
+
+#!/bin/sh
+/sbin/mount_ntfs.orig -o rw "$@"
+
+sudo chown root:jojo /sbin/mount_ntfs
+sudo chmod 755 /sbin/mount_ntfs
+
+--------------------
+用zsh替换掉他妈的bash
+brew install zsh
+git clone git://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
+再把默认的bash替换成zsh
+chsh -s /bin/zsh
+
+
+--------------------
+iterm2让terminal变得更花俏
+安装iterm2，在偏好设置键盘的一栏可以设半屏拉出terminal,快捷键设成cmd+\不错
+
+cmd+f 是搜索，搜索到的时候继续按tab的话是向前选择，选择到的东西会自动复制到粘贴版,shift+tab是向后选择
+
+cmd+; 会自动补完之前输入过的命令
+cmd+shift+h 查看粘贴板历史
+cmd+endter 全屏
+--------------------
+关掉睡眠把缓存写到ssd
+sudo pmset -a hibernatemode 0
+复制代码
+sudo rm /var/vm/sleepimage*
+复制代码
+
+
+-------------------
+通宵下载不休眠
+pmset noidle 这命令的窗口一直开着mac就不会进入休眠，可以挂机下载了
