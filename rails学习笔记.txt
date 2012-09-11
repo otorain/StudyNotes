@@ -607,7 +607,7 @@ a)直接回传结果:
   render :nothing => true 空空如也
 b)指定Template：
   :template 指定Template
-  :action 指定使用該Action的Template(注意到只是使用它的Template，而不會執行該Action內的程式)
+  :action 指定使用該Action的Template(注意到只是使用它的Template，而不會執行該Action內的程式) #这个很奇怪
   :file 指定Template的檔名全名
 c)其他参数：
   :status 設定HTTP status，預設是200，也就是正常。其他常用代碼包括401權限不足、404找不到頁面、500伺服器錯誤等。
@@ -1437,6 +1437,12 @@ validates :email, :uninqueness => {:case_sensitive => false } #case_sensitive �
 #   validates :age, :numericality => true
 #   validates :username, :presence => true
 #   validates :username, :uniqueness => true
+
+#!!验证还可以伴随条件判断
+:if, :unless, :on, :allow_blank, :allow_nil and :strict can be given to one specific validator, as a hash:
+validates :password, :presence => { :if => :password_required? }, :confirmation => true
+Or to all at the same time:
+validates :password, :presence => true, :confirmation => true, :if => :password_required?
 
 # 自定义验证 #
 使用 validate 方法傳入一個同名方法的 Symbol 即可。
@@ -2945,7 +2951,7 @@ r.to_a 直接获取结果的数组
 
 ------------------
 追加rails技巧，来源 http://ruby-china.org/topics/5289
-1)在rails 项目添加todo功能！
+1)在rails 项目添加todo功能！to-do
 class UsersController < ApplicationController
   # TODO:  Make it possible to create new users.
 end
