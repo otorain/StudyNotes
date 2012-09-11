@@ -137,3 +137,6 @@ sudo rm /var/vm/sleepimage*
 -------------------
 通宵下载不休眠
 pmset noidle 这命令的窗口一直开着mac就不会进入休眠，可以挂机下载了
+-------------------
+mac下面的brew装的ctags不是exburent ctags，自己去http://ctags.sourceforge.net/ 编译安装吧
+然后装在一个与系统自带的ctags不冲突的路径下,然后在.vimrc里加一行let Tlist_Ctags_Cmd = '/path/to/ctags'就可以了.
