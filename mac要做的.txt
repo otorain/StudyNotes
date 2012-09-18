@@ -15,6 +15,12 @@ set-option -g default-command "reattach-to-user-namespace -l zsh"
 
 
 ---------------------------------------
+brew link的用法
+有时装ruby的时候例如要--with-openssl-dir
+brew install openssl
+brew link openssl
+这样装ruby的时候就不用再with-openssl-dir了
+---------------------------------------
 一些mac本来的快捷键
 cmd+~ 同一应用多窗口切换
 cmd+shift+3 截图保存到桌面,+多个ctrl就保存到粘贴板
