@@ -2358,18 +2358,18 @@ end
 
 2)当有表关联时，尽量利用好表关联，例如user 一对一 post
 不要:
-  @post = Post.new(:params[:post])
+  @post = Post.new(params[:post])
   @post.user_id = current_user.id
   @post.save
 要：
-  @post = current_user.posts.build(:params[:post])
+  @post = current_user.posts.build(params[:post])
 
 3)别做不必要的检查
 if @post.user != current_user
   flash[:notice "用户错"] #错误方式！！
 end #wrong!
 
-@post = current_user.posts.find(:params[:post]) #这种正确，因为在关系中如果当前对象里面找不到post就直接会报错了
+@post = current_user.posts.find(params[:post]) #这种正确，因为在关系中如果当前对象里面找不到post就直接会报错了
 
 4）在一些fullname 对应 注册时的firstname lastname要使用虚拟属性
 
