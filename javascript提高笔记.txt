@@ -129,3 +129,191 @@ $(window).bind('hashchange', function(){
     $('#jas').val  = window.location.hash
 });//每次window退后就会把东西填回到div里面
 
+-----------------------------------
+文件的高级应用(某些基于html5接口)
+1)访问文件信息
+html5用File对象表示文件,有三个属性(name size type), FileList对象可以获取文件数组
+
+2)验证文件（是否图片）
+var input = $("input[type='file']");
+input.change(function(){
+    var files = this.files;
+    for(var i=0; i<files.length; i++){
+	assert(files[i].type.match(/images.*/));
+    }
+});
+
+3)拖曳
+事件有 dragstart, drag, dragover, dragenter, dragleave, drop, dropend
+启用(设置dragable属性):
+<div dragable="true" id="dragme">Drag me!</div> //我们可以调用dragstart事件,调用setData()函数
+var element = $("#dragme")
+element.bind("dragstart", function(event){
+    event = event.originalEvent; //不用jquery的抽象对象,因为要用到dataTransfer里面的api
+    
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", $(this).text()); //这样这个div拖曳到那个地方就可以让他显示Dragme!
+    event.dataTransfer.setData("text/html", $(this).html());
+    event.dataTransfer.setDragImage("/images/drag.png", -10, -10); //拖曳的时候跟随鼠标的图像，坐标是相对鼠标的位置
+});
+除了"text/plain"之外还有"text/uri-list"用于拖曳连接
+event.dataTransfer.setData("text/uri-list","http://www.gu-da.com")
+
+4)释放拖曳
+element.bind("dragenter", function(e){
+    e.stopPropagation();
+    e.preventDefault();
+});
+
+
+element.bind("dragover", function(e){
+    e.originalEvent.dataTransfer.dropEffect = "copy"; //设置鼠标
+
+    e.stopPropagation();
+    e.preventDefault();
+});
+
+//只有释放了dragenter和dragover事件之后，我们才能监听drop事件,drop事件的dataTransfer有个files事件返回FileList,这个dataTransfer有types和getData属性
+element.bind("drop", function(e){
+    e = e.originalEvent;
+    
+    e.dataTransfer.types.match("File") //如果有文件会有Files字样
+    e.dataTransfer.getData("Text")//如果不是文本文件会返回undefined
+
+    files = e.dataTransfer.files
+    files do name size type
+});
+
+5)撤销body原来的dragover事件
+通常拉个文件到浏览器都会让浏览器重定向，要取消这事件
+$('body').bind("dragover",function(e){
+    e.stopPropagation();
+    e.preventDefault();
+    return false;
+});
+
+6)读文件!!
+获取File引用之后可以实例一个FileReader对象，这对象有四种方法去读取文件
+readAsBinaryString(Blob|File) //二进制字符串
+readAsDataURL(Blob|File) //以url返回这文件，可以用做图像src属性!
+readAsText(Blob|File, enccoding='UTF-8') 
+readAsArrayBuffer()//很多浏览器未实现
+
+FileReader还包括几个事件
+onerror //发生错误时候调用
+onprogress //数据读取的时候调用
+onload //数据可用的时候调用
+
+要使用FileReader,要生成实例，监听事件
+reader = new FileReader();
+reader.onload = function(e){
+    var data = e.target.result; //onload有result属性
+};
+reader.readAsDataURL(file)
+
+略缩图例子!! :
+preview = $("img#preview")
+//检查文件类型
+//检查体积
+if(file.type.match(/image.*/)) && file.size< 50000000 {
+    var reader = new FileReader();
+    reader.onload= function(e){
+	var data = e.target.result;
+	preview.attr("src",data);
+    };
+    reader.readAsDataURL(file);
+}
+
+7)hack掉原来上传文件丑陋的按钮！ //可暂不用
+var input = $("attach").broseElement();
+input.change(function(){
+    var files = $(this).attr("files");
+});
+
+8)使用ajax上传文件!!
+xhr2提供的借口可以另浏览器不跳转
+FormData是一个非常方便的表单对象，提供很多简易借口,可以创建表单对象，也可以在init时候把已有对象抓进来
+var formData = new FormData($("form")[0]) //创建新对象
+formData.append("stringKey","StringData") //添加字符串
+formData.append("fileKey",file) //添加文件对象
+
+FormData准备好之后，就可以用ajax post到服务器了,要用jquery发ajax的话，要注意把processData设成false,这样jquery就不会对数据序列化,并且不需要设置Content-Type头
+formdata:
+$.ajax(
+	{
+	    data: formData, //这里其实也可以直接传File对象
+	    processData: false,
+	    url: "your url actio$an",
+	    type: "POST",
+	    success: function(){...};
+	}
+      )
+
+xhr:
+var req = new XMLHttpRequest();
+req.open("POST","URL",true);
+req.send(file)
+
+上面两种上传方式只会传纯文件内容，没有文件头,会缺少文件名的信息,要的话可以这样传
+$.ajax({
+    url:"blah",
+    type:"POST",
+    success:function(){},
+    processData:false,
+    contentType:"multipart/form",
+    beforeSend: function(xhr,settings){
+	xhr.setRequestHeader("Cache-Control","no-cache")
+	xhr.setRequestHeader("X-File-Name",file.fileName)
+	xhr.setRequestHeader("X-File-Size",file.fileSize)
+    },
+    data: file //推荐用FormData对象，因为纯文件对象经常会有服务器方的问题
+})
+
+9)进度条
+xhr2有progress事件，可以方便跟踪进度
+下载的进度
+req = new XMLHttpRequest();
+req.addEventListener("progress", updateProgress, false);
+req.addEventListener("load", transferComplete, false);
+req.open();
+上传的进度需要给upload添加监听
+req = new XMLHttpRequest();
+req.upload.addEventListener("progress", updateProgress, false);
+req.upload.addEventListener("load", transferComplete, false);
+req.open();
+
+看jquery的例子,xhr对象都传给了beforeSend的回调
+$.ajax({
+    url:"blah",
+    type:"POST",
+    success:function(){},
+    processData:false,
+    dataType:"multipart/form",
+    beforeSend: function(xhr,settings){
+	var upload = xhr.upload;
+	if(settings.progress){
+	    upload.addEventListener("progress",settings.progress,false);
+	}
+	if(settings.load){
+	    upload.addEventListener("load", settings.load, false);
+	}
+	var fd = new FormData;
+	for(var key in settings.data) {
+	    fd.append(key, settings.data[ke$ay]);
+	}
+	settings.data = fd;
+    },
+    data: file 
+});
+
+progress事件包含一个position(已上传)和total(总字节数)的属性,还有一个timeStamp（上传了的时间）
+var progress = function(event){
+    var percentage = Math.round((event.prosition/event.total) * 100);
+    //设置进度条
+}
+
+
+
+
+
+
