@@ -1840,6 +1840,38 @@ ajax:failure – failed ajax call
 ajax:complete – completion of ajax call (after ajax:success and ajax:failure)
 ajax:after – after ajax call is sent (note: not after it returns)
 
+#继续补充!! 
+#rails3开始有的ujs(unobtrusive javascript)
+data-confirm 会弹出用户提示
+data-method 上传方法
+data-remote 是否使用ajax
+data-disable-with 上传过程中另dom失效
+
+<a href="/posts/2" class="delete_post" data-confirm="Are you sure?" data-method="delete" data-remote="true" rel="nofollow">Destroy</a>
+这样写可以产生一个需要确认,方法是delete,ajax的连接
+
+在post controller show里头
+def show
+    # xxx action
+    respond_to do|format|
+      if @post.save  
+        format.html { redirect_to(@post, :notice => 'Post created.') }  
+        format.js  
+      else  
+        format.html { render :action => "new" }  
+        format.js  
+      end  
+    end
+end
+这时候，如果没有明确指定返回js的动作，就会默认找一个叫post/show.js.erb,这个文件可以直接用javascript+erb的代码返回到前端!! 这就是rails的erb ajax方式，另外还有上面之前写的ajax:success的完全客户端方式，erb方式更容易处理前端代码,但是不能使用coffeescript
+$("body").append("<%= @post.content %>")
+
+
+
+
+
+
+
 ----------------------------------------------------------------------
 十三, Restful 表单设计
 willdo

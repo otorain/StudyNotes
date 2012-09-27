@@ -158,3 +158,9 @@ safari使用goageent翻墙
 finder--前往---连接服务器
 smb://192.168.1.100
 输入用户名密码之后就可以挂载了
+
+
+---------------
+安装nodejs后npm的问题
+npm安装后要这样装coffee-script才有全局命令
+sudo npm -g install coffee
