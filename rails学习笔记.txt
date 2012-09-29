@@ -2664,6 +2664,9 @@ git fetch
 git rebase origin/master #举例假设是从远端的master带过来的
 git push #这样log能保持干干净净
 
+21)git show
+git show HEAD:app/views/root/index.html.erb #直接查看历史版本的某个文件，head可以换成任意一个commit的md5
+
 
 ----------------------------------
 自定义rails generate !!
