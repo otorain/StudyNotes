@@ -609,3 +609,9 @@ zM #关上所有折叠
 ----------------------
 ctrl+z
 ctrl-z 退出vim 后 输入fg可以返回
+
+---------------------
+vim-css-color 本来不支持sass和scss文件，只要这样做就支持
+
+create a new file: vim-css-color/after/syntax/sass.vim. In that file put this line:
+syn cluster sassCssAttributes add=@cssColors
