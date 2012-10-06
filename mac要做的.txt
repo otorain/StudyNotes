@@ -164,3 +164,10 @@ smb://192.168.1.100
 安装nodejs后npm的问题
 npm安装后要这样装coffee-script才有全局命令
 sudo npm -g install coffee
+
+
+------------------
+chrome goagent switchsharp的导入设置
+在线导入这个配置
+https://raw.github.com/phus/phus-config/master/SwitchyOptions.bak
+证书还要在高级设置打开的窗口里面设成全部信任
