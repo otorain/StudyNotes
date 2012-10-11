@@ -171,3 +171,17 @@ chrome goagent switchsharp的导入设置
 在线导入这个配置
 https://raw.github.com/phus/phus-config/master/SwitchyOptions.bak
 证书还要在高级设置打开的窗口里面设成全部信任
+------------------
+要google搜索结果按最新收录时间排列的小技巧，在搜索结果的地址后加&as_qdr=d
+------------------
+
+1. vimrc 添加
+se imd 
+au InsertEnter * se noimd 
+au InsertLeave * se imd
+au FocusGained * se imd
+
+2. Input source options 勾选 "Allow a different one for each document".
+这个在 Setting -> Language & Text -> Input Sources 里设置。
+
+完美的情况时，vim 获得焦点就禁用输入法，只有进入插入模式才启用输入法，离开禁用。但是标题已经说了，这是个不完美的解决方案：获得焦点（FoucGained）禁止不了输入法！！！这个方法只解决了（1）启用中文输入法时，按i,s能顺利进入插入模式，（2）插入模式输入中文完毕回到普通模式时禁用输入法。

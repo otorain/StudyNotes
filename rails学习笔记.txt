@@ -2444,6 +2444,8 @@ end
 
 13)never logic code in views!
 
+14)不要在model的after_create里面做不可以回滚的东西，因为after_create其实model还在callback当中,如果你after_create里面搞个发邮件，那model回滚了的话，数据库没东西，邮件缺发出去了
+
 
 
 ----------------------------------------------------------------------
@@ -3100,3 +3102,30 @@ match "/404", :to => "errors#not_found"
 
 想在development环境下也可以读（开发环境默认是给debug信息）:
 set config.consider_all_requests_local to false in your config/environments/development.rb
+
+----------------------
+Rails 发邮件
+rails g mailer CommentMailer #如此会在app/mailers下面生成一个comment_mailer.rb的文件
+打开文件： 第一行
+default from: "from@example.com" #发送邮件的邮箱地址
+在mailer里面的每一个方法都是针对不通种类的邮件，例如可以有评论后提醒用户，或者通知订阅者有最新文章
+def comment_notify_email(comment)
+  @comment = Comment.find(comment) #这里的实例变量在mail_view里面也可以引用到
+  @url = post_url(@comment.post)
+  mail to:@comment.post.user.email, subject:'有新回复'
+end
+
+然后在app/views/comment_mailer/ 创建一个comment_notify_email.html.erb和comment_notify_email.text.erb作为视图
+打开配置:
+env/environments/develoment.rb
+config.action_mailer.delivery_method = :smtp #还有server或者file
+config.action_mailer.smtp_settings = {
+  address:"smtp.gmail.com",
+  port:507,
+  username:"jas",
+  password:"hello",
+  authentication:'plain',
+  enable_starttls_auto:true
+}
+发送:
+CommentMailer.comment_notify_email(Comment.last).deliver
