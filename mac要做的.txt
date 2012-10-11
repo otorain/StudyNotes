@@ -1,6 +1,14 @@
 安装
 homebrew rvm xcode(with comandline tool) paragon-ntfs macvim
 ---------------------------------------
+复制粘贴快捷键
+cmd+option+v = 剪切
+Command+拖拽=剪切
+
+Option+拖拽=复制
+
+Command+Option+拖拽=快捷方式
+---------------------------------------
 让tmux支持系统的pbcopy pbpaste命令
 git clone git://github.com/ChrisJohnsen/tmux-MacOSX-pasteboard.git
 或者直接
@@ -185,3 +193,11 @@ au FocusGained * se imd
 这个在 Setting -> Language & Text -> Input Sources 里设置。
 
 完美的情况时，vim 获得焦点就禁用输入法，只有进入插入模式才启用输入法，离开禁用。但是标题已经说了，这是个不完美的解决方案：获得焦点（FoucGained）禁止不了输入法！！！这个方法只解决了（1）启用中文输入法时，按i,s能顺利进入插入模式，（2）插入模式输入中文完毕回到普通模式时禁用输入法。
+
+--------------------
+进入资源库还有射手影音字幕保存位置
+像射手播放器自动下载的字幕就在这个文件夹下
+~/Library/Application Support/SPlayerX/SVPSub
+
+方法一：
+打开Finder，单击“前往”，此时只有按住“option”键，就能出现“资源库”的选项。
