@@ -224,3 +224,13 @@ DISPLAY=:0 sudo -u markmerk3 notify-send "fuck that shit" 就可以发送给mark
 -----------------------------
 查看硬盘使用情况
 df -h /
+-----------------------------
+ack 添加对其他文件的支持
+Ack默认包含很多filetype => extensions的设置，但新出现的语言不一定支持。好在ack提供--type-add TYPE=.EXTENSION[,.EXT2[,...]], --type-set TYPE=.EXTENSION[,.EXT2[,...]]来扩展。经常用的可以加到~/.ackrc里
+$ cat ~/.ackrc
+--type-add
+ruby=.haml,.ru
+--type-add
+css=.scss,.sass,.less
+--type-add
+js=.coffee

@@ -187,3 +187,21 @@ update article
 	end
     )
 where id in (1,2) //最后这句where很关键，不然其他条目的visit会变成null
+
+----------------------
+inner join, outer join(left right)区别,full join, cross join（注意条件用on 不用 where）
+假设users has_many articles through user_id
+1）inner join就是我们一般常用的表连接
+select * from users inner join articles on users.id = articles.user_id;
+上面这个例子的inner join可以省略
+
+2) outer join会与full或left或right连用
+select users.name, articles.title from users left outer join articles on users.id = articles.user_id;
+这里left outer join的意思是，左边表users表不满足条件的项也会出现在结果中，也就是左边users假如没有articles的也会出来,没有的字段用null占住,举一反三，right的话就是满足右表articles, full的话就是所有不满足的项都出来，排列在满足条件的项下面
+name  title
+jas   null
+
+3)cross join
+交叉联接（cross join）执行两个表的笛卡尔积（就是把表A和表B的数据进行一个N*M的组合）。也就是说，它匹配一个表与另一个表中的每一行；我们不能通过使用ON子句在交叉联接指定谓词，虽然我们可以使用WHERE子句来实现相同的结果，这是交叉联接基本上是作为一个内部联接了。
+
+没啥用
