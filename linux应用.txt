@@ -234,3 +234,10 @@ ruby=.haml,.ru
 css=.scss,.sass,.less
 --type-add
 js=.coffee
+
+----------------------------
+zsh 快速
+1）zsh 可以快速记住你cd的目录，按123456789可以快速切换到各种目录，按d可以查看有那些目录
+2）有些深目录 app/assets/javascript/slides，可以用首字母a/a/j/s <tab>
+3) 和autojump配合用，用j跳转目录！
+
