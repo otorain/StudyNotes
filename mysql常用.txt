@@ -166,6 +166,9 @@ mysqldump -uroot -p21century meeting > db_meeting.sql
 
 导人dbname数据库:
 mysqldump -uroot -p21century dbname < xxx.sql
+或者直接用mysql也行:
+mysql -uroot -p21century dbname < xxx.sql
+
 或在里头使用 source xxx.sql
 
 
