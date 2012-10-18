@@ -334,6 +334,13 @@ config.i18n.default_locale = :zh_tw
 (6)log不记录password
 config.filter_parameters << :password
 
+(7)设置generator
+config.generator do |g|
+    g.assets false
+    g.orm :active_record
+    g.template_engine :haml
+end
+
 #config/initialize/下面的各种设定#
 这个目录下面的.rb文件会在rails启动时自动运行
 (1)backtrace silencers 

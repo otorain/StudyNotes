@@ -1934,3 +1934,8 @@ end
 Config = c
 ---------------------------------
 __FILE__ 当前路径
+
+------------------------------
+针对openssl 用rvm重新安装openssl
+rvm pkg install openssl
+rvm reinstall 1.9.3-p194 --with-openssl-dir=~/.rvm/usr
