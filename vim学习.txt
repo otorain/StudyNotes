@@ -607,7 +607,8 @@ zM #关上所有折叠
 :set foldmethod=indent #已缩进做折叠
 
 ----------------------
-ctrl+z
+ctrl+z :suspend
+
 ctrl-z 退出vim 后 输入fg可以返回
 
 ---------------------
