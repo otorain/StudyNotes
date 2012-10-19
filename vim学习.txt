@@ -616,3 +616,9 @@ vim-css-color 本来不支持sass和scss文件，只要这样做就支持
 
 create a new file: vim-css-color/after/syntax/sass.vim. In that file put this line:
 syn cluster sassCssAttributes add=@cssColors
+-----------------
+修改leader !!
+<leader> 默认是 \
+可以inornmap <leader>a do sth
+:let mapleader= ","
+
