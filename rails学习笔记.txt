@@ -1672,6 +1672,12 @@ d)自定义layout
 #如果像上面的例子明确指定partial => "xxx/xxx", 那么后面就要使用:locals 
 #造成这个原因是render方法会检查，(:partial => xxx, :locals => xxx )这种是传入hash， 另外一种是第一个参数是string
 
+#!!! 最新更新，有时如果partial里面也想要yield的话，一定要用  render :layout => 才可以接！很奇怪，直接render "xxx"是接不到的
+  render layout:"layouts/modal" locals:{some:'some'} do
+      <p>some</p> #这里才能接到partial的yield
+  end
+
+
 集合型Collection
 像是tr或li這類會一直重複的Template元素，我們可以使用collection參數來處理，Rails有針對集合型的Partial做效率最佳化，例如像以下的程式：
 <ul>
@@ -1717,8 +1723,8 @@ ActionView::Base.sanitized_allowed_tags
 ActionView::Base.sanitized_allowed_attributes
 => #<Set: {"href", "src", "width", "height", "alt", "cite", "datetime", "title", "class", "name", "xml:lang", "abbr"}>
 如果需要增加，可以在config/application.rb中新增，例如：
-  config.action_view.santized_allowed_tags = %w[table tr td]
-  config.action_view.santized_allowed_attributes = "rel"
+  config.action_view.sanitized_allowed_tags = %w[table tr td]
+  config.action_view.sanitized_allowed_attributes = "rel"
 
 d)strip_tags 移除HTML標籤
 
