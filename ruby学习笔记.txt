@@ -1086,6 +1086,8 @@ file.close
 
 ::和File.new不同，File.open()后面可以使用block，参数就是这个file对象，并且block代码运行完之后可以自动关闭对象，new则不行
 
+#file对象存取主要用IO类里面的方法
+
 ::逐个字符读出 file.each_byte
 File.open("testfile") do |file|
   file.each_byte.with_index do |ch, index|
@@ -1132,6 +1134,11 @@ str2<< 1 << 2 << 3# => "\x01\x02\x03"
 require 'fileutils'
 FileUtils.cp("from","to")
 FileUtils.mv("from","to")
+.pwd() #查看当前目录
+.ln_s() #剩下的方法跟linux类似
+.chmod()
+.rm()
+.mv()
 
 ::删除 File.delete("filename")
 
@@ -1142,7 +1149,7 @@ Dir.open('/usr/bin'){|dir| #dir就是内建block对象，block执行完后变量
   }
 }
 
-#!!把目录下的所有目录名称获取成一个数组
+#!!把目录下的所有目录名称和文件获取成一个数组
 Dir.glob("#{Rails.root}/app/*")
 
 （3）网络IO，各种类 UDPSocket TCPSocket等等
@@ -1296,6 +1303,25 @@ produces:
 ISO-8859-1
 UTF-8
 olé
+
+##补充编码
+RGSS 默认是 UTF-8，你可以通过修改 $-K 或者 $KCODE 的值改变编码，以下几种是 Ruby 支持的编码：
+# - None (n or N)
+# # - EUC (e or E)
+# # - Shift_JIS (s or S)
+# # - UTF-8 (u or U)
+# 那么 $KCODE = "S" 就告诉解释器现在开始使用 Shift_JIS 字符集了。注意这个修改不但改变了字符串和正则表达式的解码，同时也会改变整个脚本的解码方式，即解释器解码并解析脚本源文件的方法
+
+::另外一个更好用的转码类 Iconv 已经deprecate
+cd = Iconv.new("gbk","utf-8")
+cd.iconv(str)
+
+::方法3
+html = open(url).read
+html.force_encoding("gbk")
+html.encode!("utf-8")
+doc = Nokogiri::HTML.parse html
+doc.css("body")
 
 ::编写，rdoc,在方法或类上面使用 =begin rdoc  =end
 例：
@@ -1934,8 +1960,54 @@ end
 Config = c
 ---------------------------------
 __FILE__ 当前路径
+获得当前执行文件的文件名：
 
+__FILE__
+
+获得当前文件的目录
+
+File.dirname(__FILE__)
+
+获得当前执行文件的完整路径
+
+require ‘pathname’
+Pathname.new(__FILE__).realpath
+
+获得当前执行文件的目录完整路径
+
+require ‘pathname’
+Pathname.new(File.dirname(__FILE__)).realpath
+
+如果使用$0: $0是整个ruby执行文件最顶层文件的路径。因此使用if __FILE__==$0可以判断当前ruby文件是被引用还是被执行。
+
+File.basename(filename[, suffix]):返回filename中的最后一条斜线后面的部分。若给出了参数suffix且它和filename的尾部一致时，该方法会将其删除并返回结果。
+File.dirname(filename) :以字符串的形式返回filename中最后一条斜线之前的部分。若文件名中不含斜线，则返回"."(当前目录)。
+File.expand_path(path[, default_dir]) 将path展开为绝对路径后返回该路径字符串。若path是相对路径则以default_dir为基准进行扩展。若没有default_dir或其值为nil时将使用当前目录。开头的~会被扩展为主目录(使用环境变量HOME)，而~USER会被扩展为相应用户的主目录。
 ------------------------------
 针对openssl 用rvm重新安装openssl
 rvm pkg install openssl
 rvm reinstall 1.9.3-p194 --with-openssl-dir=~/.rvm/usr
+
+
+--------------------------
+打开gem的几种方法
+首先在.bashrc
+export EDIT="vim"
+一个是进入rails目录 bundle open
+对于gem install 的,可以装些gem方便我们去做
+1)gem install open_gem
+gem open rails
+
+2)gem install qwandry
+qw rails
+
+-------------------------
+CharlockHolmes 检测编码的gem
+gem install charlock_holmes
+if you cant find your icupath, do this:
+gem install charlock_holmes -- --with-icu-dir=/path/to/installed/icu4c
+
+Usage:
+require 'charlock_holmes'
+contents = File.read('test.xml')
+detection = CharlockHolmes::EncodingDetector.detect(contents)

@@ -313,3 +313,16 @@ var progress = function(event){
 }
 
 
+--------------
+jquery 获取img src origin width height的方法
+原理， 复制走img，去掉height 和 width 属性， append 到其他地方拿到了原来的属性后，在 remove掉克隆
+// Copy the image, and insert it in an offscreen DIV
+// aimgcopy = $('#myimg').clone();
+// $('#store').append(aimgcopy);
+//
+// // Remove the height and width attributes
+// aimgcopy.removeAttr('height');
+// aimgcopy.removeAttr('width');
+//
+// // Now the image copy has its "original" height and width
+// alert('Height: '+aimgcopy.height()+' Width: '+aimgcopy.width());

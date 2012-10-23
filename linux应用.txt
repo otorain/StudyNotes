@@ -198,6 +198,10 @@ alt+上下左右 resizepane + 5
 ctrl+上下左右 resizepane + 1
 
 在ssh上客户端机打开tmux后, 客户端的家伙也打开shell并使用tmux attach，大家可以同步输入命令东东了
+prefix d 之后可以脱离tmux，然后再用 tmux attach可以回来
+也可以tmux ls查看有多少个session
+
+真要关session的话，用tmux kill-session -t session名
 
 
 ---------------------------------

@@ -3144,3 +3144,111 @@ config.action_mailer.smtp_settings = {
 }
 发送:
 CommentMailer.comment_notify_email(Comment.last).deliver
+
+
+----------------------
+Rails4.0新特性
+
+1)ActiveSupport::Queue #用于后台队列新线程处理一些不用即时返回结果 或 昂贵代价（一般会容易令链接阻塞）的操作
+class ExpenceOperation
+  def run #实现一个run方法就行
+    #...
+  end
+end
+Rails.queue.new(ExpenceOperation.new) #what ever you want
+config.queue = ActiveSupport::Queue
+
+2)Async ActionMailer #同上，可以后台任务发邮件
+在mailer的class里面
+self.async = true
+
+3)strong_parameter # mass assignment protection in controller
+model将不用再写 attr_accessible, 参数可以直接在controller里面切走不安全的
+class PostController
+  def create
+    Post.create(post_params)
+  end
+
+  private
+  def post_params
+    params.require(:post).
+      permit(:title, :body)
+  end
+end
+a.再设过strong_parameter的controller里,以后如果直接把params这东西扔给 mass-assigned model的话会直接raise ForbiddenAttributesError
+b.但m-a model用在其他地方也会可以接收到params
+c.attr_acessiable 和 attr_protected 会被移除, 放到protected_attributes的 gem
+
+4) turbo_links pjax
+可以通过turbolinks.js来做全站的ajax...
+
+5)russian doll caching 缓存策略
+旧的cache view的方式，设好memcache或redis后
+<% cache ["v1", Catagory] do%>
+  Catagory : <%= Catagory.name %>
+<% end%>
+旧方式有可能在多个render或者 model嵌套后， nested的内容更新不了,例如上面的 v1也可能会有冲突
+
+rails4.0方式,粒度更少，帮你掌管好key，不用管太多其他东西:
+<% cache Catagory do%>
+  Catagory : <%= Catagory.name %>
+<% end%>
+
+之前的actionpack-page_caching actionpack-action_caching都废弃了，extra to gem
+
+6)ActionController::Live #利用html5 websocket的实时stream!
+class YourController
+  include ActionController::Live
+  def index
+    100.times {
+      response.stream.write "hello \n"
+    }
+    ensure
+      response.stream.close 
+  end
+end
+
+7)ActiveRecord
+a. Relation#all returns a relation
+Post.all.class #=> ActiveRecord::Relation 
+
+b.scoped 废弃
+Post.scoped #=>deprecation warning!
+
+c.nil 不再抱怨
+rails3
+nil.id #=> RuntimeError blahblahblah...
+rails4
+nil.id #=> nomethod for nil class!
+
+d. update_attribute|attributes 会改进 ？不再迷迷糊糊的要你记update_attribute其实是不跑validate的，update_column和columns又其实没有分别的...
+
+e. first 和 last的sql语句改进了,性能改进
+
+8) 框架的其他新特性
+a. plugins 死刑，不再支持,建议旧的plugin移到lib，然后在initializer里面require
+
+b. Rails2 的find接口死刑
+User.find(:all)
+User.find(:first) 之类的
+
+c.之前一对多，找一然后关联多 并以多的那一方做条件，会产生sql outer join, 这个也废弃
+Post.includes(:comments).where("comments.id > ?", ...)  这一类
+Rails 4的做法，应该更详细指定条件
+Post.includes(:comments).where("comments.id > ?", ...).references(:comments)  不懂
+Post.includes(:comments).where(:comments=>{title:""...})
+Post.includes(:comments).order("commments.created_at")
+
+d. 一些find_by的方法会被取代, 用后面的东西取代
+find_by        | ok
+find_all_by    | where()
+find_last_by   | where().last
+find_or_create | where().first_or_create
+
+e. 推荐使用scope 都用lambda
+scope :recent, lambda{ |date| where(["created_at > ? ", date ]) } 
+
+f. ajax form_for 里:remote=>true auth_token的问题
+remote:true自然没问题，rails4好像javascript要提交数据的话要手动指定authenticity_token了
+
+以上移除的东西，4.0会提示deprecate,4.1全部只能用gem，5.0会直接不支持
