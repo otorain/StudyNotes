@@ -1,5 +1,5 @@
 安装
-homebrew rvm xcode(with comandline tool) paragon-ntfs macvim
+homebrew rvm xcode(with comandline tool) paragon-ntfs macvim cloc(代码统计工具)
 ---------------------------------------
 复制粘贴快捷键
 cmd+option+v = 剪切
@@ -201,3 +201,15 @@ au FocusGained * se imd
 
 方法一：
 打开Finder，单击“前往”，此时只有按住“option”键，就能出现“资源库”的选项。
+
+
+
+--------------------
+打开mac的apache和php简单配置
+sudo apachectl start
+web目录在/Libbrary/WebServer/Documnet里面
+apache配置 /etc/apache/httpd.conf 里面已经有php模块，把前面井号去掉就行,fucking easy!
+
+php配置 cp /etc/php.ini.default /etc/php.ini
+日志 /var/log/apache2/
+很坑爹的是，如果你httpd.conf错了，日志里面是看不到出错原因, sudo apachectl start stop那里也不会提示出错信息，直接服务器访问不了，要知道的话运行httpd,后面就会说出错的行数

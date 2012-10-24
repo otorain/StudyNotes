@@ -1888,6 +1888,9 @@ $ rvm reload
 
 rvm requirements 查看安装ruby尚欠什么包
 
+#到ruby toolbox看那些gem排名够高
+www.ruby-toolbox.com
+
 ------------------------------------
 编程习惯
 把数据插入到string变量的时候，不要使用+，用<<追加,例如:
