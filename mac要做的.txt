@@ -213,3 +213,9 @@ apache配置 /etc/apache/httpd.conf 里面已经有php模块，把前面井号�
 php配置 cp /etc/php.ini.default /etc/php.ini
 日志 /var/log/apache2/
 很坑爹的是，如果你httpd.conf错了，日志里面是看不到出错原因, sudo apachectl start stop那里也不会提示出错信息，直接服务器访问不了，要知道的话运行httpd,后面就会说出错的行数
+
+要链接mysqli还要记得修改, brew安装的在/tmp/mysql.sock
+pdo_mysql.default_socket=/Applications/MAMP/tmp/mysql/mysql.sock
+mysql.default_socket = /Applications/MAMP/tmp/mysql/mysql.sock
+mysqli.default_socket = /Applications/MAMP/tmp/mysql/mysql.sock
+
