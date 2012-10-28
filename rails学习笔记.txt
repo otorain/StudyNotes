@@ -3252,3 +3252,116 @@ f. ajax form_for 里:remote=>true auth_token的问题
 remote:true自然没问题，rails4好像javascript要提交数据的话要手动指定authenticity_token了
 
 以上移除的东西，4.0会提示deprecate,4.1全部只能用gem，5.0会直接不支持
+
+
+---------------------------------------------------
+Sprockets: Rack-based asset packaging
+这东西就是rails用于管理assets的东西,用这个全局变量去做各种操作Sprockets::Environment, rails里面已经把这变量设成Your::Application.assets,并做了各种设置, 我们可以用这变量去做些操作，例如添加其他位置的assets，或者除了 coffee 之外加入更多javascript的编译器，例如老赵的wind.js
+gem 'sprockets', '~> 2.0'
+基础添加assets设置可以做这些操作: append or prepend _path
+environment = Sprockets::Environment.new
+environment.append_path 'app/assets/javascripts'
+environment.append_path 'lib/assets/javascripts'
+environment.append_path 'vendor/assets/jquery'
+
+在rails里，获取了environment变量后，可以这样拿到你各个assets的Sprockets变量
+例如 environment['application.js'], 用to_s方法可以得到处理后的js文件结果, pathname方法可以拿到文件的绝对路径
+environment还有以下几种搞法，
+拿到tilt引擎
+environment.engines #=>
+#{".coffee"=>Tilt::CoffeeScriptTemplate,
+ #".jst"=>Sprockets::JstProcessor,
+ #".eco"=>Sprockets::EcoTemplate,
+ #".ejs"=>Sprockets::EjsTemplate,
+ #".less"=>Tilt::LessTemplate,
+ #".sass"=>Sass::Rails::SassTemplate,
+ #".scss"=>Sass::Rails::ScssTemplate,
+ #".erb"=>Tilt::ERBTemplate,
+ #".str"=>Tilt::StringTemplate}
+假如 tilt = environment.engines[".coffee"] #拿到引擎后可以：
+tilt.new("xxx.js.coffee").render #=> 输出这个文件用coffee编译过后的js结果
+
+支持各种方便搞assets的gem
+.js.coffee .css.sass(or scss) .css.less 
+
+#!!!
+不得不题的是sprockets支持两个很好的JS Template
+.jst 文件是指明这文件是js模板，当被加载的时候，传进来的局部变量都位于 JST这个命名空间Object下, 这东西会调用一个模板方法把jst文件都转成可以插到Dom里面的string:
+<!-- templates/hello.jst.ejs -->
+<div>Hello, <span><%= name %></span>!</div>
+
+// application.js
+//= require templates/hello
+$("#hello").html(JST["templates/hello"]({ name: "Sam"  }));  #这里可以用hello的模板，然后把 name:"Sam"传过去
+
+Sprockets 支持 ejs(里面嵌javascript), eco(里面嵌CoffeeScript), 这两种语言的嵌入都是和ruby一样用<% ..%>  or <%= %>, 另外还有大名顶顶的erb
+
+father: eco repository https://github.com/sstephenson/eco
+	ruby-eco https://github.com/sstephenson/ruby-eco
+#!!
+其实Sprockets 支持多种引擎嵌套，例如你想先用Coffee,再用erb，你可以把文件改名成 .js.coffee.erb, 在erb里跑ruby代码的context是Sprockets::Context
+
+Sprockets里assets加载其他模块代码的方式
+写在文件最开头用语言的注释 + =号的方式表明加载哪些代码
+//= require jquery
+//= require jquery-ui
+//= require backbone
+//= require_tree .
+还有这几种加载方式
+/* Multi-line comment blocks (CSS, SCSS, JavaScript)
+ *= require foo
+*/
+
+// Single-line comment blocks (SCSS, JavaScript)
+//= require foo
+
+# Single-line comment blocks (CoffeeScript)
+#= require foo
+
+各种加载方法区别:
+require 就算后面require同个文件，只会require一次
+include 和require差不多，但是同个文件会require多次
+require_directory 加载后面指定目录的所有文件，并按文件首字母顺序去加载
+require_tree 也是指定加载目录，但是还会递归式地去加载子目录
+require_self 意思是，后续所有的require include的文件里面都先把我这个source文件里的body先require一下,用于有时每个JS文件前都做些初始化的内容
+stub 黑名单，后面的东西其他文件也不能require到
+
+-----------
+assets 更多自定义
+定义压缩css和js引擎
+config.assets.css_compressor = :yui
+config.assets.js_compressor = :uglifier
+
+自定义压缩引擎，创建一个自己的类，一定要带个compress方法就行
+class Transformer
+  def compress(string)
+    do_something_returning_a_string(string)
+  end
+end
+config.assets.css_compressor = Transformer.new
+
+
+ngnix让assets缓存更长的配置
+location ~ ^/assets/ {
+  expires 1y;
+  add_header Cache-Control public;
+
+  add_header ETag "";
+  break;
+}
+assets precompile之后,还有gzip的版本.gz文件，让nginx支持gzip
+location ~ ^/(assets)/  {
+  root /path/to/public;
+  gzip_static on; # to serve pre-gzipped version
+  expires max;
+  add_header Cache-Control public;
+}
+
+assets缓存方式，默认是交给sprockets管，可以自己定义
+config.assets.cache_store = :memory_store, { :size => 32.megabytes  }
+
+##!!
+做自己的Pre-processor
+要用一下这个 gem https://github.com/rtomayko/tilt, 主要是提供了一套interface让你处理web framwork里头各种模板塞在一起的问题,可以轻松的更换各种模板
+
+#场景假设：例如我想遇到js.coffee.erb文件先用coffee编译好javascript，然后再在上面套一个js异步变同步的引擎，编译好后在用ruby处理erb模板

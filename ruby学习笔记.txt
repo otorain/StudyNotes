@@ -2014,3 +2014,10 @@ Usage:
 require 'charlock_holmes'
 contents = File.read('test.xml')
 detection = CharlockHolmes::EncodingDetector.detect(contents)
+
+
+------------------
+pry 
+ls anything 查看这个对象里的一切方法，父类方法,变量等等
+binding.pry 代码里写这个就进入pry的debugger，可以step continute next 之类
+edit-method 神奇东东，直接打开这个方法的源代码
