@@ -28,6 +28,16 @@ brew link的用法
 brew install openssl
 brew link openssl
 这样装ruby的时候就不用再with-openssl-dir了
+
+brew --cache 可以看到cache文件下载到哪里
+/Library/Cache/HOMEBREW, 把自己下载的文件移动到这里就可以快速安装
+
+brew search /foo/ 可以用petten去搜索
+
+brew install用代理！
+brew install下代码时经常是用sourceforge，这货不时被墙，非常的慢 homebrew提供一个使用proxy的方法
+http_proxy=http://<proxyhost>:<proxyport>  sudo -E brew install foo #还可以用sodu
+$ http_proxy=http://<user>:<password>@<proxyhost>:<proxyport>  brew install foo #代理要密码的情况
 ---------------------------------------
 一些mac本来的快捷键
 cmd+~ 同一应用多窗口切换
@@ -218,4 +228,21 @@ php配置 cp /etc/php.ini.default /etc/php.ini
 pdo_mysql.default_socket=/Applications/MAMP/tmp/mysql/mysql.sock
 mysql.default_socket = /Applications/MAMP/tmp/mysql/mysql.sock
 mysqli.default_socket = /Applications/MAMP/tmp/mysql/mysql.sock
+
+
+--------------------
+为了在zsh里用个叫power的theme，搞了很多烦死人的东西
+首先要装vim插件 vim-powerline, 在他的fontpather文件夹有readme详细怎么 patched font
+$ brew update
+$ brew install --use-gcc fontforge 
+装这东西的时候还会提示装个 Xqua什么叉，一并装上
+然后把下来的字体 https://github.com/Lokaltog/vim-powerline/wiki/Patched-fonts
+fontforge -script /path/to/fontpatcher MyFontFile.ttf 或者进目录双击也可以安装
+然后vimrc下面
+set guifont=MyFont\ for\ Powerline
+let g:Powerline_symbols = 'fancy'
+最后再删掉些东西
+$ rm /tmp/Powerline.cache
+
+
 

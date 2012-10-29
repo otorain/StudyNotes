@@ -165,10 +165,12 @@ set -o vi 可以把bash设置成vim模式
 -------------------------------------
 grep
 grep --context=3 select log.txt #在log.txt搜select并指定上下文是3
+grep -n3 显示搜索结果上下3行
+grep -v grep 不显示有grep的行
 ----------------------------------
 sed
 ------------------------------
-awk
+awk 把管道过来的参数扔大括号里给其他命令执行
 ps aux | grep chrome | awk '{print $2}'
 
 -------------------------
@@ -249,3 +251,13 @@ alias -s txt=mvim
 5) alias -g 可以指定某些很特定的字符变量，例如| grep
 alias -g GG='| grep'
 以后可以 ll GG desktop 这样相当于 ll | grep desktop
+
+------------------------------
+find --exec用法
+find . -type d -exec du {} \;
+{}代表查到的文件，交给du去算算搜到用了的容量， 最后记得\;
+
+------------------------------
+sort 
+ls -l | sort -k5 -nr
+k命令是以地几个字段去作为排序参数，然后 -nr是从大到小，默认是从小到打
