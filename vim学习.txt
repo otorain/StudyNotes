@@ -208,13 +208,21 @@ ctrl+w(HJKL)  可以把光标所在窗口向每一个方位调整，十分好用
 :only  关闭除了当前窗口外的所有窗口
 :new  水平打开新窗口
 :vnew 对应也有垂直打开新窗口
+
 :ctrl+w +(或者-)可以设置当前窗口的高度
+:ctrl+_ 或者= 的话就是最小化当前窗口，或者使窗口均分
+ctrl+w <或者>调整窗口宽度
+
 :qall 从所有窗口关闭退出
 :wall 保存所有窗口
 :wqall 顾名思义
 vim -o one.c tow.c three.c 水平打开三个窗口(-O垂直打开)
 vimdiff main.c.bak main.c 用vimdiff查看两个文件之间的不同
 :vertical diffsplit main.c 在vim中diff
+
+ctrl+w 后jkhl 分辨跳去对应上下左右的窗口, 
+	大写JKHL的话当前窗口霸占整个对应上下左右位置
+
 
 !!!!标签页!!!!!!
 :tabedit xxxfile
