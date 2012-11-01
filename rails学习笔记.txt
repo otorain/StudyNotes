@@ -1055,6 +1055,14 @@ u2 = User.instantiate(id:1, name:"b")
 u2.save!
 User.find(1) #name:"b"
 
+#判断model是不是已经存入库
+u = User.find(:id)
+u.new_record? #=> false
+u = User.new
+u.new_record? #=> true
+
+
+
 ----------------------------------------------------------------------
 六,Migration （屏蔽数据库之间差异，方便发布更改数据库，常用于手动指定数据库）
 rails g migration migration_name
@@ -2249,6 +2257,42 @@ end
 边编程边快速自动测试
 guard是一个监控文件变动的gem，spork是一个drb server,可以另ruby的单元测试更快速
 几个gem配合使用详细参考gu-da项目,要修改的地方有Guardfile spec/spec_helper.rb
+---------------------
+Controller 的测试
+这个例子还要用到mocha,在spec_helper里面加上config.mock_width :mocha
+mocha是一个轻松模拟http事件的gem,也有一个javascript框架也叫mocha
+
+class ArticlesController extend ActionController::Base
+  def create
+    @article = Article.new([params:id])
+    if @article.save
+      flash["notice"] = 'successful'
+      redirect articles_path
+    else
+      render :new
+  end
+
+end
+describe ArticlesController,"creating a new article" do
+  integrate_views #这行代表一直要把views的代码也执行完，保证不出错
+  fixtures :article #这里可以换成factory_girl只要你喜欢 
+  
+  it "successful create" do
+    #这里用了mock，像上面的controller里Article.new(params[:id]) blahblah的，这一句肯定正确，但是要可能走库,但用mock这样写这一句就可以过去了
+    Article.any_instance.stubs(:valid?).returns(:true) #stub!的意思是把一切要检测valid的东西都给我显示个true
+    post 'create', :article => {title:'blah',content:'blah'} #可以post params过来
+    flash[:notice].should_not_be nil
+    response.should redirect_to(articles_path)
+  end
+
+  it "fail create" do
+    Article.any_instance.stubs(:valid?).returns(false) #就这里改成false
+    post 'create'
+    flash[:notice].should_be nil
+    response.should render_template(:new)
+  end
+end
+
 
 
 
@@ -2423,7 +2467,7 @@ end
 要：
   @post = current_user.posts.build(params[:post])
 
-3)别做不必要的检查
+3)别做不必要的检查 #不要!
 if @post.user != current_user
   flash[:notice "用户错"] #错误方式！！
 end #wrong!
