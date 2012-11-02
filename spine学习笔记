@@ -263,7 +263,7 @@ class Tasks extends Spine.Controller
   constructor: ->
     super
     @items = @$(".items") #这里设一堆在构造器里
-spine给了我们一个helper, elements:{"selector": "variableName"}
+spine给了我们一个helper, elements:{"selector": "variableName"} #更新，这东西sucks，经常邦回来的是空对象,老实自己邦吧...
 class Tasks extends Spine.Controller
   elements:
     ".items": "items"
