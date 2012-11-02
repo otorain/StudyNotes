@@ -1,0 +1,75 @@
+spine可以轻松和rails里的coffeescript对接
+gem 'spine-rails'
+gem 'eco' #方便用coffee代码的view模板
+
+bundle后
+rails g spine:new --app=blog #这样可以指定生成的文件夹结构不是在app下而是在blog下
+在assets/javascripts下面会生成类似如下架构
+app
+app/lib
+app/models
+app/controllers
+app/views
+app/index.coffee
+如你所见会生成index.coffee,还有会在原来javscripts/application.js里面加一些require spine包的内容
+------
+现在来和rails联动一下吧！
+rails generate scaffold Post title:string content:string
+然后这样来产生spine的model,controller和view
+rails g spine:model Post title content
+rails g spine:controller posts
+rails g spine:view posts/show
+也可以用spine的scaffold
+rails g spine:scaffold post title content
+
+----------
+#class example 基本和coffeescript相似，还扩充提供了一些新的东西
+class Users extend Spine.Controller #继承他的组件
+  #Class method
+  @find: (id) ->
+    (@records or= {})[id]
+
+  # called on instantiation
+  constructor: (attributes = {}) ->
+    @attributes = attributes
+
+    # Instance methods
+  save: ->
+  destroy: ->
+
+#Modules
+#继承Spine.Module的话，会多一个@extend和一个@include 类方法
+class User extends Spine.Model
+  @configure "User"
+  @extend Spine.Model.Ajax
+
+模块通常是这个样子
+OrmModule = {
+  find: (id) -># /* ... */
+  extended: -> #模块也可以在extend或者include其他模块
+    console.log("module extended: ", @)
+}
+
+#原生javascript方式，Spine.Class.stub()
+User = Spine.Class.stub();
+User.extend({blah.blah}) #or include()
+Owner = User.stub() #这样Owner可以继承User
+
+var User = Spine.Class.sub({ #用init()设置初始化函数
+  init: function(){
+      // Called on instantiation
+      this.constructor.__super__.init.apply(this, arguments); #要用super德化这里要搞这么复杂...
+      console.log(arguments);
+    }
+});
+
+------------
+Model
+class Contact extends Spine.Model
+  @configure "Contact", "first_name", "last_name" #通常都在第一行用@configure去指定(Model名,属性1，属性2....)
+  @extend MyModule  #Spine.Model也是Spine.Class,所以当然可以这样用@extend
+  @filter: (query) -> #可以像在coffee上面随便加类方法或者实例方法
+    @select (c) ->
+      c.first_name.indexOf(query) is not -1
+
+  fullName: -> [@first_name, @last_name].join(' ')
