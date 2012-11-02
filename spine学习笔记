@@ -38,7 +38,8 @@ class Users extend Spine.Controller #继承他的组件
   destroy: ->
 
 #Modules
-#继承Spine.Module的话，会多一个@extend和一个@include 类方法
+#继承Spine.Module的话，会多一个@extend和一个@include 类方法, include和extend的区别是，
+#include进来的是instance_method, extend进来的是class_method
 class User extends Spine.Model
   @configure "User"
   @extend Spine.Model.Ajax
@@ -73,3 +74,351 @@ class Contact extends Spine.Model
       c.first_name.indexOf(query) is not -1
 
   fullName: -> [@first_name, @last_name].join(' ')
+#实例化
+contact = new Contact(first_name: "Alex", last_name: "MacCaw")
+assertEqual(contact.fullName(), "Alex MacCaw")
+
+#save
+contact.save() #实例化好model之后，就可以用save方法了, 一旦save后，spine会帮你生成一个id
+Contact.find(contact.id) #=> contant find失败的话会抛exception
+Contact.exist(contact.id) #=> 可以用exist去判断有没这个实例,返回 true false
+类似rrails,还可以用first或者last all去搜 Contact.first() Contact.last() Contact.all()
+Contact.each( (contact)-> console.log(contact.fullname)) #还有个each的遍历方法
+Contact.select((contact)-> contact.first(name)) #遍历器返回true的话就筛选出这个对象
+
+#validation
+在SpineModel里面做validates非常简单重写一下validate()方法就可以
+class Contact extends Spine.Model
+    validate: ->
+      unless @first_name
+      "First name is required"
+
+只要validate方法里面有任何一个返回值，就会储存失败，并且会trigger Contact的error事件，我们可以绑定事件，通知用户
+save, create, update_attributes都会出发validation
+Contact.on("error",(evetn, message)->
+  $.pnotify({type:'error', text:'message'})
+)
+
+#序列化 使用JSON2
+JSON.stringify(Contact) #序列化这个model下面所有实例 
+JSON.stringify(Contact.first()) #序列某个实例
+可以自己写序列化方法，用实力变量@attributes就行
+contact = new Contact(first_name: "Leo")
+assertEqual( contact.attributes(), {first_name: "Leo"}  )
+Contact.include
+  toXML: ->
+    serializeToXML(@attributes())
+
+#presistence持久化
+1) LocalStorage way
+如果不继承Spine.Model.Local,save()的东西都在内存中，用了这个model的话，东西可以用在HTML5的LocalStorage了
+class Contact extend Spine.Model
+  @configure "Contact", "name"
+  @extend Spine.Model.Local
+extend之后东西都会存LocalStorage了,这样做之后，记得每次用Model都先fetch一下,告诉Spine是从LocalStorage里面取
+  Contact.fetch()
+fetch后会触发Contact的refresh事件,记得在Controller绑定一下处理
+Contact.on("refresh", @render)
+
+2)ajax way
+基于Restful, Spine ajax可以轻松和Rails接合
+class Contact extends Spine.Model
+  @configure "Contact", "name"
+  @extend Spine.Model.Ajax #=>继承这东西
+  @url: "/users" #=> 这里可以手动指定url，如果不指定的话，默认就是/contacts 
+
+Contact.fetch() #就可以从服务器上拿东西，并且trigger refresh事件了
+Rest的东西这里不再提
+
+跨域的话可以配置一下其他的host
+Spine.Model.host = "http://my-endpoint"
+
+Ajax发生错误的时候，会响Contact的ajaxError事件
+Contact.on("ajaxError",(record,xhr,setting,error)->)
+同样地，成功的话有ajaxSuccess, (status,xhr)
+
+spine不推荐你去搞ajaxError ajaxSuccess的事件，甚至不喜欢你搞什么loading的东西，因为jsApp就是要够快够互动，你应该更上层一点地去处理Model的save update change事件
+
+手动指定Request!!
+class Photo extends Spine.Model
+  @configure 'Photo', 'index'
+
+  @updateOrder: ->
+    indices = ({id: rec.id, index: rec.index} for rec in @all())
+    $.post(@url("order"), indices) #这里是用jquery的ajax方法， 用@url可以指定后缀
+    #As you can see, Spine provides the url() method, which returns a relative URL to the model:
+assertEqual( Photo.url(), "/photos"  )
+assertEqual( Photo.url("order"), "/photos/order"  ) 你可以直接用url方法来看传到哪个地方
+assertEqual( Photo.first().url(), "/photos/1"  )
+
+ajax会不断异步发送的问题，有时刚好create了一个model马上就要delete,服务端还没创建好的话就有麻烦,所以Spine提供了queue
+Spine.Ajax.queue ->
+    $.post("/posts/custom") #必须要返回jqueryAjax对象
+
+手动自定义发送或接受的数据!! 就是从些Model里头的toJSON和fromJSON方法
+class Photo extends Spine.Model
+  @configure 'Photo', 'index'
+  @extend Spine.Model.Ajax
+
+  @fromJSON: (objects) -> #服务器反回来的数据怎样处理
+    return unless objects
+    if typeof objects is 'string'
+      objects = JSON.parse(objects)
+
+      # Do some customization...
+      #
+    if Spine.isArray(objects)
+      (new @(value) for value in objects)
+    else
+      new @(objects)
+
+  toJSON: (objects) -> #发出去的data
+    data = @attributes()
+	  # Do some customization...
+toJSON要返回一个{}, fromJSON要返回一个instance
+
+指定fetch()的参数去分页取数据
+class Photo extends Spine.Model
+  @configure 'Photo', 'index'
+  @extend Spine.Model.Ajax
+
+  @fetch: (params) ->
+    params or= {data: {index: @last()?.id}} #这里指定最后那个instance()的id, 服务器端可以决定给多少个还有从哪里开始给了
+    super(params)
+这里spine还推荐了个很好的jquery_plugin... waypoints，可以获取滚动到页面滚动到的事件...http://imakewebthings.com/jquery-waypoints/
+
+disable Ajax的行为
+Spine.Ajax.disable ->
+  record.destroy() #model destroy的时候就不会ajax到服务器
+record.destroy({ajax:false})#或者这样也行
+
+#Event
+支持以下这些事件
+save    - record was saved (either created/updated)
+update  - record was updated
+create  - record was created
+destroy - record was destroyed
+change  - any of the above, record was created/updated/destroyed
+refresh - all records invalidated and replaced
+error   - validation failed
+model.bind "事件", (model)->
+
+#associations
+其实client端的associations不太必要，不过spine也提供了
+class Photo extends Spine.Model
+  @configure 'Photo'
+  @belongsTo 'album', 'Album'
+
+class Album extends Spine.Model
+  @configure 'Album', 'name'
+  @hasMany 'photos', 'models/photo' #hasMany方法要指定 属性名和库的位置, 还可以optional去指定 foreign key
+
+album = Album.create()
+# Fetch all album's photos
+album.photos().all()
+album.photos().create(
+  name: "First photo"
+)
+album.photos().find( Photo.first().id )
+
+#api设计很一般
+
+---------------------
+Controllers
+controllers在spine里就是一切的开端， mvc三位一体的粘合者 blah blah...
+
+class Tasks extends Spine.Controller #约定命名是驼峰加复数
+    constructor: ->
+      super
+    tag: "li" #默认是div,如果未有@el,可以用tag去指定标签:
+
+每个controller都会有个叫@el的实例变量，关联着一个$("#") jquery选择器, 也可以在 new Tasks({el:"#ul_forpic"})初始化指定
+实例化时候扔进去的属性都会成为controller的实例变量 new Tasks({shit:"someshit"})
+
+#事件
+class Tasks extends Spine.Controller
+  events:
+    "click .item": "click" #{"eventType selector", "functionName"} 这里使用的是这种格式
+
+  click: (event) ->
+    item: $(event.target)
+      # Invoked when .item is clicked
+如果上面events里面的selector都是在作用于@el这个元素下面的子元素, 如果不给 selector的话，default to @el
+spine会帮你处理好上下文, 回调函数里面用 $(event.target)可以拿当前事件的元素
+
+bind and trigger
+lass ToggleView extends Spine.Controller
+  constructor: ->
+    super
+    @items = @$(".items")
+    @items.click => @trigger("toggle")
+    @bind "toggle", @toggle
+
+  toggle: ->
+    #...
+Spine.Controllers已经继承了Spine.Events,所以可以在里面随便使用 @bind 和 @trigger 去绑定自定义参数
+
+有时我们总是要在初始化的时候设一堆element,如
+class Tasks extends Spine.Controller
+  constructor: ->
+    super
+    @items = @$(".items") #这里设一堆在构造器里
+spine给了我们一个helper, elements:{"selector": "variableName"}
+class Tasks extends Spine.Controller
+  elements:
+    ".items": "items"
+
+  constructor: ->
+    super
+    @items.each -> #... 实例化的时候上面设下的items就变成了实例变量
+
+#@html 相当于@el.html()
+
+#render Pattern
+class Contacts extends Spine.Controller
+  constructor: ->
+    super
+    Contact.bind("refresh change", @render)
+
+  template: (items) ->
+    require('views/contacts')(items)
+
+  render: =>
+    @html(@template(Contact.all()))
+这样做的不好之处是，一个小model的变化也要render整个@el模板
+
+#element Pattern 基本作用和render pattern差不多但可以控制得更细
+class ContactItem extends Spine.Controller
+  # Delegate the click event to a local handler
+  events:
+    "click": "click"
+
+  # Bind events to the record
+  constructor: ->
+    super
+    throw "@item required" unless @item
+    @item.bind("update", @render)
+    @item.bind("destroy", @remove)
+
+  # Render an element
+  render: (item) =>
+    @item = item if item
+
+    @html(@template(@item))
+    @
+  # Use a template, in this case via Eco
+  template: (items) ->
+    require('views/contacts')(items)
+
+  # Called after an element is destroyed
+  remove: ->
+    @el.remove()
+  # We have fine control over events, and 
+  # easy access to the record too
+  click: ->
+
+class Contacts extends Spine.Controller #用这个大的controller包装上面那个小的controller
+  constructor: ->
+    Contact.bind("refresh", @addAll) 
+    Contact.bind("create",  @addOne)
+
+  addOne: (item) => #这方法是主要，控制小粒度
+    contact = new ContactItem(item: item)
+    @append(contact.render())
+
+  addAll: => #这里其实就是遍历在加用上面的方法
+    Contact.each(@addOne)
+
+#controller Stacks
+这东西要require("spine/lib/manger"), 可以通过这东西去确保不会两个Controller同时运行导致冲突
+class PostsShow extends Spine.Controller
+class PostsEdit extends Spine.Controller
+
+class Posts extends Spine.Stack #继承这个
+  controllers:
+    show: PostsShow  # 变量: controller的方式来注入
+    edit: PostsEdit
+
+  default: 'show'
+
+posts = new Posts
+posts.show.active()
+posts.show.isActive() # true
+posts.edit.isActive() # false
+
+---------------------
+Events
+class Tasks extends Spine.Module
+  @extend(Spine.Events) #有这句后class就可以玩事件了
+Tasks.bind "create", (foo, bar) -> alert(foo + bar)
+Tasks.trigger "create", "some", "data"
+
+Tasks.bind("create update destroy", -> @trigger("change")) #一次邦多个
+spine的event不会返回给你event,只会传参数进来，目前来说除了controller还是比较少用
+
+全局事件，这个颇有用
+Spine.bind("fuck", (hahaha)=>@sidebar.append(hahaha))
+这样在Spine上面bind了一个东西，然后其他controller都可以去响这个事件，改变sidebar状态了!
+
+---------------------
+Views eco hem=>jeco
+
+<% if @projects.length: %>
+  <% for project in @projects: %>
+    <a href="<%= project.url %>"><%= project.name %></a>
+    <p><%= project.description %></p>
+  <% end %>
+<% else: %>
+  No projects
+<% end %>
+类似erb用<%%>, eco编译的时候把东西都编译成string了，取回时很难还原成model，或者说某个把某个模板绑定到某个事件, 这时hem jeco应运而生，他可以把模板邦到一个jqery变量，然后有个require进来，待适时再作渲染
+例子:
+# app/views/contacts.jeco
+<div class="item"></div>
+# # app/controllers/contacts.coffee
+ class Contacts extends Spine.Controller
+   events: 'click .item': 'clicked'
+
+   render: ->
+     items = Contact.all()
+     @html @require('views/contacts')(items)
+
+   clicked: (e) ->
+     element = $(e.target)
+     item = element.data('item')
+     @log "Contact #{item.name} was clicked"
+看clicked方法，可以从点击的element里面取回item model
+
+spine/lib/tmpl还提供了一个helper方法方便去拿回item, 例子:
+app/controllers/contacts.coffee
+require('spine/lib/tmpl')
+class Contacts extends Spine.Controller
+  clicked: (e) ->
+    item = $(e.target).item() #给jquery增加个item()方法去拿
+    @log "Contact #{item.name} was clicked"
+
+# Helper
+class Currencies extends Spine.Controller
+  render: ->
+    @output = @input and (@input * @rate()).toFixed(2) or 0
+    @html require('views/currency')(@)
+
+    helper:
+      format: (num) ->
+	num.toString().replace(/\B(?=(?:\d{3})+(?!\d))/g, ",")
+	Inside the template we can call the helper, passing in the appropriate variables:
+
+<section class="input">
+  <h1><%= @helper.format(@input) %></h1>
+  <h1><%= @helper.format(@output) %></h1>
+</section>
+
+#Binding
+当Model改变就整个模板render一下的例子
+class ContactsList extends Spine.Controller
+    constructor: ->
+      Contact.bind('refresh change', @render)
+
+    render: => #注意这里要绑定controller的上下文
+      items = Contact.all()
+      @html require('views/contacts')(items)
