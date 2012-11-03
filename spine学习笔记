@@ -258,12 +258,14 @@ lass ToggleView extends Spine.Controller
     #...
 Spine.Controllers已经继承了Spine.Events,所以可以在里面随便使用 @bind 和 @trigger 去绑定自定义参数
 
+#elements
 有时我们总是要在初始化的时候设一堆element,如
 class Tasks extends Spine.Controller
   constructor: ->
     super
     @items = @$(".items") #这里设一堆在构造器里
-spine给了我们一个helper, elements:{"selector": "variableName"} #更新，这东西sucks，经常邦回来的是空对象,老实自己邦吧...
+spine给了我们一个helper, elements:{"selector": "variableName"}
+注意更新，要确定elements这属性能work的话，@el对象设置进来有考究,不能写在controller的constructor里面,要写在初始化实例传进来, new C({el:"#ul_forpic"}),这样才能正确使用elements属性
 class Tasks extends Spine.Controller
   elements:
     ".items": "items"
