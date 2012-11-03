@@ -542,7 +542,15 @@ To learn more, see http://code.google.com/appengine/kb/general.html#rpcssl
    5:     raise InvalidCertificateException(hostname, cert,
    6:                                       'hostname mismatch')
 
-上传key:izuxujiljauhnlzh
+安装gevent 
+sudo apt-get install libevent-dev python-dev
+curl -O http://gevent.googlecode.com/files/gevent-1.0b4.tar.gz && tar xvzpf gevent-1.0b4.tar.gz && cd gevent-1.0b4 && python setup.py install
+
+greenlet问题
+sudo apt-get install python-setuptools
+easy_install greenlet
+
+
 --------------------------
 编译安装python 3.2
 二、编译安装Python3.2

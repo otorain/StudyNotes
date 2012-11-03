@@ -1254,6 +1254,11 @@ produces:
 
 ::Thread的exception与abort_on_exception 和$DEBUG设置有关，thread中raise的exception会在thread join的时候被捕获
 
+Ruby的线程是 Native 线程，线程的调度是 OS 来实现的。但是呢，由于 GIL 的存在，同一时间只有获取了这个锁的线程在跑， 也限制了有GIL的语言利用多核的能力。
+
+有 GIL 的限制并不代表你不能进行一些异步（通常意义上的异步）的操作。因为 GIL 不会被某个线程一直持有，所以其他的线程都有运行的机会。只是利用不上多核的能力 。就像以前，我们用单核 CPU 跑多线程程序类似。
+
+再往下说，就和其他多线程编程一样了，Java 虽然没有GIL，但是如果写的程序中， 几个Java线程都对某个公共资源进行访问和修改，如果加锁进行保护，那么这几个线程也不能真正达到多核的利用。
 --------------------------------------------------------------------------------------
 第十二章 单元测试 (unit testing)
 1.8用的是 Nathaniel Talbott’s Test::Unit framework 
@@ -2021,3 +2026,139 @@ pry
 ls anything 查看这个对象里的一切方法，父类方法,变量等等
 binding.pry 代码里写这个就进入pry的debugger，可以step continute next 之类
 edit-method 神奇东东，直接打开这个方法的源代码
+
+
+
+------------------
+Ruby2.0 新特性
+1)Refinements
+在module命名空间里面使用这东西，那么之下定义的方法只有在命名空间内才有效，在命名空间之外会失败
+module NumberQuery
+  refine String do #关键字refine
+    def number?
+      match(/^[1-9][0-9]+$/) ? true : false
+    end
+  end
+end
+
+begin
+  "123".number?
+rescue => e
+  p e   #=> #<NoMethodError: undefined method `number?' for "123":String>
+end
+
+在module命名空间内则随便用，好处是不会污染到外面已存在的对象
+module NumberQuery
+  p "123".number?   #=> true
+end
+
+想在其他已存在的module命名空间里面用到的话，可以用 using 关键字 
+module MyApp
+  using NumberQuery#个人觉得 using这名取得一般...
+
+  p "123".number?   #=> true
+  p "foo".number?   #=> false
+end
+
+2)Keyword Arguments
+def wrap(string, before: "<", after: ">")
+  "#{before}#{string}#{after}" # no need to retrieve options from a hash
+end
+
+# optional
+p wrap("foo")                                  #=> "<foo>"
+# one or the other,可以只设其中一个值
+p wrap("foo", before: "#<")                    #=> "#<foo>"
+p wrap("foo", after: "]")                      #=> "<foo]"
+# order not important, 顺序可以随便放
+p wrap("foo", after: "]", before: "[")         #=> "[foo]"
+
+# double splat to capture all keyword arguments, or use as hash as keyword, 两个星号表示可以把整个keyword arguments抓下来
+# arguments
+def capture(**opts)
+  opts
+end
+p capture(foo: "bar")                          #=> {:foo=>"bar"} 返回的是hash
+
+# keys must be symbols 传进的key一定要是hash 
+opts = {:before => "(", :after => ")"}
+p wrap("foo", **opts)         #=> "(foo)"  注意这里的**opts, 代表把上面的opts当做keyword arguments
+
+#旧的hash传参数方法继续支持，其实用起来不会有太大的不同
+p wrap("foo", :before => "{", :after => "}")   #=> "{foo}"
+
+3)Enumerator lazy
+可以遍历无限大集合的新方式
+require "timeout"
+begin
+  timeout(1) {[1,2,3].cycle.map {|x| x * 10}} #cycle()函数里面不指定次数的话就是无限次完全遍历当前集合,指定次数就是遍历多少次
+rescue => e
+  p e   #=> #<Timeout::Error: execution expired>
+end
+
+p [1,2,3].lazy.cycle.map {|x| x * 10}.take(5).to_a   #=> [10, 20, 30, 10, 20] 本应不断循环，但是用了lazy
+#A lazy enumerable will evaluate the entire chain for each element at a time, rather than all elements at each stage of the chain, so the following will output at 1 second intervals. Without #lazy all output would come after 3 seconds
+
+4)Enumerator prepend
+module A
+  def foo
+    "A"
+  end
+end
+
+class B
+  include A
+
+  def foo
+    "B"
+  end
+end
+
+p B.new.foo   #=> "B"
+#以前在class里面写的同名方法会覆盖掉module里面的方法,可以用回super去调用复写了的module方法
+#现在用prepend的话
+
+class C
+  prepend A
+
+  def foo
+    "B"
+  end
+end
+
+p C.new.foo   #=> "A" 这种情况还是可以用super访问到class里面定义的foo方法，ruby就是要提供更多选择给我们...
+
+5)新的to_hash方法to_h
+p({:foo => 1}.to_h)   #=> {:foo=>1}
+Baz = Struct.new(:foo)
+baz = Baz.new(1)
+p baz.to_h            #=> {:foo=>1}
+
+所以以前的写法
+def foo(opts)
+  raise ArgumentError, "opts must be a Hash" unless opts.is_a?(Hash)
+  # do stuff with opts
+end
+可以变成这样：
+def foo(options)
+  if options.respond_to?(:to_h)
+    opts = options.to_h
+  else
+    raise TypeError, "can't convert #{options.inspect} into Hash"
+  end
+  # do stuff with opts
+end
+
+6)symbol array的方便写法%i()
+p %i{hurray huzzah whoop}   #=> [:hurray, :huzzah, :whoop]
+
+7)正则表达式的引擎转成Onigmo
+(?(cond)yes|no) #有点像三目运算符，如果cond先match的话，就再去match yes,否则就去match no
+
+例子
+regexp = /^([A-Z])?[a-z]+(?(1)[A-Z]|[a-z])$/
+#开头大小写字母都可以,中间要都是小写字母, 然后引用回括号1,前面的大写match到吗？match到再看看是否A-Z结尾，否则是a-z结尾
+#这例子只会检测到前后都是大写或都是小写 并且中间要是小写　的例子
+regexp =~ "foo"   #=> 0  
+regexp =~ "foO"   #=> nil
+regexp =~ "FoO"   #=> 0
