@@ -157,6 +157,34 @@ wget -mkp -e robots=off -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1
 -e robots=off, 忽略robots.txt, 有些網站使用robots.txt禁止抓取.
 -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6" , --user-agent, 把自己爲裝成瀏覽器. 有些網站只允許瀏覽器訪問.
 
+其他参数
+-c 断点续传
+-r 递归下载，这个东西会把整个网站无限递归下去下载，所以最好指定层数 -l
+-l 同上一起用指定递归层数
+-m 制作mirror
+-i 批量下载，把url放到down.txt, and then wget -i down.txt
+--reject=gif 不下载gif
+--http-user=
+--http-password=
+
+其他递归参数
+A,--accept=LIST　　 可以接受的文件类型
+-R,--reject=LIST　　拒绝接受的文件类型
+-D,--domains=LIST　　可以接受的域名
+--exclude-domains=LIST　　拒绝的域名
+-L,--relative 　　只下载相对链接
+--follow-ftp　　 只下载HTML文档中的FTP链接
+-H,--span-hosts 　　可以下载外面的主机
+-I,--include-directories=LIST　　允许的目录
+-X,--exclude-directories=LIST 　　拒绝的目录
+
+代理
+~/.wgetrc 
+http-proxy = xxx.xxx.xxx.xxx:port
+ftp-proxy = xxx.xxx.xxx.xxx:port
+--proxy-user=
+--proxy-password=
+
 ---------------------------------
 bash 里面按ctrl-r （emacs的向上查找）
 可以快速查找之前输入过的命令

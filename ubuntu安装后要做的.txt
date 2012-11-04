@@ -550,6 +550,8 @@ greenlet问题
 sudo apt-get install python-setuptools
 easy_install greenlet
 
+urllib2 error的, 把python/app.yaml version改成2
+
 
 --------------------------
 编译安装python 3.2
