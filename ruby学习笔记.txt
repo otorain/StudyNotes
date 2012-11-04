@@ -1340,6 +1340,8 @@ end
 #国内镜像#
 $ gem sources -a http://ruby.taobao.org/
 $ gem install foo
+清华镜像
+http://mirrors.tuna.tsinghua.edu.cn/rubygems/
 --------------------------------------------------------------------------------------
 第十四章 反射 元编程
 先理顺祖先链:
