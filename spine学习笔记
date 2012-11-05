@@ -112,6 +112,7 @@ Contact.include
 #presistence持久化
 1) LocalStorage way
 如果不继承Spine.Model.Local,save()的东西都在内存中，用了这个model的话，东西可以用在HTML5的LocalStorage了
+#= require soine/local
 class Contact extend Spine.Model
   @configure "Contact", "name"
   @extend Spine.Model.Local
@@ -398,6 +399,8 @@ class Contacts extends Spine.Controller
   clicked: (e) ->
     item = $(e.target).item() #给jquery增加个item()方法去拿
     @log "Contact #{item.name} was clicked"
+
+rails里面加了gem eco之后，controller里面用@view('pictures/show')(key:value)
 
 # Helper
 class Currencies extends Spine.Controller
