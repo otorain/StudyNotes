@@ -525,7 +525,13 @@ it works!!
 first download Google App Engine SDK for Python  
 https://code.google.com/appengine/downloads.html then find google_appengine_1.6.2.zip
 move google_appengine_1.6.2.zip to the directory  where goagent has been unzipped.
-in terminal, change the current directory to goagent, then enter google_appengine/appcfg.py update goagent/server/python/   to deploy goagent
+in terminal, change the current directory to goagent, then enter :
+  google_appengine/appcfg.py update goagent/server/python/   to deploy goagent
+
+下面遇到的所谓urllib2的问题也可以用原来的google sdk上传解决
+另外如果遇到 the application does not exist(app_id='xxx') 
+可以用 appcfg.py update --no_cookies python/ 这样解决
+或者可以remove .appcfg_cookies也可以解决
 
 如果遇到这个错误
 fancy_urllib.InvalidCertificateException: Host appengine.google.com returned an invalid certificate (hostname mismatch): {'notAfter': 'Apr 11 00:14:07 2013 GMT', 'subjectAltName': (('DNS', '*.mail.google.com'), ('DNS', '*.docs.google.com'), ('DNS', '*.talkgadget.google.com'), ('DNS', '*.sites.google.com'), ('DNS', '*.plus.google.com'), ('DNS', '*.drive.google.com')), 'subject': ((('countryName', u'US'),), (('stateOrProvinceName', u'California'),), (('localityName', u'Mountain View'),), (('organizationName', u'Google Inc'),), (('commonName', u'*.mail.google.com'),))} 
