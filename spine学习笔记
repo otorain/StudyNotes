@@ -322,7 +322,7 @@ class ContactItem extends Spine.Controller
 
 class Contacts extends Spine.Controller #用这个大的controller包装上面那个小的controller
   constructor: ->
-    Contact.bind("refresh", @addAll) 
+    Contact.bind("refresh", @addAll)
     Contact.bind("create",  @addOne)
 
   addOne: (item) => #这方法是主要，控制小粒度

@@ -326,3 +326,112 @@ jquery 获取img src origin width height的方法
 //
 // // Now the image copy has its "original" height and width
 // alert('Height: '+aimgcopy.height()+' Width: '+aimgcopy.width());
+//
+jquery 获取元素绑定了什么events的方法
+1.8之前 $(element).data("events")["click"] //data("events")可以遍历
+1.8之后 $._data("events")["click"] //_data("events")可以遍历, 这样是为了预防方法重名
+
+---------------
+jquery deferred!!!
+延迟对象执行，解决各种同步异步的问题,方便了排列各种回调的顺序, 还有把回调的设定延迟到各种地方 
+像过去使用 $.ajax({
+  url:"xxx.html",
+  method:"post",
+  data:"{xxx:xxx}",
+  success:function(data){dosomething},
+  error:function(data){dosomething},
+})
+这样做虽然可以指定success和error，但是我们没有办法在外面控制$.ajax,因为$.ajax()的方法返回是xhr对象，我们不能在外面拿到callback的时机,
+
+1)现在1.5后开始$.ajax返回一个deferred对象，这个就是jquery用来控制延迟执行方法的对象,新写法
+$.ajax("xxx.html").done(function(){alert("ok")}).fail(function(){alert("fail")});
+
+2)可以指定多个同样的回调函数
+$.ajax("xxx.html").done().fail().done().fail();
+
+3)新方法$.when()，让你为多个事件指定同一个延迟执行函数
+$.when($.ajax("link1.html"), $.ajax("link2.html"))
+  .done()
+  .fail()
+意思是同时执行link1 和 link2的ajax请求，两个都成功的时候执行done, 有一个失败了就执行fail(), 类似 &&
+
+4)普通方法延迟使用done fail!!!!
+var wait = function(){
+  var tasks = function(){
+    alert("执行完毕！");
+  };
+ setTimeout(tasks,5000);
+};
+如果想为他指定回调函数
+$.when(wait()).done().fail()
+这样做会失败！因为$.when()只会返回deferred对象，没有做什么时候done,什么时候fail标记，我们要对函数改写:
+var dtd = $.Deferred(); // 新建一个deferred对象
+var wait = function(dtd){
+  tasks = function(){
+    alert("执行完毕！");
+    resolve(); // 改变deferred对象的执行状态
+  };
+  setTimeout(tasks,5000);
+  return dtd;
+};
+$.when(wait()).done().fail()现在就可以成功了
+
+5)
+dtd.resolve()的作用是什么？
+要说清楚这个问题，就要引入一个新概念"执行状态"。jQuery规定，deferred对象有三种执行状态----未完成，已完成和已失败。如果执行状态是"已完成"（resolved）,deferred对象立刻调用done()方法指定的回调函数；如果执行状态是"已失败"，调用fail()方法指定的回调函数；如果执行状态是"未完成"，则继续等待，或者调用progress()方法指定的回调函数（jQuery1.7版本添加）。
+前面部分的ajax操作时，deferred对象会根据返回结果，自动改变自身的执行状态；但是，在wait()函数中，这个执行状态必须由程序员手动指定。dtd.resolve()的意思是，将dtd对象的执行状态从"未完成"改为"已完成"，从而触发done()方法。
+
+dtd.resolve() 完成
+dtd.reject() 失败
+
+6)如果在函数直接返回 deferred对象，那么在外部就可以随意让dtd.resolve()导致done方法马上执行了，所以jquery搞了个deferred.promise()方法，另返回的对象不可随意更改状态, 还有derferred对象的创建最好也写在wait的内部 
+
+7)也可以用全局函数
+$.Deferred(wait).done().fail() //注意传的是函数名
+这样做的话可以在wait里面使用一个deferred的变量对象
+
+8)还可以用这种方式去定义，不过用起上来比较怪
+var dtd = $.Deferred(); // 生成Deferred对象
+var wait = function(dtd){
+  var tasks = function(){
+    alert("执行完毕！");
+    dtd.resolve(); // 改变Deferred对象的执行状态
+  };
+  setTimeout(tasks,5000);
+};
+dtd.promise(wait);
+wait.done(function(){ alert("哈哈，成功了！");})
+.fail(function(){ alert("出错啦！");});
+wait(dtd);
+
+9)为了省事，你可以把done()和fail()写在一起,then()
+deferred().then(doneFunc, failFunc)
+
+10)always()
+这东西是，不管resolve() or reject()，这回调都会执行
+自己的更新
+11）resolve(value), reject(value)
+方法里面的参数可以传出给 done(value), fail(value)
+
+11)deferred.pipe( [doneFilter] [, failFilter] [, progressFilter]  ), 可以把本来已返回deferred继续切割成几种状态，然后在外面指定回调
+var request = $.ajax( url, { dataType: "json"  }  ),
+    chained = request.pipe(function( data  ) {
+      return $.ajax( url2, { data: { user: data.userId  }  }  );
+
+    });
+
+chained.done(function( data  ) {
+  // data retrieved from url2 as provided by the first request
+  //
+});
+
+12)defered.state()返回当前deferred对象的状态 
+"pending": 未完成
+"resolved": 原函数已完成，并且done函数已被call打后
+"rejected": 原函数已失败，并且fail函数已被call打后
+
+13)defered.notify(args) 所有done() fail() then()里面的函数都会执行
+
+14)rejectWith() resolveWith(), 这东西可以指定done和fail的上下文
+
+

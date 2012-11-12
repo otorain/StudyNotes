@@ -562,6 +562,8 @@ urllib2 error的, 把python/app.yaml version改成2
 2012年11月 9日 星期五 22时37分39秒 CST
 hkhost 74.125.128.17|74.125.128.18|74.125.128.19|74.125.128.31|74.125.128.32|74.125.128.33|74.125.128.34|74.125.128.35|74.125.128.36|74.125.128.37|
 
+gaeproxy 设置hosts的地方
+data/data/org.gaeproxy/localproxy.py $5
 
 --------------------------
 编译安装python 3.2
@@ -589,3 +591,57 @@ sudo aptitude install ack-grep
 sl
 sudo apt-get install sl 
 sl #一辆火车呼啸而过
+
+-----------------------
+squid
+
+1.安装。
+在Ubuntu的源中具有squid的稳定版，所以直接在线安装即可。
+在终端中，输入命令：
+sudo apt-get install squid
+
+2.配置。
+默认情况下，Squid无法使用，因此需要配置。
+其配置文件为：/etc/squid/squid.conf，其默认的配置文件较复杂，以下为比较简易的squid.conf配置文件：
+
+#squid.conf begin
+http_port 3128 #监听端口号，默认为3128
+icp_port 0 #多个squid代理服务器可以通过icp协议相互沟通，形成树形层次关系（父代理、兄弟代理、子代理），构建代理服务器群；此处的“0”代表禁用icp端口
+cache_mem 64 MB #设置内存缓冲的大小，此数值不可超过服务器物理内存的1/3，否则会影响总体性能
+cache_swap_low 80 #与磁盘容量有关的配置，80为百分比
+cache_swap_high 85 #与磁盘容量有关的配置，85为百分比
+maximum_object_size 32000 KB #设定squid可以接收的最大对象的大小，大于此数值的对象将不被存储；如果cache_dir所在磁盘很大时，可以适当加大此数值
+cache_dir ufs /var/spool/squid 500 64 1024 #设置缓存的位置和大小，500代表缓存最大为500M，64和1024代表一级和二级目录数
+cache_access_log /var/log/squid/access.log #访问日志文件的存放路径
+cache_log /var/log/squid/cache.log #缓存日志文件的存放路径
+cache_store_log /var/log/squid/store.log #日志文件的存放路径
+pid_filename /var/run/squid.pid #日志文件的存放路径
+
+acl all src 0/0 #定义acl(访问控制列表)
+acl localhost src 127.0.0.1 #定义本机ip地址
+acl clientUser1 src 10.130.99.106 #定义客户端1的ip地址
+acl clientUser2 src 10.130.88.48 #定义客户端2的ip地址
+
+http_access allow clientUser1 #允许客户端1使用本代理
+http_access allow clientUser2 #允许客户端2使用本代理
+http_access allow localhost #允许本机使用本代理
+http_access deny all #拒绝除上述的任何其他ip地址使用本代理
+
+cache_effective_user squid #设置squid的管理员用户，对应cache_dir目录的所属用户
+cache_effective_group squid #设置squid的管理员用户组，对应cache_dir目录的所属组
+coredump_dir /var/spool/squid#设置squid的数据堆目录
+#squid.conf end
+
+3.使用。
+3.1 验证配置文件是否有效
+在终端中，输入命令：
+sudo squid -k parse
+注：如果没有输出反馈，表明配置文件有效，可继续以下内容；如果配置有误，将输出错误信息，你需要重新编辑配置文件。
+3.2 初始化cache缓存目录
+在终端中，输入命令：
+sudo squid -z
+注：初始化配置文件中定义的cache_dir，在使用squid之前必须初始化cache缓存目录。
+3.3 启动squid服务
+在终端中，输入命令：
+sudo service squid start
+注：如果想停止squid，可以输入命令：sudo squid -k shutdown。
