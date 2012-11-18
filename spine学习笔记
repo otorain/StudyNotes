@@ -94,8 +94,8 @@ class Contact extends Spine.Model
       "First name is required"
 
 只要validate方法里面有任何一个返回值，就会储存失败，并且会trigger Contact的error事件，我们可以绑定事件，通知用户
-save, create, update_attributes都会出发validation
-Contact.on("error",(evetn, message)->
+save, create, updateAttributes都会出发validation
+Contact.on("error",(event, message)->
   $.pnotify({type:'error', text:'message'})
 )
 
