@@ -120,6 +120,7 @@ extend之后东西都会存LocalStorage了,这样做之后，记得每次用Mode
   Contact.fetch()
 fetch后会触发Contact的refresh事件,记得在Controller绑定一下处理
 Contact.on("refresh", @render)
+#尼玛！！！血的教训，记得真是每次new create都要先fetch一下
 
 2)ajax way
 基于Restful, Spine ajax可以轻松和Rails接合
