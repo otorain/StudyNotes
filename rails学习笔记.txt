@@ -3395,6 +3395,8 @@ app/assets/javascripts/todos/views/todo.jst.eco
 然后在coffee里面用JST这东西去require eco
 JST['todos/views/todo']({model: somemodel}) #参考spine的用法，在后面的小括号传的参数可以在eco里面用 @model 去读取
 
+<%= %> 这样有用sanitize, 会输出转义后的内容, 
+<%- %> 这样才是直接嵌入到dom html #-
 -----------
 assets 更多自定义
 定义压缩css和js引擎
