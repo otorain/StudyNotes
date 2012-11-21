@@ -130,4 +130,14 @@ server {
 after creating the symlink with :
 ln -s /blog_install_dir/public /var/www/blog
 
+#
+bundle pack --all
 To add multiple apps we just have to add more passenger_base_uri options, to the same server and in the same way we addedd the first app
+
+which will move your gems from the .bundle directory to the vendor/cache.
+
+see yehuda katz' posting about bundler workflows on his site: http://yehudakatz.com/2010/02/09/using-bundler-in-real-life/
+
+more information on the bundler directory: you can add in you application.rb file the following line, which will change the bundler dir for phusion passenger:
+
+ENV['BUNDLER_HOME']="/home/or-wherever-you-want-to-point-it"

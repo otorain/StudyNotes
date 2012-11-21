@@ -3212,6 +3212,27 @@ CommentMailer.comment_notify_email(Comment.last).deliver
 ----------------------
 Rails4.0新特性
 
+Ruby 1.9.3 only
+Strong Parameters
+Queue API
+Caching Improvements
+https://github.com/rails/rails/commits/master
+https://github.com/rails/rails/blob/master/guides/source/4_0_release_notes.md
+
+20日添加
+1)Add /rails/info/routes path 把之前rake routes的内容放进来，可以更快得到routes的信息
+2) Rails.application.config.console= 
+  # it can be added to config/application.rb
+console do
+# this block is called only when running console,
+# so we can safely require pry here
+  require "pry"
+  config.console = Pry
+end
+  
+
+
+之前
 1)ActiveSupport::Queue #用于后台队列新线程处理一些不用即时返回结果 或 昂贵代价（一般会容易令链接阻塞）的操作
 class ExpenceOperation
   def run #实现一个run方法就行
@@ -3220,6 +3241,7 @@ class ExpenceOperation
 end
 Rails.queue.new(ExpenceOperation.new) #what ever you want
 config.queue = ActiveSupport::Queue
+config.queue_consumer = ThirdPart::Stuff
 
 2)Async ActionMailer #同上，可以后台任务发邮件
 在mailer的class里面
@@ -3294,6 +3316,7 @@ a. plugins 死刑，不再支持,建议旧的plugin移到lib，然后在initiali
 b. Rails2 的find接口死刑
 User.find(:all)
 User.find(:first) 之类的
+Post.find(:all, :conditions => { :comments_count => 10  }, :limit => 5) | use this Post.where(comments_count: 10).limit(5)
 
 c.之前一对多，找一然后关联多 并以多的那一方做条件，会产生sql outer join, 这个也废弃
 Post.includes(:comments).where("comments.id > ?", ...)  这一类
@@ -3305,14 +3328,23 @@ Post.includes(:comments).order("commments.created_at")
 d. 一些find_by的方法会被取代, 用后面的东西取代
 find_by        | ok
 find_all_by    | where()
+scoped_by      | where()
 find_last_by   | where().last
 find_or_create | where().first_or_create
+find_or_initialize_by | wehere().first_or_initialize
 
 e. 推荐使用scope 都用lambda
 scope :recent, lambda{ |date| where(["created_at > ? ", date ]) } 
+scope :red, where(color: 'red')
+default_scope where(color: 'red')
+Use this:
+scope :red, -> { where(color: 'red')  }
+default_scope { where(color: 'red')  }
 
 f. ajax form_for 里:remote=>true auth_token的问题
 remote:true自然没问题，rails4好像javascript要提交数据的话要手动指定authenticity_token了
+
+i.Remove Rack::SSL in favour of ActionDispatch::SSL
 
 以上移除的东西，4.0会提示deprecate,4.1全部只能用gem，5.0会直接不支持
 
