@@ -2307,12 +2307,14 @@ describe ArticlesController,"creating a new article" do
   it "fail create" do
     Article.any_instance.stubs(:valid?).returns(false) #就这里改成false
     post 'create'
-    flash[:notice].should_be nil
+    flash[:notice].should be_nil
     response.should render_template(:new)
   end
 end
 
-
+mock stub double都是用于创造假资料，官方貌似推荐用double，底层其实都是调用stub，理由是语义方面更好
+Article.should_receive(:create).with(title:"hello",content:"shit").and_return(true) 这里首先指定这里controller Article model里面会收跑create, 接收参数，然后麻烦都给我返回true
+controller_spec里面的assigns(:article)相当于articles_controller里面的@article实例变量
 
 
 ----------------------------------------------------------------------

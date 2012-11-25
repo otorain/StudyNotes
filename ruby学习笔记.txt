@@ -291,7 +291,7 @@ end
 (8)respond_to? 可以检查一个对象有没有这个方法(消息，变量)
 eric = Dog.new
 eric.respond_to?('wo')
-#要注意respond_to?方法不能识别method_missing所创建的方法,因此每当使用method_missing的时候都要重写repond_to?方法
+#要注意respond_to?方法不能识别method_missing所创建的方法,因此每当使用method_missing的时候都要重写respond_to?方法
 
 --------------------------------------------------------------------------------------
 第三章 ： 容器 块 遍历器(containers blocks iterators) proc lambda
