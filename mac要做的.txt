@@ -140,6 +140,12 @@ cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
 再把默认的bash替换成zsh
 chsh -s /bin/zsh
 
+autocorrect问题
+zsh老为我们处理自动correct, 在某个命令前加nocorrect就不会帮我们correct
+alias vim='nocorrect vim '  
+把这句加到.zshrc就帮我们关闭correct功能
+unsetopt correct_all
+
 
 --------------------
 iterm2让terminal变得更花俏
