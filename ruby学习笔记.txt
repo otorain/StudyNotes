@@ -1898,6 +1898,20 @@ rvm requirements 查看安装ruby尚欠什么包
 #到ruby toolbox看那些gem排名够高
 www.ruby-toolbox.com
 
+#rvm 修改安装源为taobao
+sed -i -e 's/ftp\.ruby-lang\.org\/pub\/ruby/ruby\.taobao\.org\/mirrors\/ruby/g' ~/.rvm/config/db
+or
+sed -i 's!ftp.ruby-lang.org/pub/ruby!ruby.taobao.org/mirrors/ruby!' $rvm_path/config/db
+
+#帮rvm版本ruby安装falcon版ruby
+rvm get head
+rvm reinstall 1.9.3 --patch falcon
+rvm use ruby-1.9.3-p327-falcon --default
+
+或重新安装
+rvm install ruby-1.9.3-p286 --patch falcon -n falcon
+
+
 ------------------------------------
 编程习惯
 把数据插入到string变量的时候，不要使用+，用<<追加,例如:

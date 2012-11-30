@@ -2317,6 +2317,28 @@ Article.should_receive(:create).with(title:"hello",content:"shit").and_return(tr
 controller_spec里面的assigns(:article)相当于articles_controller里面的@article实例变量
 
 
+##自定义rspec
+# spec/support/spec_test_helper.rb
+module SpecTestHelper   
+  def login_admin
+    login(:admin)
+  end
+
+  def login(user)
+    user = User.where(:login => user.to_s).first if user.is_a?(Symbol)
+    request.session[:user] = user.id
+  end
+
+  def current_user
+    User.find(request.session[:user])
+  end
+end
+# spec/spec_helper.rb
+RSpec.configure do |config|
+    config.include SpecTestHelper, :type => :controller
+end
+
+这样在任意spec都可以使用 login(:user)
 ----------------------------------------------------------------------
 十八, 性能问题 
 # ActiveRecord #
