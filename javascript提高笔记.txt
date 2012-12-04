@@ -237,6 +237,8 @@ var formData = new FormData($("form")[0]) //创建新对象
 formData.append("stringKey","StringData") //添加字符串
 formData.append("fileKey",file) //添加文件对象
 
+这是给formData增加参数，有时想简单从表单里面拿到所有数据，可以用jquery的serializeArray()或者serizlize(),前者是返回一个数组，每一个项是hash键值对，后者是get形式的参数
+
 FormData准备好之后，就可以用ajax post到服务器了,要用jquery发ajax的话，要注意把processData设成false,这样jquery就不会对数据序列化,并且不需要设置Content-Type头
 formdata:
 $.ajax(
