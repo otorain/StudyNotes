@@ -255,3 +255,17 @@ $ rm /tmp/Powerline.cache
 firesheep sys error
 改configure.ac
 CFLAGS = -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.7
+
+--------------------------
+垃圾flash问题
+youku黑屏
+MAC两步搞定：
+a.新建txt文件命名为static.youku.com，同时把后缀名txt删除（询问是否以.com作为后缀名是点确认）
+b.打开：
+/Users/（你的用户名）/Library/Preferences/Macromedia/Flash Player/#SharedObjects/********（一个随机文件夹）/找到名为static.youku.com的文件夹删除，用刚制作的static.youku.com文件替换之。
+
+p2p上传
+mms.cfg 文件
+在 Mac OS X 系统上， mms.cfg 文件位于 /Library/Application Support/Macromedia 中。
+在 Microsoft Windows 系统上，该文件位于系统目录的 Macromedia Flash Player 文件夹中
+echo RTMFPP2PDisable=1 >> mms.fcg

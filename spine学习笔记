@@ -141,6 +141,9 @@ Contact.on("ajaxError",(record,xhr,setting,error)->)
 
 spine不推荐你去搞ajaxError ajaxSuccess的事件，甚至不喜欢你搞什么loading的东西，因为jsApp就是要够快够互动，你应该更上层一点地去处理Model的save update change事件
 
+在rails里面指定render ajax error
+format.js { render :text => e.message, :status => 403  }
+
 手动指定Request!!
 class Photo extends Spine.Model
   @configure 'Photo', 'index'
