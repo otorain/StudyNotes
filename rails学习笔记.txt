@@ -3367,6 +3367,16 @@ default_scope { where(color: 'red')  }
 
 f. ajax form_for 里:remote=>true auth_token的问题
 remote:true自然没问题，rails4好像javascript要提交数据的话要手动指定authenticity_token了
+手动加csrf的方法
+$.ajax({ 
+  url: 'YOUR URL HERE',
+  type: 'POST',
+  beforeSend: function(xhr) {xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))},
+  data: 'someData=' + someData,
+  success: function(response) {
+      $('#someDiv').html(response);
+  }
+});
 
 i.Remove Rack::SSL in favour of ActionDispatch::SSL
 
