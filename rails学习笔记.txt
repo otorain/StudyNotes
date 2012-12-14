@@ -3025,6 +3025,9 @@ end
 除了把脚本写到capfile,也支持简单执行单行命令
 cap invoke COMMAND="echo 'Hello World'" SUDO=1
 
+经过一番实践，发现增加了不少复杂度
+共享的东西都放在shared目录里面，包括carrierwave 的 public/uploads目录, 还有要注意各种assets问题
+
 ------------------------------------
 rake 中处理大量数据库(mysql)时候的一些注意问题和推荐的方法
 拿把redis东西存入mysql来说,参看自己gu-da项目的jcounter
