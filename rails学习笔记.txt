@@ -102,6 +102,8 @@ root :to => "hello#say_hello"
 修改好 config/database.yml后：
 bundle exec rake db:create #rails会自动帮你生成好表
 
+在controller里面，用 helper_method :xxxx 定义好的方法在view里面也能使用的helper
+
 #yml问题#
 YAML格式嚴格要求縮排(建議為兩個空白)，且冒號後面必須有一個空隔。一般我們會預期YAML的值解析出來是字串，因此碰上值是數字或多行內容時，建議加上引號避免字串解析錯誤。例如 password: "123456"。如果沒有加上引號，這串數字會被解析成Fixnum物件而不是字串String。
 
