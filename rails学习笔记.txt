@@ -3510,3 +3510,7 @@ config.assets.cache_store = :memory_store, { :size => 32.megabytes  }
 要用一下这个 gem https://github.com/rtomayko/tilt, 主要是提供了一套interface让你处理web framwork里头各种模板塞在一起的问题,可以轻松的更换各种模板
 
 #场景假设：例如我想遇到js.coffee.erb文件先用coffee编译好javascript，然后再在上面套一个js异步变同步的引擎，编译好后在用ruby处理erb模板
+
+##
+如果使用了rabl, 那么在view里面也可以继续用data-attributes去传文件给javascript
+<div data-article="<%= render template: "article/articles.json.rabl" %>" ></div>
