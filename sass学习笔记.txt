@@ -109,3 +109,5 @@ $ sass-convert style.scss style.sass
 sass input.scss output.css
 sass --watch input.scss:output.css #这样可以用观察模式看着css的变化
 #更多的详细设置文档：http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#plugin
+
+g)开始用sass，mixin可以用=　代替

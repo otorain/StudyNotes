@@ -1724,7 +1724,7 @@ audio_tag
 # 常用辅助方法 #
 a)simple_format 把回车变成<br>
 
-b)truncate 输出概览，例如把文章输出第一段，后面长的用...补上
+b)truncate 输出概览，例如把文章输出第一段，后面长的用...补上, 省略号
 
 c)sanitize 白名單逸出
 預設允許的HTML標籤和屬性如下：

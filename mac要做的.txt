@@ -269,3 +269,10 @@ mms.cfg 文件
 在 Mac OS X 系统上， mms.cfg 文件位于 /Library/Application Support/Macromedia 中。
 在 Microsoft Windows 系统上，该文件位于系统目录的 Macromedia Flash Player 文件夹中
 echo RTMFPP2PDisable=1 >> mms.fcg
+
+----------------------
+快速部署ie7, 8 ,9环境
+安装virtualbox
+curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | bash
+打开virtualbox登陆
+ password is “Password1″

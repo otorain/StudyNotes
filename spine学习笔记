@@ -84,7 +84,8 @@ Contact.find(contact.id) #=> contant find失败的话会抛exception
 Contact.exist(contact.id) #=> 可以用exist去判断有没这个实例,返回 true false
 类似rrails,还可以用first或者last all去搜 Contact.first() Contact.last() Contact.all()
 Contact.each( (contact)-> console.log(contact.fullname)) #还有个each的遍历方法
-Contact.select((contact)-> contact.first(name)) #遍历器返回true的话就筛选出这个对象
+Contact.select((contact)-> contact.name == "jas") #遍历器返回true的话就筛选出这个对象
+Contact.findByAttrubute("name", "bob") #新方法可以遍历查询出符合值的对象
 
 #validation
 在SpineModel里面做validates非常简单重写一下validate()方法就可以
