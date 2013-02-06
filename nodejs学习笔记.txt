@@ -1,0 +1,201 @@
+安装npm
+curl http://npmjs.org/install.sh | sudo sh
+多版本管理器 n 类似ruby的rvm
+npm install -g n
+通过 n 获取的 Node.js 实例都会安装在 /usr/local/n/versions/ 目录中
+
+
+#语言
+1.创建一个http服务器
+var http = require('http');
+http.createServer(function(req, res) { 
+  res.writeHead(200, {'Content-Type': 'text/html'}); 
+  res.write('<h1>Node.js</h1>');
+  res.end('<p>Hello World</p>');
+}).listen(3000);
+console.log("HTTP server is listening at port 3000.");
+
+listen创建了事件监听，node.js进程不会退出事件循环，所以进程会一直等待
+
+2.supervisor
+node.js的http会一次读入内存，修改文件要重启服务才可以查看修改，不像php每次会重新读一下脚本，所以要用supervisor,每次文件改动就会重启一下node
+npm install -g supervisor
+
+3.node.js的异步I/O在完成时都会发送一个事件去事件队列，事件是由EventEmitter提供
+//event.js
+var EventEmitter = require('events').EventEmitter;
+var event = new EventEmitter();
+event.on('some_event', function() { console.log('some_event occured.');
+});
+setTimeout(function() { event.emit('some_event');
+}, 1000);
+
+node.js没有显式事件循环(对比ruby的EventMachine.run()),是由libev控制对开发者不可见的,libev事件循环的每一次迭代，在node.js里面就是一个tick，libev不断循环检查是否有活动事件，直到检测不到事件循环，才会结束进程
+
+4.模块和包管理
+使用require去请求一个js文件，require的可以是js代码，json或者c++扩展
+a)创建和加载一个模块
+Node.js 提供了 exports 和 require 两个对 象,其中 exports 是模块公开的接口,require 用于从外部获取一个模块的接口,即所获 取模块的 exports 对象。
+//module.js
+var name;
+exports.setName = function(thyName) { name = thyName;
+};
+exports.sayHello = function() { console.log('Hello ' + name);
+};
+
+//getmodule.js
+var myModule = require('./module');
+myModule.setName('BYVoid');
+myModule.sayHello();
+
+b)要注意的是require只是单次加载，每次都会指向同一个实例
+//loadmodule.js
+var hello1 = require('./module'); hello1.setName('BYVoid');
+var hello2 = require('./module'); hello2.setName('BYVoid 2');
+hello1.sayHello(); 
+//两次都是输出 BYYoid 2
+
+c)覆盖exports
+//singleobject.js 
+function Hello() {
+  var name;
+  this.setName = function (thyName) { 
+    name = thyName;
+  };
+  this.sayHello = function () { 
+    console.log('Hello ' + name);
+  };
+}
+
+exports.Hello = Hello; //这样使用时就要require('singleobject').Hello 很不方便
+module.exports = Hello;
+在外部引用该模块时,其接口对象就是要输出的 Hello 对象本身,而不是原先的 exports。
+事实上,exports 本身仅仅是一个普通的空对象,即 {},它专门用来声明接口,本 质上是通过它为模块闭包1的内部建立了一个有限的访问接口。因为它没有任何特殊的地方, 所以可以用其他东西来代替,譬如我们上面例子中的 Hello 对象。
+
+exports在模块执行结束之后会释放，module则不会，因此只能通过module.exports改变接口
+
+4. 创建包
+Node.js 的包是一个目录,其中包含一个 JSON 格式的包说明文件 package.json。严格符 合 CommonJS 规范的包应该具备以下特征:
+a. package.json 必须在包的顶层目录下;  二进制文件应该在 bin 目录下;
+b. JavaScript 代码应该在 lib 目录下;
+c. 文档应该在 doc 目录下;
+d. 单元测试应该在 test 目录下。
+
+如果 package.json 或 main 字段不存在,会尝试寻找 index.js 或 index.node 作 为包的接口。
+package.json 是 CommonJS 规定的用来描述包的文件,完全符合规范的 package.json 文 件应该含有以下字段。
+a. name:包的名称,必须是唯一的,由小写英文字母、数字和下划线组成,不能包含 空格。
+b. description:包的简要说明。
+c. version:符合语义化版本识别1规范的版本字符串。
+d. keywords:关键字数组,通常用于搜索。
+e. maintainers:维护者数组,每个元素要包含 name、email (可选)、web (可选) 字段。
+f. contributors:贡献者数组,格式与maintainers相同。包的作者应该是贡献者数组的第一个元素。
+g. bugs:提交bug的地址,可以是网址或者电子邮件地址。
+h. licenses:许可证数组,每个元素要包含 type (许可证的名称)和 url (链接到)
+i. repositories:仓库托管地址数组,每个元素要包含 type(仓库的类型,如 git )、url (仓库的地址)和 path (相对于仓库的路径,可选)字段。
+
+5. node.js 包管理 npm
+install如果不加-g, 会安装到当前目录 node_module下面
+使用全局模式npm 会将包安装到系统目录,譬如 /usr/local/lib/node_modules/,同时 package.json 文 件中 bin 字段包含的文件会被链接到 /usr/local/bin/, 使用全局模式的方法不能被require到，因为不会搜索/usr/bin
+
+a. npm link
+npm 提供了一个有趣的命令 npm link,它的功能是在本地包和全局包之间创建符号链 接。我们说过使用全局模式安装的包不能直接通过 require 使用,但通过 npm link命令 可以打破这一限制。举个例子,我们已经通过 npm install -g express 安装了 express, 5 这时在工程的目录下运行命令:
+  npm link express
+./node_modules/express -> /usr/local/lib/node_modules/express
+￼我们可以在 node_modules 子目录中发现一个指向安装到全局的包的符号链接。通过这 种方法,我们就可以把全局包当本地包来使用了。
+
+npm link还可以把当前包链接到全局，方便其他项目引用开发中的包
+
+b.包发布
+搞好包后
+1)npm init
+2)npm adduser, npm whoami可以查看创建user是否成功
+3)npm publish
+4)http://search.npmjs.org  有了后就可以npm install装他了
+5)包有更新在package.js version修改在 npm publish一次
+6)npm unpublish可以取消发布 
+
+6. debug
+node debug some.js
+进入debug后的各种命令
+run
+restart
+cont, c
+next, n
+step, s
+out, o
+setBreakpoint(), sb()
+setBreakpoint(‘f()’), sb(...)
+setBreakpoint(‘script.js’, 20), sb(...)
+clearBreakpoint, cb(...)
+backtrace, bt
+list(5)
+watch(expr)
+unwatch(expr)
+watchers
+repl
+kill
+scripts
+version
+
+b)　远程调试
+启动调试服务器，默认端口是5858
+node --debug[=port] script.js 
+node --debug-brk[=port] script.js //这种方式在服务器启动时暂停脚本运行
+客户端终端
+node debug 127.0.0.1:5858
+
+c) 使用node-inspector去调试
+npm install -g node-inspector
+然后启动一个debug服务器
+node --debug-bkr debug.js
+node-inspector
+然后在浏览器用http://localhost:8080/debug?port=5858
+
+#node.js核心模块
+1. 全局对象
+在dom是window, 在node.js里面是global
+
+2. process是global对象里面一个属性，用于和操作系统交互
+process.argv 命令行参数祖
+process.stdout process.stdout.write()比console.log更底层
+process.stdin 标准输入流
+  process.stdin.resume();
+  process.stdin.on('data', function(data) { 
+    process.stdout.write('read from console: ' + data.toString());
+  });
+process.nextTick(callback) 为事件循环设置一个任务，再下次事件循环会执行callback
+还有process.pid process.memoryUsage 等等
+
+3.util 核心函数库，弥补原来javascript的功能太少
+a)util.inherits(constructor, superConstructor) 方便提供继承
+var util = require('util');
+function Base() { 
+  this.name = 'base'; 
+  this.base = 1991;
+  this.sayHello = function() {
+    console.log('Hello ' + this.name);
+  };
+}
+Base.prototype.showName = function() { 
+  console.log(this.name); 
+};
+function Sub() { 
+  this.name = 'sub';
+}
+util.inherits(Sub, Base);
+var objBase = new Base();
+objBase.showName(); //base
+objBase.sayHello(); //hello base
+console.log(objBase);
+
+var objSub = new Sub(); 
+objSub.showName();  //sub
+//objSub.sayHello(); 
+console.log(objSub); //这里没有继承到 .base .sayHello
+
+b) util.inspect(object,[showHidden],[depth],[colors])
+将任意一个对象转成字符串，object就是要转换的对象
+
+c)除了以上我们介绍的几个函数之外,util还提供了util.isArray()、util.isRegExp()、 util.isDate()、util.isError() 四个类型测试工具,以及 util.format()、util. debug() 等工具
+
+
