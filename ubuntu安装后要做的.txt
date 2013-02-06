@@ -645,3 +645,14 @@ sudo squid -z
 在终端中，输入命令：
 sudo service squid start
 注：如果想停止squid，可以输入命令：sudo squid -k shutdown。
+
+-----------------------
+把zsh设置成默认shell
+chsh -s /bin/zsh
+
+如果是编译安装的，先在/etc/shells加入/usr/local/bin/zsh,然后再chsh
+
+
+-----------------------
+把ctrl 和 capslock对换
+系统设置 键盘布局 键盘布局 选项 ctrl位置 
