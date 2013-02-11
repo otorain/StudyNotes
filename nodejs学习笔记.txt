@@ -320,3 +320,32 @@ req.write(contents);
 req.end();
 
 #用node.js做web开发, express
+http://expressjs.com
+重新改进之前的例子
+var express = require('express');
+var app = express.createServer(); 
+app.use(express.bodyParser());
+app.all('/', function(req, res) {
+  res.send(req.body.title + req.body.text);
+});
+app.listen(3000);
+只要加载了bodyParser,就可以用req.body获取post而来的信息
+
+开始
+sudo npm install -g express
+express --help 查看帮助
+
+express -t ejs microblog //创建一个microblog的项目
+cd microblog && npm install //安装package.json 里面的依赖
+node app //运行项目
+
+a)路由路径匹配
+//app.js
+app.get('/user/:username', function(req, res) { 
+  res.send('user: ' + req.params.username);
+});
+路径规则/user/:username会被自动编译为正则表达式,类似于\/user\/([^\/]+)\/? 这样的形式。路径参数可以在响应函数中通过 req.params 的属性访问。
+路径规则同样支持 JavaScript 正则表达式,例如 app.get(\/user\/([^\/]+)\/?, callback)。这样的好处在于可以定义更加复杂的路径规则,而不同之处是匹配的参数是匿 名的,因此需要通过 req.params[0]、req.params[1] 这样的形式访问。
+
+幂等的的意思就是一个操作不会修改状态信息，并且每次操作的时候都返回同样的结果。即：做多次和做一次的效果是一样 的。
+在web设计上即指多次HTTP请求返回值相同
