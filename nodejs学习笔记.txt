@@ -350,3 +350,75 @@ app.get('/user/:username', function(req, res) {
 幂等的的意思就是一个操作不会修改状态信息，并且每次操作的时候都返回同样的结果。即：做多次和做一次的效果是一样 的。
 在web设计上即指多次HTTP请求返回值相同
 
+b)当路由重复的时候，上面一个路由优先,和rails一样
+
+c)通过next()函数可以把req,和res转给下一符合的规则，方便写中间件
+app.all('/user/:username', function(req, res, next) { 
+  console.log('all methods captured');
+  next();
+});
+app.get('/user/:username', function(req, res) {
+  res.send('user: ' + req.params.username);
+});
+
+
+#模板引擎
+1. ejs
+在新版本引擎默认用了jade, 我们可以在项目目录
+npm install ejs
+然后把模板改成ejs
+
+我们在 app.js 中通过以下两个语句设置了模板引擎和页面模板的位置: 
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+ejs很简单，和eco类似
+<% code %> javascript
+<%= code %> html safe代码
+<%- code %> raw html代码
+
+a) layout
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <%- body %>
+  </body>
+</html>
+
+关闭layout
+app.set('view options', {layout: false});
+
+b)指定使用其他layout
+function(req, res) {
+  res.render('userlist', {
+    title: '用户列表-后台管理系统',
+    layout: 'admin'
+  });
+};
+
+c)partials 
+app.get('/list', function(req, res) { 
+  res.render('list', {
+    title: 'List',
+    items: [1991, 'byvoid', 'express', 'Node.js'] 
+  });
+});
+
+//list.ejs, 现在用include了
+//<ul><%- partial('listitem', items) %></ul>
+<ul>
+  <% items.forEach(function(){ %>
+    <%- include listitem %>
+  <%})%>
+</ul>
+
+
+//listitem.ejs
+<li><%= item %></li>
+
+//partial 是一个可以在视图中使用函数,它接受两个参数,第一个是片段视图的名称, 第二个可以是一个对象或一个数组,如果是一个对象,那么片段视图中上下文变量引用的就 是这个对象;如果是一个数组,那么其中每个元素依次被迭代应用到片段视图。片段视图中 上下文变量名就是视图文件名,例如上面的'listitem'
+我晕, 这变量名用的是文件名, 上面注释这段已过世
+partial这方法被removed了，现在用include替代
