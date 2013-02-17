@@ -1,0 +1,56 @@
+brew install mongodb
+安装完后
+To have launchd start mongodb at login:
+  ln -sfv /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents
+Then to load mongodb now:
+  launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
+Or, if you don't want/need launchctl, you can just run:
+  mongod
+做完前两步，可以用mongo加入
+
+#查看当前db
+db
+
+#查看所有db
+show dbs
+
+#使用db
+use mydb #如果没有mydb 则创建
+
+#插入
+j = {name: "mongo"}
+k = {x: 3}
+db.things.insert(j)
+db.things.insert(k)
+
+#查询
+show collections #然后会看到上面的thing
+db.things.find()
+返回
+{ "_id" : ObjectId("51207ec4bf080812997d5e7f"), "name" : "mongo"  }
+{ "_id" : ObjectId("51207ec6bf080812997d5e80"), "x" : 3  }
+ObjectId是唯一的, _id类似主键
+
+#循环插入
+for(var i = 1; i<= 20; i++) db.things.insert({x:4, j: i})
+
+#find()指针
+find()会返回一个指针游标，然后我们可以用指针继续去取后面得集合
+var c = db.things.find()
+while(c.hasNext()) pringjson(c.next())
+
+#指针每次是20个集合，还可以作为一个数组使用
+printjson(c[4])
+{ "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3  }
+
+#指定查找，找到需要得集合
+db.things.find({x:4}) 
+db.things.find({name:'mongo'})
+db.things.find({x:4}, {j:1}) 找到x是4，j是1的集合
+
+#findOne()
+findOne()接收参数和find一样, 但返回不是cursor(), 只返回一个document
+
+#limit() 限制返回的数量
+db.things.find().limit(3)
+
