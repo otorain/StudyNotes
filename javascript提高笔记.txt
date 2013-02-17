@@ -1,3 +1,23 @@
+::作用域
+var scope = 'global';
+var f = function() { console.log(scope); // 输出 undefined var scope = 'f';
+};
+f();
+￼上面代码可能和你预想的不一样,没有输出 global,而是undefined,这是为什么呢? 这是 JavaScript 的一个特性,按照作用域搜索顺序,在 console.log 函数访问 scope 变 量时,JavaScript 会先搜索函数 f 的作用域,恰巧在 f 作用域里面搜索到 scope 变量, 所以上层作用域中定义的 scope 就被屏蔽了,但执行到 console.log 语句时,scope 还 没被定义,或者说初始化,所以得到的就是 undefined 值了。
+
+var f = function() {
+  var scope = 'f0'; 
+  (function() {
+    var scope = 'f1'; 
+    (function() {
+      console.log(scope); // 输出 f1 
+    })();
+  })();
+};
+f();
+上面是一个函数作用域嵌套的例子,我们在最内层函数引用了 scope 变量,通过作用 域搜索,找到了其父作用域中定义的 scope 变量。
+有一点需要注意:函数作用域的嵌套关系是定义时决定的,而不是调用时决定的,也就 是说,JavaScript 的作用域是静态作用域,又叫词法作用域,这是因为作用域的嵌套关系可 以在语法分析时确定,而不必等到运行时确定。
+
 ::call 方法可以用来代替另一个对象调用一个方法。call 方法可将一个函数的对象上下文从初始的上下文改变为由 thisObj 指定的新对象。如果没有提供 thisObj 参数，那么 Global 对象被用作 thisObj。 
 var first_object = { 
     num: 42 
