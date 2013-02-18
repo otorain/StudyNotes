@@ -276,3 +276,11 @@ echo RTMFPP2PDisable=1 >> mms.fcg
 curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | bash
 打开virtualbox登陆
  password is “Password1″
+
+-------------------
+brew install the_silver_searcher
+比ack更快的东西
+Vim
+You can use Ag with ack.vim by adding the following line to your .vimrc:
+let g:ackprg = 'ag --nogroup --nocolor --column'
+
