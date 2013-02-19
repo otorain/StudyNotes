@@ -289,3 +289,10 @@ find . -type d -exec du {} \;
 sort 
 ls -l | sort -k5 -nr
 k命令是以地几个字段去作为排序参数，然后 -nr是从大到小，默认是从小到打
+
+-------------------------------
+rsync
+rsync -av ./xxxx/ ssh@xxx.xxx.xx:/aaa/yyyy 同步xxxx/下所有文件到服务器/yyyy下
+rsync -av ./xxxx ssh@xxx.xxx.xx:/aaa/yyyy 同步xxxx/下所有文件到服务器/yyyy/xxxx下 注意和上一个命令有/
+
+-P 现示传输速率
