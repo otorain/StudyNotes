@@ -1,7 +1,7 @@
 安装npm
-curlhttp://npmjs.org/install.sh | sudo sh
+curl http://npmjs.org/install.sh | sudo sh
 多版本管理器n 类似ruby的rvm
-npminstall -g n
+npm install -g n
 通过n 获取的 Node.js 实例都会安装在 /usr/local/n/versions/ 目录中
 
 
@@ -19,7 +19,7 @@ listen创建了事件监听，node.js进程不会退出事件循环，所以进�
 
 2.supervisor
 node.js的http会一次读入内存，修改文件要重启服务才可以查看修改，不像php每次会重新读一下脚本，所以要用supervisor,每次文件改动就会重启一下node
-npminstall -g supervisor
+npm install -g supervisor
 
 3.node.js的异步I/O在完成时都会发送一个事件去事件队列，事件是由EventEmitter提供
 //event.js
