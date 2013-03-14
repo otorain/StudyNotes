@@ -1911,6 +1911,14 @@ rvm use ruby-1.9.3-p327-falcon --default
 或重新安装
 rvm install ruby-1.9.3-p286 --patch falcon -n falcon
 
+ruby2.0
+rvm get latest
+rvm install 2.0.0
+rvm use 2.0.0 --default
+
+rvm pkg install openssl
+rvm install 2.0.0 --with-openssl-dir=~/.rvm/usr or
+--with-openssl-dir=brew --prefix openssl --with-readline-dir=brew --prefix readline
 
 ------------------------------------
 编程习惯

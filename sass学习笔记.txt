@@ -111,3 +111,17 @@ sass --watch input.scss:output.css #这样可以用观察模式看着css的变�
 #更多的详细设置文档：http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#plugin
 
 g)开始用sass，mixin可以用=　代替
+
+css伪类属性选择器
+i[class~="icon-"] 正则
+i[class="icon-edit"] 确切
+父类选择
+$a > i[class~="icon-"]  {textdecorator: none} 这个样式作用在a上
+
+属性相等
+/* 样式应用与当前 :hover 所在的 li 的 target ID 属性值相等的 p 上 */
+li:hover /targetID/ p { border:2px solid #609060;  }
+
+默认选项
+  option:default {xxx}
+

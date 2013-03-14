@@ -274,6 +274,19 @@ echo RTMFPP2PDisable=1 >> mms.fcg
 快速部署ie7, 8 ,9环境
 安装virtualbox
 curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | bash
+
+Install ALL versions of Internet Explorer: IE7, IE 8, and IE 9
+curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | bash
+
+Install Internet Explorer 7 Only
+curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | IEVMS_VERSIONS="7" bash
+
+Install Internet Explorer 8 Only
+curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | IEVMS_VERSIONS="8" bash
+
+Install Internet Explorer 9 Only
+curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | IEVMS_VERSIONS="9" bash
+
 打开virtualbox登陆
  password is “Password1″
 
