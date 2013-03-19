@@ -39,6 +39,15 @@ rvmsudo passenger-install-nginx-module
 
 gem install passenger
 passenger-install-nginx-module
+
+2.0s problem
+git clone https://github.com/FooBarWidget/passenger.git
+cd passenger
+gem build passenger.gemspec
+gem install passenger-3.9.5.rc3.gem (or type your actual built gem name)
+
+if nigix passenger_root has problem, use
+passenger_config --root to find out where the main passenger is and update nginx.conf 
 ###############################
 
 
