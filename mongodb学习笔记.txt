@@ -57,3 +57,6 @@ findOne()接收参数和find一样, 但返回不是cursor(), 只返回一个docu
 #limit() 限制返回的数量
 db.things.find().limit(3)
 
+#drop database
+use xxxx
+db.dropDatabase()

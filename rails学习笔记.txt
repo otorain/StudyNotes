@@ -3328,6 +3328,7 @@ end
 7)ActiveRecord
 a. Relation#all returns a relation
 Post.all.class #=> ActiveRecord::Relation 
+现在 Model.all会返回一个relation_ship对象，用的时候才读库
 
 b.scoped 废弃
 Post.scoped #=>deprecation warning!
@@ -3339,6 +3340,9 @@ rails4
 nil.id #=> nomethod for nil class!
 
 d. update_attribute|attributes 会改进 ？不再迷迷糊糊的要你记update_attribute其实是不跑validate的，update_column和columns又其实没有分别的...
+是不是经常被 #update_attributes 和 #update_attribute 还有 #update_column 搞晕？好消息来了——Rails 4 重新整理了属性更新的方法，现在的方式简单明了：
+@book.update(post_params) # 会触发验证
+@book.update_columns(post_params) # 构建 SQL 语句，直接执行于数据库层，不会触发验证
 
 e. first 和 last的sql语句改进了,性能改进
 
@@ -3365,6 +3369,35 @@ find_last_by   | where().last
 find_or_create | where().first_or_create
 find_or_initialize_by | wehere().first_or_initialize
 
+现在的where和find_by都很强大，有点向mongoid的方向靠
+推荐
+Book.where(author: 'Albert Yu')
+
+Book.find_all_by_title('Rails 4') # rails3 way
+Book.find_last_by_author('Albert Yu') # rails3 way
+
+Book.where(title: 'Rails 4') # rails4 way
+Book.where(author: 'Albert Yu').last # rails4 way
+
+find_by 很像mongoid了
+Book.find_by_title('Rails 4') # 接收单个参数的用法在 r3 & r4 都可以
+Book.find_by(title: 'Rails4') # 不过 r4 更偏爱这样写
+Book.find_by_title('Rails 4', conditions: { author: 'Albert Yu'  }) # 这就不好了，得改
+Book.find_by(title: 'Rails4', author: 'Albert Yu') # Wow! 太棒了！
+统一使用 find_by 不仅有更好的一致性，而且更便于接收 hash 参数：
+book_param = { title: 'Rails 4', author: 'Albert Yu'  }
+Book.find_by(book_param)
+
+find_by 方法的内部实现其实很简单：
+# activerecord/lib/active_record/relation/finder_methods.rb
+def find_by(*args)
+  where(*args).take
+end
+
+找或更新
+Book.find_or_initialize_by(title: 'Rails 4')
+Book.find_or_create_by(title: 'Rails 4')
+
 e. 推荐使用scope 都用lambda
 scope :recent, lambda{ |date| where(["created_at > ? ", date ]) } 
 scope :red, where(color: 'red')
@@ -3390,7 +3423,67 @@ i.Remove Rack::SSL in favour of ActionDispatch::SSL
 
 以上移除的东西，4.0会提示deprecate,4.1全部只能用gem，5.0会直接不支持
 
+j.路由变化 routes
+过去
+resources :messages do
+  resources :comments
+  resources :categories
+  resources :tags
+end
 
+resources :posts do
+  resources :comments
+  resources :categories
+  resources :tags
+end
+
+resources :articles do
+  resources :comments
+  resources :categories
+  resources :tags
+end
+
+现在可以用concern重构，重新组织一下
+concern :sociable do
+  resources :comments
+  resources :categories
+  resources :tags
+end
+
+resources :messages, concerns: :sociable
+resources :posts, concerns: :sociable
+resources :articles, concerns: :sociable
+可以传参数
+concern :sociable do |options|
+  resources :comments, options
+  resources :categories, options
+  resources :tags, options
+end
+
+resources :messages, concerns: :sociable
+resources :posts, concerns: :sociable
+resources :articles do
+  concerns :sociable, only: :create
+end
+
+抽出来成为单独类
+# app/concerns/sociable.rb
+class Sociable
+  def self.call(mapper, options)
+    mapper.resources :comments, options
+    mapper.resources :categories, options
+    mapper.resources :tags, options
+  end
+end
+
+# config/routes.rb
+concern :sociable, Sociable
+
+resources :messages, concerns: :sociable
+resources :posts, concerns: :sociable
+resources :articles do
+  concerns :sociable, only: :create
+end
 ---------------------------------------------------
 Sprockets: Rack-based asset packaging
 这东西就是rails用于管理assets的东西,用这个全局变量去做各种操作Sprockets::Environment, rails里面已经把这变量设成Your::Application.assets,并做了各种设置, 我们可以用这变量去做些操作，例如添加其他位置的assets，或者除了 coffee 之外加入更多javascript的编译器，例如老赵的wind.js

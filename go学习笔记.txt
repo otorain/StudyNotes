@@ -1,0 +1,5 @@
+下载地址
+http://code.google.com/p/go/downloads/list
+安装后
+$ go version //如果提 示找不到go命令,可以通过手动添加/usr/local/go/bin到PATH环境变量来解决
+
