@@ -3,3 +3,40 @@ http://code.google.com/p/go/downloads/list
 安装后
 $ go version //如果提 示找不到go命令,可以通过手动添加/usr/local/go/bin到PATH环境变量来解决
 
+//hello.go
+package main
+import "fmt"
+func main(){
+  fmt.Println("hello world")
+}
+
+$ go run hello.go
+$ go build hello.go && ./hello
+
+//go项目编译，非常简单，无需makefile
+<project dir>
+  <src>
+    ....your sourcefile and unit test
+  <bin>
+  <pkg>
+设好系统$GOPATH然后在bin目录下执行go build project就可以编译好整个项目了!(单元测试可以用go test命令)
+
+//Println Printf的例子
+fval := 110.48
+ival := 200
+sval := "This is a string. "
+fmt.Println("The value of fval is", fval)
+fmt.Printf("fval=%f, ival=%d, sval=%s\n", fval, ival, sval)
+fmt.Printf("fval=%v, ival=%v, sval=%v\n", fval, ival, sval)
+
+//gdb调试
+gdb project
+
+//start
+
+//-----------------------------------
+## 变量
+:
+
+
+
