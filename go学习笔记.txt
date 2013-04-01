@@ -32,11 +32,346 @@ fmt.Printf("fval=%v, ival=%v, sval=%v\n", fval, ival, sval)
 //gdb调试
 gdb project
 
+go约定了大写开头的变量是public, 小写开头的是private
 //start
 
 //-----------------------------------
 ## 变量
-:
+声明
+var v1 int
+var v2 string
+var v3 [10]int //数组
+var v4 []int //数组切片
+var v5 struct {
+  f int
+}
+var v6 *int //指针
+var v7 map[string]int // map, key为string, value 为int
+var v8 func(a int)int
 
+var( //多个变量同时声明
+  v1 int
+  v2 string
+)
+变量初始化
+var v1 int = 10
+var v2 = 10
+v3 := 10
+三种方式完全一样，v3写法编译器会自动推导类型，减少输入量，推荐
+要注意方式三不能使用在已经声明过的变量上，会引起错误
+
+支持多重赋值
+i, j = j, i
+
+匿名变量，可以利用go函数多个返回值去方便赋值
+func GetName()(firstname, secoend_name, lastname){
+  return "jas", "kevin", "leap"
+}
+jas, _, _ := GetName() //不需要的时候可以用下划线取代
+
+常量
+-12
+3.14159
+3.2+2i //复数类型
+true
+"xxx"
+c语言之流赋值给long要12l之类的，现在在go语言12这种常量可以直接复制给所有数值类型
+给常量做声明
+const Pi float64 = 3.1415926
+const {
+  size int64 = 1024
+  eof = -1
+}
+
+iota常量
+iota编译时候会重置为0，每次出现自动加1
+const {
+  fuck1 = iota //0
+  fuck2 = iota //2
+  fuck3 = iota //3
+}
+
+enum枚举
+const {
+  Monday = iota
+  Tusday
+  Thursday
+  numberOfDays //这个是小写开头， 包外不能访问
+}
+基础类型
+布尔
+整形 int64 int32 int8 byte等
+浮点 float64 float32
+复数 complex128 complex64
+字符类型 rune
+字符串类型 string
+错误类型 error
+复合类型
+指针 Pointer
+数组 array
+切片 slice
+字典 map
+通道 chan
+结构 struct
+接口 interface
+
+类型强制转换，int转int32, 要注意精度丢失
+v1 := 32
+v2 = int32(v1)
+整形有一般的+-*/%运算
+
+字符串
+str := "hello world"
+len(str) //可以获取字符串的长度, 还可以获取数组，切片的长度
+str[0] //字符串第一个字符
+str + "fuck" //普通字符串+操作
+两种方式遍历字符串
+1) str := "hello world" // 遍历字符串数组
+  l = len(str)
+  for i:=0, i < len; i++ {
+    ch = str[i]
+    fmt.Println(i, ch)
+  }
+
+2) str := "hello world" // 遍历字符串数组
+for i, ch := range str{
+  fmt.Println(i, ch)
+}
+
+数组
+和其他语言一样, -1下标为数组最后一个元素
+[32]byte
+[3][5]int
+[1000]*int //指针数组
+数组长度定义后不可更改
+除了len()可以获取数组长度外，go还提供一个range关键字方便遍历数组，返回的结构(下标，值)
+for i, v := range some_array {
+  fmt.Println(i, v)
+}
+go数组有一个值类型（value type）, 在函数内不能对原数组进行修改，只是修改数组的一个clone, 要修改的话要用slice
+
+数组切片slice
+初看起来,数组切片就像一个指向数组的指针,实际上它拥有自己的数据结构,而不仅仅是 个指针。数组切片的数据结构可以抽象为以下3个变量:
+一个指向原生数组的指针;
+数组切片中的元素个数;
+数组切片已分配的存储空间。
+从底层实现的角度来看,数组切片实际上仍然使用数组来管理元素,因此它们之间的关系让 C++程序员们很容易联想起STL中std::vector和数组的关系。基于数组,数组切片添加了一系 列管理功能,可以随时动态扩充存放空间,并且可以被随意传递而不会导致所管理的元素被重复 复制。
+
+slice有两种创建方式
+1）基于数组
+array := int[5]{1,2,3,4,5}
+slice := array[:3] //所以这里会生成头三个,Go语言支持用myArray[first:last]这样的方式来基于数组生成一 个数组切片 还可以 array[:]全部， array[2:], 数组2个之后的
+2)直接创建, 用自带的make()方法创建
+创建一个初始元素个数为5的数组切片,元素初始值为0:
+mySlice1 := make([]int, 5)
+创建一个初始元素个数为5的数组切片,元素初始值为0,并预留10个元素的存储空间:
+mySlice2 := make([]int, 5, 10)
+直接创建并初始化包含5个元素的数组切片:
+mySlice3 := []int{1, 2, 3, 4, 5}
+当然,事实上还会有一个匿名数组被创建出来,只是不需要我们来操心而已。
+遍历和数组一样，可以用长度或者range
+两个有用方法cap()是返回分配了，占用了的内存空间，len()是返回已有元素个数(长度)
+
+为slice增加元素
+mySlice = append(mySlice, 1, 2, 3) 
+还可以把另一个slice直接放在slice的结尾
+mySlice = append(mySlice, mySlice2...) //后面跟三个点省略号意思是把mySlice2的东西打散放进来
+
+复制slice, 会基于更小的slice部分互相复制
+slice1 := []int{1,2,3,4,5}
+slice2 := []int{1,2}
+copy(slice1, slice2) //把slice1的前两个复制给slice2
+copy(slice2, slice1) //把slice2的前两个复制给slice1
+
+Map go的map是如此的强大
+// PersonInfo是一个包含个人详细信息的类型 
+type PersonInfo struct {
+  ID string
+  Name string
+  Address string
+}
+func main() {
+  var personDB map[string] PersonInfo
+  personDB = make(map[string] PersonInfo)
+  // 往这个map里插入几条数据
+  personDB["12345"] = PersonInfo{"12345", "Tom", "Room 203,..."}
+  personDB["1"] = PersonInfo{"1", "Jack", "Room 101,..."}
+  // 从这个map查找键为"1234"的信息 
+  person, ok := personDB["1234"]
+  // ok是一个返回的bool型,返回true表示找到了对应的数据 if ok {
+  if ok {
+    fmt.Println("Found person", person.Name, "with ID 1234.")
+  } else {
+    fmt.Println("Did not find person with ID 1234.")
+  }
+}
+参照上面的struct，还可以这样创建
+myMap = map[String] PersonInfo{
+  "1234": PersonInfo{"1", "jas", "guangzhou"}
+}
+
+删除键值
+delete(myMap, "1234")
+
+取值时有个ok是非常好的一个判断值内容是否有问题的好方法，过去我们经常要判断nil?, 现在可以直接用ok了
+value, ok = map["1234"]
+if ok{
+ //blah 
+}else {
+  //blah
+}
+
+/////////流程控制/////
+条件语句,对应的关键字为if、else和else if;
+选择语句,对应的关键字为switch、case和select(将在介绍channel的时候细说);
+循环语句,对应的关键字为for和range;
+跳转语句,对应的关键字为goto。
+在具体的应用场景中,为了满足更丰富的控制需求,Go语言还添加了如下关键字:break、 continue和fallthrough。在实际的使用中,需要根据具体的逻辑目标、程序执行的时间和空 间限制、代码的可读性、编译器的代码优化设定等多种因素,灵活组合。
+
+if else
+条件语句不需要使用括号将条件包含起来();
+无论语句体内有几条语句,花括号{}都是必须存在的;
+左花括号{必须与if或者else处于同一行;
+在if之后,条件语句之前,可以添加变量初始化语句,使用;间隔;
+在有返回值的函数中,不允许将“最终的”return语句包含在if...else...结构中, 否则会编译失败
+
+switch case
+左花括号{必须与switch处于同一行;
+条件表达式不限制为常量或者整数;
+单个case中,可以出现多个结果选项;
+与C语言等规则相反,Go语言不需要用break来明确退出一个case;
+只有在case中明确添加fallthrough关键字,才会继续执行紧跟的下一个case; 可以不设定switch之后的条件表达式,在此种情况下,整个switch结构与多个 if...else...的逻辑作用等同。
+
+for 循环
+go没有什么while, do-while的东西,若要死循环，直接用for{}就行
+左花括号{必须与for处于同一行。
+Go语言中的for循环与C语言一样,都允许在循环条件中定义和初始化变量,唯一的区别
+是,Go语言不支持以逗号为间隔的多个赋值语句,必须使用平行赋值的方式来初始化多
+个变量。
+Go语言的for循环同样支持continue和break来控制循环,但是它提供了一个更高级的break,可以选择中断哪一个循环,如下例:
+for j := 0; j < 5; j++ {
+  for i := 0; i < 10; i++ {
+    if i > 5 {
+      break JLoop
+    }
+  fmt.Println(i)
+  }
+}
+JLoop: // ...
+本例中,break语句终止的是JLoop标签处的外层循环。
+
+goto
+func myfunc() {
+  i := 0
+  HERE:
+  fmt.Println(i)
+  i++
+  if i < 10 {
+    ￼￼goto HERE //跳到HERE标签位置
+  }
+}
+
+////////函数////////////////
+函数的结构 func, 函数名, 参数， 返回值, 函数体， 返回语句
+package mymath
+import "errors"
+func Add(a int, b int) (ret int, err error) {
+  if a < 0 || b < 0 { // 假设这个函数只支持两个非负数字的加法
+    err= errors.New("Should be non-negative numbers!")
+    return
+  }
+  return a + b, nil // 支持多重返回值 
+}
+
+调用非常简单
+import mymath
+  value, err := mymath.Add(1, 2)
+
+不定参数
+unc myfunc(args ...int) {
+  for _, arg := range args {
+    fmt.Println(arg)
+  }
+}
+这段代码的意思是,函数myfunc()接受不定数量的参数,这些参数的类型全部是int,所以它可以用如下方式调用:
+myfunc(2, 3, 4)
+myfunc(1, 3, 7, 13)
+这种方式不定参数只能写在最后的一个参数上
+
+不定参数的传递
+假设有另一个变参函数叫做myfunc3(args ...int),下面的例子演示了如何向其传递变参:
+func myfunc(args ...int) { // 按原样传递
+  myfunc3(args...)
+  // 传递片段,实际上任意的int slice都可以传进去
+  myfunc3(args[1:]...)
+}
+
+任意类型的不定参数，用args...interface{}, 例子说话
+package main
+import "fmt"
+func MyPrintf(args ...interface{}) {
+  for _, arg := range args {
+    switch arg.(type) {
+      case int: ￼
+	//blah
+      case int64:
+      	//blah
+      case string:
+      	//blah
+      case float32:
+      	//blah
+    }
+  }
+}
+func main() {
+  var v1 int = 1
+  var v2 int64 = 234
+  var v3 string = "hello"
+  var v4 float32 = 1.234
+  MyPrintf(v1,v2,v3,v4)
+}
+
+匿名函数和闭包
+func(a, b int) bool{
+  //blahblah
+}(1,2) //可直接执行或者赋值给一个变量
+
+错误处理，实例代码
+type PathError struct {
+  Op string
+  Path string
+  Err error
+}
+func (e *PathError) Error() string {
+  return e.Op + " " + e.Path + ": " + e.Err.Error()
+}
+
+defer保证函数完成后程序某个语句必须执行
+func CopyFile(dst, src string) (w int64, err error) {
+  srcFile, err := os.Open(src)
+if err != nil {
+  return
+}
+defer srcFile.Close()
+dstFile, err := os.Create(dstName) if err != nil {
+  return
+}
+defer dstFile.Close()
+return io.Copy(dstFile, srcFile) }
+￼即使其中的Copy()函数抛出异常,Go仍然会保证dstFile和srcFile会被正常关闭。 如果觉得一句话干不完清理的工作,也可以使用在defer后加一个匿名函数的做法:
+defer func() {
+  // 做你复杂的清理工作
+} ()
+
+panic()和recover()
+panic(interface{}) 相当于raise
+recover() 相当于catch，但由于有defer存在，可以写在任意地方并且一定接到
+//害怕函数foo会有panic的时候
+defer func() {
+  if r := recover(); r != nil {
+    log.Printf("Runtime error caught: %v", r)
+  }
+}()
+foo()
 
 
