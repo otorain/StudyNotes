@@ -374,4 +374,44 @@ defer func() {
 }()
 foo()
 
+/////////////面向对象/////////////
+Go语言和C语言一样,类型都是基于值传递的。要想修改变量的值,只能 传递指针。
+func (a *Integer) Add(b Integer) {
+  *a += b
+}
+main() {
+  var a Integer = 3
+  a.Add(2) //5
+  fmt.Println(a)
+}
+如果上面的func不是用指针传递，那a的值还是3
 
+值语义和引用语义
+b=a b.Modify()
+如果b的修改不会影响a的值,那么此类型属于值类型。如果会影响a的值,那么此类型是引用 类型。
+基本类型int float之流和复合类型array struct pointer之流都是值语义
+举例，go语言很彻底的大部分都是值语义
+a = [3]int{1,2,3}
+var b = a
+b[1]++
+fmt.Println(a, b)//[1 2 3] [1 3 3]
+如果要改b的时候改a，就要用指针b = &a //这表明b=&a赋值语句是数组内容的引用。变量b的类型不是[3]int,而是*[3]int类型。
+fmt.Println(a, *b)
+
+##struct
+所有的Go语言类型(指针类型除外)都可以有自己的方法。在这个背景下,
+Go语言的结构体只是很普通的复合类型,平淡无奇。例如,我们要定义一个矩形类型:
+type Rect struct {
+  x, y float64
+  width, height float64
+}
+然后我们定义成员方法Area()来计算矩形的面积:
+func (r *Rect) Area() float64 {
+  return r.width * r.height
+}
+可以看出, Go语言中结构体的使用方式与C语言并没有明显不同。
+初始化
+rect1 := new(Rect)
+rect2 := &Rect{}
+rect3 := &Rect{0, 0, 100, 200}
+rect4 := &Rect{width: 100, height: 200}
