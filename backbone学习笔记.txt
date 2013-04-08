@@ -1,0 +1,363 @@
+Backbone.Events
+
+#Events
+//继承Backbone.Events, 所有对象都有了on 和 trigger, 还可以传参数
+var object = {};
+_.extend(object, Backbone.Events);
+object.on("alert", function(msg) {
+    alert("Triggered " + msg);
+});
+object.trigger("alert", "an event");
+
+var dispatcher = _.clone(Backbone.Events); //用这种方式可以把Backbone.Events clone出来，不容易弄乱原来的Class
+
+#on object.on(event, callback, [context])
+object.on("change:title change:author", ...) //可以用空格绑定多个event
+model.on("change", this.func, this) //要绑定this的话可以在第三个参数放context
+如果绑定了"all"event的话，那这个对象在trigger任何事件的时候都会trigger这个event
+还可以这样去绑定多个事件对应多个func
+model.on({
+  "change": change,
+  "help": help
+});
+还有只绑定一次的once
+
+#off object.off([event], [callback], [context])
+
+#listenTo 监听其他对象的事件响应
+view.listenTo(model, 'change', view.render); 
+
+#stopListening object.stopListening([other], [event], [callback]) 
+
+#listenToOnce object.listenToOnce(other, event, callback) 
+
+#Backbone model 里面的events
+"add" (model, collection, options) — when a model is added to a collection.
+"remove" (model, collection, options) — when a model is removed from a collection.
+"reset" (collection, options) — when the collection's entire contents have been replaced.
+"sort" (collection, options) — when the collection has been re-sorted.
+"change" (model, options) — when a model's attributes have changed.
+"change:[attribute]" (model, value, options) — when a specific attribute has been updated.
+"destroy" (model, collection, options) — when a model is destroyed.
+"request" (model, xhr, options) — when a model (or collection) has started a request to the server.
+"sync" (model, resp, options) — when a model (or collection) has been successfully synced with the server.
+"error" (model, xhr, options) — when a model's save call fails on the server.
+"invalid" (model, error, options) — when a model's validation fails on the client.
+"route:[name]" (params) — Fired by the router when a specific route is matched.
+"route" (router, route, params) — Fired by history (or router) when any route has been matched.
+"all" — this special event fires for any triggered event, passing the event name as the first argument.
+如果在model.set() collection.add()这类方法不想trigger到上面的event，可以传个{slient: true}的参数
+
+
+Backbone.Model
+example:
+var Sidebar = Backbone.Model.extend({
+  promptColor: function() {
+    var cssColor = prompt("Please enter a CSS color:");
+    this.set({color: cssColor});
+  }
+});
+window.sidebar = new Sidebar;
+sidebar.on('change:color', function(model, color) { //属性改变后的function
+  $('#sidebar').css({background: color});
+});
+sidebar.set({color: 'white'});
+sidebar.promptColor();
+
+#extend
+var Note = Backbone.Model.extend({
+  initialize: function() { ...  },
+  author: function() { ...  },
+  coordinates: function() { ...  },
+  allowedToEdit: function(account) {
+    return true;
+  }
+});
+
+var PrivateNote = Note.extend({  //可以继承自己创建的Model
+  allowedToEdit: function(account) {
+    return account.owns(this);
+  }
+});
+
+如果继承的时候要用super，覆写方法的话，要明确指定方法路径
+var Note = Backbone.Model.extend({
+  set: function(attributes, options) {
+    Backbone.Model.prototype.set.apply(this, arguments);
+  }
+});
+
+#constructor /intialize
+要设定实例变量，直接在new的时候传入即可，Model里面的intialize方法就是构造函数
+{url: "...."} {urlRoot: "....."}可以自己定义model的restful URL
+
+#get
+model.get("fuck") //model里面get属性
+
+#set
+model.set({fuck: "fuck you"}) //set 属性
+会trigger model的"change"事件，还会trigger详细到 "change:fuck" 这个事件
+
+#escape 类似get(), 但会把属性转义成html可显示的内容，例如<>这些符号
+
+#has(attribute) 判断model里面的attribute是不是空或undefined
+
+#unset 会把某个attribute直接移除出model attributes hash, trigger "change"
+
+#clear 全部attribute清掉
+
+#id 默认有的属性，如果自己设的attributes里面也包含这个id属性，则会把原来id的内容拷过去
+
+#idAttribute，方便指定哪一个key属性作为id，例如nosql里面的mongoid的id是_id
+var Meal = Backbone.Model.extend({
+    idAttribute: "_id"
+});
+var cake = new Meal({ _id: 1, name: "Cake"  });
+alert("Cake id: " + cake.id);
+
+#cid 这个东西跟spine的一样，就是model未保存时，还在内存或者storage里面时用得client_id
+
+#attributes 返回所有属性的一个hash
+
+#changed 返回最后一个trigger过的changed 的属性hash
+
+#defaults 用于在model创建时设定一堆默认属性和值
+var Meal = Backbone.Model.extend({
+  defaults: {
+    "appetizer":  "caesar salad",
+    "entree":     "ravioli",
+    "dessert":    "cheesecake"
+  }
+});
+alert("Dessert will be " + (new Meal).get('dessert'));
+
+#toJSON
+var artist = new Backbone.Model({
+    firstName: "Wassily",
+    lastName: "Kandinsky"
+});
+artist.set({birthday: "December 16, 1866"});
+alert(JSON.stringify(artist)); //本来只是返回一个json object, 最好用JSON.stringify去变成json string
+
+#sync model.sync(method, model, [options]) //用于持久化同步
+
+#fetch 比spine可定制强很多，返回一个jqXHR对象，可以接受success或error的callback, 参数是(model, response, options)
+
+#save model.save([attributes], [options]) 
+如果用ajax，成功的话返回一个jqXHR, 失败的话返回false, 如果model isNew,就create, otherwise update
+options hash里面可以直接传{success:function(model, xhr, options){}} 这样直接可以第一时间得到返回来的东西
+如果想只想更新了更新的部分可以model.save(attrs,{patch: true}), 这样会有一个PATCH请求动作给HTTP
+!! model.save(attrs, {wate: true}),等服务器保存完才把model设值，这样可以保证数据绝对同步
+
+关于事件，save成功后会trigger "change", ajax 刚开时的时候会 trigger "request", 这个很有用可以给用户提示， ajax完成后会有个 "sync"事件
+
+一个例子：
+Backbone.sync = function(method, model) {
+  alert(method + ": " + JSON.stringify(model));
+  model.id = 1;
+};
+
+var book = new Backbone.Model({
+  title: "The Rough Riders",
+  author: "Theodore Roosevelt"
+});
+book.save();
+book.save({author: "Teddy"});
+
+#destroy
+事件和调用方式基本类似save()
+
+#包含underscore 的几个方法
+keys
+values
+pairs
+invert
+pick
+omit
+user.pick('first_name', 'last_name', 'email');
+chapters.keys().join(', ');
+
+#validate
+在save之前触发, validate不通过时会trigger "invalid", 然后model.validationError 会得到错误的信息
+var Chapter = Backbone.Model.extend({
+  validate: function(attrs, options) {
+    if (attrs.end < attrs.start) {
+      return "can't end before it starts";
+    }
+  }
+});
+var one = new Chapter({
+  title : "Chapter One: The Beginning"
+});
+one.on("invalid", function(model, error) {
+  alert(model.get("title") + " " + error);
+});
+one.save({
+  start: 15,
+  end:   10
+});
+
+#validationError 上面写了
+
+#isValid 判断model是不是valid
+
+#url model.url()
+可以用urlRoot去设定，或直接在model初始化的时候设个url属性
+
+#urlRoot
+如果你的model不是在collection里头的, 就需要设定一下urlRoot属性
+var Book = Backbone.Model.extend({urlRoot : '/books'});
+var solaris = new Book({id: "1083-lem-solaris"});
+alert(solaris.url());
+
+#parse
+返回一个 raw response对象，会在fetch或save的时候调用，可以覆写他
+
+#clone
+返回model的克隆
+
+#isNew()
+未在服务器保存的就是true
+
+#hasChanged
+上一次"change"事件后有无发生变化
+
+#previous model.previous(attribute)
+在"change"事件中，可以获取上一次"change"时候的属性
+var bill = new Backbone.Model({
+    name: "Bill Smith"
+});
+bill.on("change:name", function(model, name) {
+    alert("Changed name from " + bill.previous("name") + " to " + name);
+});
+bill.set({name : "Bill Jones"});
+
+#previousAttributes
+
+
+Backbone.Collection
+在collection下面的所有model "change"的话都会trigger collection的"change", 还有 "add", "remove"等事件, model里面的所有属性事件发生，都会在collection里面trigger多一份 documents.on("change:selected", ...)
+
+#extend
+
+#model
+设这个方法可以快速设定下属的model
+var Library = Backbone.Collection.extend({
+    model: Book
+});
+还可以多态式添加model
+var Library = Backbone.Collection.extend({
+  model: function(attrs, options) {
+    if (condition) {
+            return new PublicDocument(attrs, options);
+    } else {
+            return new PrivateDocument(attrs, options);
+    }
+  }
+});
+
+#初始化，可以在初始化的时候就扔进model实例，或者只设定model的class
+var tabs = new TabSet([tab1, tab2, tab3]);
+var spaces = new Backbone.Collection([], {
+    model: Space,
+    url: '/spaces'
+});
+
+#models 返回所有model的array
+
+#toJSON 返回array JSON
+
+#sync 类似model
+
+#underscore method
+forEach (each)
+map (collect)
+reduce (foldl, inject)
+reduceRight (foldr)
+find (detect)
+filter (select)
+reject
+every (all)
+some (any)
+contains (include)
+invoke
+max
+min
+sortBy
+groupBy
+sortedIndex
+shuffle
+toArray
+size
+first (head, take)
+initial
+rest (tail)
+last
+without
+indexOf
+lastIndexOf
+isEmpty
+chain
+
+books.each(function(book) {
+    book.publish();
+});
+var titles = books.map(function(book) {
+    return book.get("title");
+});
+var publishedBooks = books.filter(function(book) {
+    return book.get("published") === true;
+});
+var alphabetical = books.sortBy(function(book) {
+    return book.author.get("name").toLowerCase();
+});
+
+#add collection.add(models, [options]) 
+如果options传个{at: index} 的话，model就会加到响应的位置， 这个在排序的情况下十分好用, 一般collection里面已有的model, 再add进来的话就会被忽略，但是可以给个{merge: true}就可以实现merge, 更新model的属性
+var ships = new Backbone.Collection;
+ships.on("add", function(ship) {
+  alert("Ahoy " + ship.get("name") + "!");
+
+});
+ships.add([
+  {name: "Flying Dutchman"},
+  {name: "Black Pearl"}
+]);
+
+#remove collection.remove(models, [options]) 
+trigger "remove", 可以给个 slient: true 去不trigger
+
+#reset collection.reset([models], [options]) 
+重设collection里面的所有model, 会trigger "reset", 在事件响应的options里面，options.previousModels可以拿到之前的所有model
+在页面onload的时候把整个accounts的collection重设一下
+<script>
+  var accounts = new Backbone.Collection;
+  accounts.reset(<%= @accounts.to_json %>);
+</script>
+
+#set collection.set(models, [options]) 
+model未在集合里时，会create； 在的时候，会update(merge: true), 会响应响应"remove", "add" , "change"的事件，可以细致定义到{remove: false} {add: false} {merge: false}
+var vanHalen = new Collection([eddie, alex, stone, roth]);
+vanHalen.set([eddie, alex, stone, hagar]);
+// Fires a "remove" event for roth, and an "add" event for "hagar".
+// // Updates any of stone, alex, and eddie's attributes that may have
+// // changed over the years.
+
+#get collection.get(id)
+从id或cid里那model
+
+#at collection.at(index)
+拿到某个位置的model
+
+#push
+在collection最后加model
+
+#unshift
+在头部add一个
+
+#shift
+删除头部的model
+
+#length
+
+#comparator collection.comparator
