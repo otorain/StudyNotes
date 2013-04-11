@@ -361,3 +361,193 @@ vanHalen.set([eddie, alex, stone, hagar]);
 #length
 
 #comparator collection.comparator
+主要给sortBy功能提供支持
+var Chapter  = Backbone.Model;
+var chapters = new Backbone.Collection;
+chapters.comparator = function(chapter) {
+    return chapter.get("page");
+};
+chapters.add(new Chapter({page: 9, title: "The End"}));
+chapters.add(new Chapter({page: 5, title: "The Middle"}));
+chapters.add(new Chapter({page: 1, title: "The Beginning"}));
+alert(chapters.pluck('title'));
+
+#sort
+trigger "sort"
+
+#pluck
+
+#where
+var friends = new Backbone.Collection([
+    {name: "Athos",      job: "Musketeer"},
+    {name: "Porthos",    job: "Musketeer"},
+    {name: "Aramis",     job: "Musketeer"},
+    {name: "d'Artagnan", job: "Guard"},
+]);
+var musketeers = friends.where({job: "Musketeer"});
+alert(musketeers.length);
+
+#findWhere
+和where区别就是只返回匹配到的第一个
+
+#url
+var Notes = Backbone.Collection.extend({
+    url: '/notes'
+});
+// Or, something more sophisticated:
+var Notes = Backbone.Collection.extend({
+ url: function() {
+     return this.document.url() + '/notes';
+       }
+       });
+ }
+});
+
+#parse 类似model
+
+#clone
+
+#fetch
+这个比model多了就是可以pass jqery.ajax data, 可以分页
+documents.fetch({data: {page: 3}})
+
+#create
+响应事件顺序, "add" , "request" , "sync"
+var Library = Backbone.Collection.extend({
+    model: Book
+});
+var nypl = new Library;
+var othello = nypl.create({
+    title: "Othello",
+    author: "William Shakespeare"
+});
+
+Backbone.Router
+路由都创建成功后记得运行Backbone.history.start() or Backbone.history.start({pushState: true})
+创建example
+var Workspace = Backbone.Router.extend({
+  routes: {
+    "help":                 "help",    // #help
+    "search/:query":        "search",  // #search/kiwis
+    "search/:query/p:page": "search"   // #search/kiwis/p7
+  },
+  help: function() {
+    ...
+  },
+  search: function(query, page) {
+    ...
+  }
+})
+
+#route router.route(route, name, [callback])
+
+#navigate router.navigate(fragment, [options]) 
+
+Backbone.history
+backbone的pushState可以帮你自动识别好是否支持pushState浏览器问题， 用start()方法去检测浏览器hashchange 事件
+$(function(){
+  new WorkspaceRouter();
+  new HelpPaneRouter();
+  Backbone.history.start({pushState: true});
+});
+
+Backbone.sync 就只是一个jqueryAjax的包装
+#sync sync(method, model, [options])
+
+Backbone.View
+var DocumentRow = Backbone.View.extend({
+  tagName: "li",
+  className: "document-row",
+  events: {
+    "click .icon":          "open",
+    "click .button.edit":   "openEditDialog",
+    "click .button.delete": "destroy"
+  },
+  initialize: function() {
+    this.listenTo(this.model, "change", this.render);
+  }
+  render: function() {
+    ...
+  }
+});
+
+# view.el
+类似spine的el, 但是backbone在你初始化时如果指定好tagName, id, className, backbone会自动帮你定义好el
+
+# view.$el
+很方便的el cache，可以读回之前的dom避免次次重新运算一次
+view.$el.show();
+listView.$el.append(itemView.el);
+
+#delegateEvents 主要是用jquery的on
+可以在events上轻松定义
+var DocumentView = Backbone.View.extend({
+  events: {
+    "dblclick"                : "open",
+    "click .icon.doc"         : "select",
+    "contextmenu .icon.doc"   : "showMenu",
+    "click .show_notes"       : "toggleNotes",
+    "click .title .lock"      : "editAccessLevel",
+    "mouseover .title .date"  : "showTooltip"
+  },
+  render: function() {
+    this.$el.html(this.template(this.model.attributes));
+    return this;
+  },
+  open: function() {
+    window.open(this.model.get("viewer_url"));
+  },
+  select: function() {
+    this.model.set({selected: true});
+  },
+});
+
+Backbone.LocalStoreage
+var TodoList = Backbone.Collection.extend({
+  model: Todo,
+  localStorage: new Backbone.LocalStorage("todos-backbone")
+});
+
+##### ModelBinder #####
+https://github.com/theironcook/Backbone.ModelBinder
+作用是可以方便绑定model的attribute到 html element, 只要html标签里面有name="xxx", 绑定后更新model属性，这个标签的内容也会跟着更改
+三个public方法
+constructor
+bind(model, rootEl, bindings)
+unbind();
+
+//////例子1 
+Welcome, <span name="firstName"></span>
+
+Edit your information:
+<input type="text" name="firstName"/>
+
+SomeView = Backbone.View.extend({
+  render: function(){
+    this.modelBinder.bind(this.model, this.el);
+  }
+});
+
+这里绑定好firstName到model， input里面改变了， 上面的span也会修改
+//////////例子2
+<input type="text" name="homeAddress"/>
+<input type="text" name="workAddress "/>
+var bindings = {homeAddress: '[name=homeAddress]', workAddress : '[name=workAddress ]'};
+modelBinder.bind(this.model, this.el, bindings);
+第三个参数bindings示例，可以同时绑定多个attribute, 当然除了name=xxx这种选择器，还可以使用#id这种jquery选择器
+还可以这样
+ <input type="text" class="myTestClass" name="address"/> myTestAttribute: '[class~=myTestClass]'
+
+bindings参数还可以放个converter,这个converter要求是个function，可以让你自定义如何格式化值
+var phoneConverter = function(direction, value){
+   // direction is either ModelToView or ViewToModel
+   // Return either a formatted value for the view or an un-formatted value for the model
+};
+
+var bindings = {phoneNumber: {selector: '[name=phoneNumber]', converter: phoneConverter}}
+modelBinder.bind(this.model, this.el, bindings );
+A converter function is passed 4 parameters.
+Direction - either ModelToView or ViewToModel
+Value - the model's attribute value or the view element's value
+Attribute Name
+Model - this is more useful when you're dealing with calculated attributes
