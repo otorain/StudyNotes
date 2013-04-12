@@ -442,6 +442,13 @@ var Workspace = Backbone.Router.extend({
 #route router.route(route, name, [callback])
 
 #navigate router.navigate(fragment, [options]) 
+用于更新路由的url, 如果想同时触发路由，options传个trigger: true
+openPage: function(pageNumber) {
+  this.document.pages.at(pageNumber).open();
+  this.navigate("page/" + pageNumber);
+}
+app.navigate("help/troubleshooting", {trigger: true});
+app.navigate("help/troubleshooting", {trigger: true, replace: true});
 
 Backbone.history
 backbone的pushState可以帮你自动识别好是否支持pushState浏览器问题， 用start()方法去检测浏览器hashchange 事件
@@ -470,6 +477,7 @@ var DocumentRow = Backbone.View.extend({
     ...
   }
 });
+创建的时候传入的参数会在实例变量 @options里面
 
 # view.el
 类似spine的el, 但是backbone在你初始化时如果指定好tagName, id, className, backbone会自动帮你定义好el
