@@ -125,3 +125,9 @@ li:hover /targetID/ p { border:2px solid #609060;  }
 默认选项
   option:default {xxx}
 
+h)让position:fixed 后支持浏览器宽度 定位好某一地方
+positicon: fixed
+bottom: 0
+left: 50% //先把他绝对定位到中间
+margin-left: -500px //然后这里就可以调好位置，绝对适应到浏览器变化
+
