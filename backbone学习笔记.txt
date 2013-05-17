@@ -559,3 +559,9 @@ Direction - either ModelToView or ViewToModel
 Value - the model's attribute value or the view element's value
 Attribute Name
 Model - this is more useful when you're dealing with calculated attributes
+
+#给每个collection的model加属性
+pages = new PagesCollection()
+pages.fetch()
+pages.invoke("set", {h: 123})
+然后每一个page都可以 page.get("h")

@@ -60,3 +60,49 @@ db.things.find().limit(3)
 #drop database
 use xxxx
 db.dropDatabase()
+
+
+1 常用导出方法
+[root@localhost bin]# ./mongoexport -d my_mongodb -c user -o user.dat
+connected to: 127.0.0.1
+exported 2 records
+[root@localhost bin]# cat user.dat
+{ "_id" : { "$oid" : "4f81a4a1779282ca68fd8a5a"  }, "uid" : 2, "username" : "Jerry", "age" : 100  }
+{ "_id" : { "$oid" : "4f844d1847d25a9ce5f120c4"  }, "uid" : 1, "username" : "Tom", "age" : 25  }
+[root@localhost bin]#
+参数说明:
+ -d 指明使用的库, 本例中为” my_mongodb”
+ -c 指明要导出的表, 本例中为”user”
+ -o 指明要导出的文件名, 本例中为”user.dat”
+ 从上面可以看到导出的方式使用的是JSON 的样式
+ 2 导出CSV格式的文件
+ [root@localhost bin]# ./mongoexport -d my_mongodb -c user --csv -f uid,username,age -o
+ user_csv.dat
+ connected to: 127.0.0.1
+ exported 2 records
+ [root@localhost bin]# cat user_csv.dat
+ uid,username,age
+ 2,"Jerry",100
+ 1,"Tom",25
+ [root@localhost bin]#
+ 参数说明:
+ -csv 指要要导出为csv 格式
+ -f 指明需要导出哪些例
+ 更详细的用法可以 mongoexport –help 来查看
+
+ 数据导入mongoimport
+
+ 在上例中我们讨论的是导出工具的使用，那么本节将讨论如何向表中导入数据
+ 1 导入JSON 数据
+ 我们先将表user 删除掉，以便演示效果
+ > db.user.drop();
+ true
+ > show collections;
+ system.indexes
+ >
+ 然后导入数据
+ [root@localhost bin]# ./mongoimport -d my_mongodb -c user user.dat
+ connected to: 127.0.0.1
+ imported 2 objects
+ [root@localhost bin]#
+ 可以看到导入数据的时候会隐式创建表结构
