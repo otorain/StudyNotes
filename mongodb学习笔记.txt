@@ -182,3 +182,6 @@ exported 2 records
  [root@localhost bin]#
  经验证数据库又回来了，其实要是想恢复库，也大可不必先删除my_mongodb 库，只要指
  明 –drop 参数，就可以在恢复的时候先删除表然后再向表中插入数据
+
+#copy database
+db.copyDatabase(<from_db>, <to_db>, <from_hostname>, <username>, <password>)

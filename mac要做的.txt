@@ -38,6 +38,14 @@ brew install用代理！
 brew install下代码时经常是用sourceforge，这货不时被墙，非常的慢 homebrew提供一个使用proxy的方法
 http_proxy=http://<proxyhost>:<proxyport>  sudo -E brew install foo #还可以用sodu
 $ http_proxy=http://<user>:<password>@<proxyhost>:<proxyport>  brew install foo #代理要密码的情况
+
+brew 安装指定版本
+brew versions zmq
+cd `brew --prefix`
+然后在brew目录下
+checkout 查到需要的版本
+brew unlink zmq
+brew install zmq 就可以了
 ---------------------------------------
 一些mac本来的快捷键
 cmd+~ 同一应用多窗口切换

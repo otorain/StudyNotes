@@ -656,3 +656,8 @@ chsh -s /bin/zsh
 -----------------------
 把ctrl 和 capslock对换
 系统设置 键盘布局 键盘布局 选项 ctrl位置 
+
+
+-----------------------
+查看包的版本信息
+apt-cache show libzmq
