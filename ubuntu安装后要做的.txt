@@ -661,3 +661,17 @@ chsh -s /bin/zsh
 -----------------------
 查看包的版本信息
 apt-cache show libzmq
+-----------------------
+http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+mongodb
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
+sudo apt-get update
+sudo apt-get install mongodb-10gen
+echo "mongodb-10gen hold" | dpkg --set-selections 查看版本
+
+These packages configure MongoDB using the /etc/mongodb.conf file in conjunction with the control script. You will find the control script is at /etc/init.d/mongodb.
+This MongoDB instance will store its data files in the /var/lib/mongodb and its log files in /var/log/mongodb, and run using the mongodb user account.
+Note If you change the user that runs the MongoDB process, you will need to modify the access control rights to the /var/lib/mongodb and /var/log/mongodb directories.
+You can start the mongod process by issuing the following command:
+sudo service mongodb start

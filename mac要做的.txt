@@ -43,6 +43,7 @@ brew 安装指定版本
 brew versions zmq
 cd `brew --prefix`
 然后在brew目录下
+brew versions zmq
 checkout 查到需要的版本
 brew unlink zmq
 brew install zmq 就可以了
