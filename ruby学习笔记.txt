@@ -2186,3 +2186,13 @@ regexp = /^([A-Z])?[a-z]+(?(1)[A-Z]|[a-z])$/
 regexp =~ "foo"   #=> 0  
 regexp =~ "foO"   #=> nil
 regexp =~ "FoO"   #=> 0
+
+-----内存泄露
+1 GC.stat
+2 puts "vmmap #{Process.id}" #linux 用pmap
+3 
+counts = Hash.new{ 0  }
+ObjectSpace.each_object do |o|
+    counts[o.class] += 1
+end
+然后把counts 打到文件 diff一下

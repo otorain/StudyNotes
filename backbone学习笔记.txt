@@ -565,3 +565,48 @@ pages = new PagesCollection()
 pages.fetch()
 pages.invoke("set", {h: 123})
 然后每一个page都可以 page.get("h")
+
+--------------------------
+Eckbone.EventBinder();
+
+var model = new MyModel();
+
+var handler = {
+    doIt: function(){ /* ... */  }
+
+}
+// same args list as model.on, but putting the model as the first parameter
+binder.bindTo(model, "change:foo", handler.doIt, handler) 第四个参数是callback的context
+
+所以以后注意路由要这样写,　添加一个appView去决定切换的时候把前一个view close掉
+function AppView(){
+  this.showView(view) {
+    if (this.currentView){
+      this.currentView.close();
+    }
+    this.currentView = view;
+    this.currentView.render();
+    $("#mainContent").html(this.currentView.el);
+  }
+}
+
+MyRouter = Backbone.Router.extend({
+  routes: {
+    "": "home",
+    "post/:id": "showPost"
+  },
+  initialize: function(options){
+    this.appView = options.appView;
+  },
+  home: function(){
+    var homeView = new HomeView();
+    this.appView.showView(homeView);
+
+  },
+  showPost: function(id){
+    var post = posts.get(id);
+    var postView = new PostView({model: post});
+    this.appView.showView(postView);
+  }
+});
+
