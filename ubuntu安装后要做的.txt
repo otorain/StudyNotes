@@ -379,6 +379,9 @@ echo 'alias gvim="env Ubuntu_MENUPROXY=0 gvim -f"' >> ~/.bashrc
 source ~/.bashrc
 echo 'alias gvim="gvim -f"' >> ~/.bashrc
 source ~/.bashrc
+
+gvim和ibus输入法问题
+解决放法：进输入法设置, 把 “在应用程序窗口中启用内嵌编辑模式” 前面的勾去掉。
 ------------------------------------
 flash player
 直接用firefox装
@@ -652,6 +655,10 @@ chsh -s /bin/zsh
 
 如果是编译安装的，先在/etc/shells加入/usr/local/bin/zsh,然后再chsh
 
+zsh安装agnoster
+cd ~/.fonts/ && git clone https://github.com/scotu/ubuntu-mono-powerline.git && cd ~
+在 ~/.zshrc 把主题设置为 agnoster
+这样我自己的vim配置也会变好
 
 -----------------------
 把ctrl 和 capslock对换
@@ -675,3 +682,16 @@ This MongoDB instance will store its data files in the /var/lib/mongodb and its 
 Note If you change the user that runs the MongoDB process, you will need to modify the access control rights to the /var/lib/mongodb and /var/log/mongodb directories.
 You can start the mongod process by issuing the following command:
 sudo service mongodb start
+------------------
+sound card 
+1) make sure alsamixer is installed using synaptic.
+2) open terminal and run alsamixer. Scroll right (cursor keys) to the column called "IEC958 O" [ = IEC958 Output].
+3) If the column shows a small box with "MM" in it, digital output is disabled. Use "m" to toggle it on and it should now show a high-lighted green "00".
+4) If you want analogue output as well (as I do for my mic/headset), then scroll left to the "IEC958 In Monitor" and toggle it on.
+5) exit alsamixer using <Esc>. [not actually sure if this is needed to save the settings, but its what I did!].
+
+--------------------
+pinyin 
+/usr/lib/ibus-sunpinyin/ibus-setup-sunpinyin
+
+
