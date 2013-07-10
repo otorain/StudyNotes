@@ -456,6 +456,9 @@ chained.done(function( data  ) {
 
 14)rejectWith() resolveWith(), 这东西可以指定done和fail的上下文
 
+deferred技巧，当有一个deferreds array的时候，怎样才能传入$.when呢? 可以利用apply
+$.when.apply($, my_array)
+
 #闭包笔记补充
 下面例子是，如果程序不加var，就会一层层向上找变量的引用，如果找不到就会创建一个全局的变量
 // These are both globals
