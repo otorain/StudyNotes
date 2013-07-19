@@ -456,7 +456,7 @@ chained.done(function( data  ) {
 
 14)rejectWith() resolveWith(), 这东西可以指定done和fail的上下文
 
-deferred技巧，当有一个deferreds array的时候，怎样才能传入$.when呢? 可以利用apply
+!!!deferred技巧，当有一个deferreds array的时候，怎样才能传入$.when呢? 可以利用apply
 $.when.apply($, my_array)
 
 #闭包笔记补充
@@ -586,3 +586,20 @@ var singleton = function () {
         }
     };
 }();
+
+
+!!!javascript事件处理器在线程空闲之前不会执行
+for(var i=1; i<=3; i++){
+  setTimeout(function(){alert(i)}, 0)
+}
+结果 4, 4, 4
+这个特性非常重要，像setTimeout这种函数，他会直接排进一个队列，在他后面的代码都执行完之后，js虚拟机才会到队列问，有东西要运行吗？然后排个后面的毫秒数后再运行
+
+利用这个特性，我们可以规范一下，“当一个函数有返回值，代码里又会产生异步的时候，最好保证异步的执行时间在函数返回值之后”, 要做这个，就要用上面这个特性了
+function(callback){
+  var socket = new WebSocket();
+  //_.compose(callback, socket.open); //异步调用
+  //最后把上面一句改成
+  setTimeout(function(){_.compose(callback,socket.open)}, 0);// 这样这句会在下面的socket返回之后再执行，这样我们就可以控制到程序的顺序
+  return socket; //函数会有返回
+}
