@@ -1916,6 +1916,11 @@ rvm get latest
 rvm install 2.0.0
 rvm use 2.0.0 --default
 
+#ubuntu error
+RVM is not a function, selecting rubies with 'rvm use ...' will not work.
+go to the terminal setting -> title and command -> run command as alogin shell
+
+
 rvm pkg install openssl
 rvm install 2.0.0 --with-openssl-dir=~/.rvm/usr or
 --with-openssl-dir=brew --prefix openssl --with-readline-dir=brew --prefix readline
@@ -2196,3 +2201,4 @@ ObjectSpace.each_object do |o|
     counts[o.class] += 1
 end
 然后把counts 打到文件 diff一下
+=======
