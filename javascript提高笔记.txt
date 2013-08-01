@@ -603,3 +603,4 @@ function(callback){
   setTimeout(function(){_.compose(callback,socket.open)}, 0);// 这样这句会在下面的socket返回之后再执行，这样我们就可以控制到程序的顺序
   return socket; //函数会有返回
 }
+

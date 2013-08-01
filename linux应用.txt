@@ -297,3 +297,12 @@ rsync -av ./xxxx/ ssh@xxx.xxx.xx:/aaa/yyyy 同步xxxx/下所有文件到服务�
 rsync -av ./xxxx ssh@xxx.xxx.xx:/aaa/yyyy 同步xxxx/下所有文件到服务器/yyyy/xxxx下 注意和上一个命令有/
 
 -P 现示传输速率
+
+-----------------------------
+curl　不断提交表单
+先在浏览器随便填填然后用 $(form).serialize()获取表单数据
+#!/bin/bash
+for i in $(seq 10000); do
+  curl -d "表单数据" "http://bestapp.wufoo.com/forms/bestapp-cae/";
+done;
+

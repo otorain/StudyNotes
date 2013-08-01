@@ -355,7 +355,7 @@ rails非常注重单数复数形式，这个文件记录了各种转换规则，
 可进入rails c 查看单复数转换
   $ rails c
   $ Loading development environment (Rails 3.0.5)
-  $ > "Business".singularize  => "Busines" # 轉單數
+  $ > "Business".singularize  => "Busines" # 轉單數 单数
   $ > "moose".pluralize => "mooses"  # 轉複數
 
 (3)mime_types 定义各种request数据文件类型
@@ -3292,9 +3292,23 @@ class PostController
       permit(:title, :body)
   end
 end
+nested permit
+params.permit(:name, { emails: []  },
+	       friends: [ :name,
+	     { family: [ :name  ], hobbies: []  }])
 a.再设过strong_parameter的controller里,以后如果直接把params这东西扔给 mass-assigned model的话会直接raise ForbiddenAttributesError
 b.但m-a model用在其他地方也会可以接收到params
 c.attr_acessiable 和 attr_protected 会被移除, 放到protected_attributes的 gem
+
+d.在new的action里面可以用fetch,这样会用一个空对象
+params.fetch(:blog, {}).permit(:title, :author)
+
+e.可以用tap去定义scope之外的其他参数
+def product_params
+    params.require(:product).permit(:name).tap do |whitelisted|
+      whitelisted[:data] = params[:product][:data]
+    end
+end
 
 4) turbo_links pjax
 可以通过turbolinks.js来做全站的ajax...
