@@ -1,3 +1,16 @@
+创建用户
+假设用户名是deploy
+用root用户
+useradd -m -s /bin/bash deploy
+passwd deploy
+cd /home
+ls -l
+mkdir deploy
+chmod  0700 deploy
+chown -R deploy:deploy deploy
+
+chsh 修改默认shell
+
 手动释放内存 (查看内存的命令 top | free -m |ps aux)
 一、通常情况
 

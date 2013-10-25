@@ -2295,7 +2295,7 @@ class ArticlesController extend ActionController::Base
 
 end
 describe ArticlesController,"creating a new article" do
-  integrate_views #这行代表一直要把views的代码也执行完，保证不出错
+  render_views #这行代表一直要把views的代码也执行完，保证不出错 integrate_views已过时
   fixtures :article #这里可以换成factory_girl只要你喜欢 
   
   it "successful create" do
@@ -3621,3 +3621,7 @@ config.assets.cache_store = :memory_store, { :size => 32.megabytes  }
 ##
 如果使用了rabl, 那么在view里面也可以继续用data-attributes去传文件给javascript
 <div data-article="<%= render template: "article/articles.json.rabl" %>" ></div>
+
+##
+rake 遇到no matches found: import_fontello[tmp/fontello-08685a8c.zip] 的时候时，是zsh错误
+用 noglob rake 可以过

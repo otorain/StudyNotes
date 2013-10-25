@@ -185,3 +185,13 @@ exported 2 records
 
 #copy database
 db.copyDatabase(<from_db>, <to_db>, <from_hostname>, <username>, <password>)
+
+#添加系统管理员
+db = db.getSiblingDB('admin')
+db.addUser( { user: "<username>", pwd: "<password>", roles: [ "userAdminAnyDatabase","clusterAdmin", "readWrite", "userAdmin"  ] }  )
+
+#为单表添加用户访问
+use somedb
+db.addUser
+
+记得修改/etc/mongodb.conf auth=true,重启, 然后登陆时用 mongo -u username admin -p

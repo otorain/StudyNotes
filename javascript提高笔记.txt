@@ -406,7 +406,7 @@ dtd.resolve()的作用是什么？
 dtd.resolve() 完成
 dtd.reject() 失败
 
-6)如果在函数直接返回 deferred对象，那么在外部就可以随意让dtd.resolve()导致done方法马上执行了，所以jquery搞了个deferred.promise()方法，另返回的对象不可随意更改状态, 还有derferred对象的创建最好也写在wait的内部 
+6)如果在函数直接返回 deferred对象，那么在外部就可以随意让dtd.resolve()导致done方法马上执行了，所以jquery搞了个deferred.promise()方法，令返回的对象不可随意更改状态, 还有derferred对象的创建最好也写在wait的内部 
 
 7)也可以用全局函数
 $.Deferred(wait).done().fail() //注意传的是函数名
@@ -604,3 +604,8 @@ function(callback){
   return socket; //函数会有返回
 }
 
+-------------
+用history.length 判断浏览器有无向后的的历史
+
+------------
+javascript 遇到 readAsText编码问题解决方法 document.defaultChartset file_reader.readAsText(file, document.defaultCharset), 分割换行符windows支持问题, xxx.split(/\r?\n/)
