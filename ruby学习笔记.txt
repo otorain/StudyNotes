@@ -1295,6 +1295,8 @@ $ gem update --system
 $ gem install builder --version '< 1' #指定安装version
 $ gem build anagram.gemspec #从文件建立gem
 
+#gem install from github
+
 #删除原有gem source gem source -r http://rubygems.org/ gem source -r http://production.s3.rubygems.org/   #增加新source源 gem source -a http://gems.rubyonrails.org
 ::使用gem,假设已经下了builder,直接在程序中 require 'builder'就好
 

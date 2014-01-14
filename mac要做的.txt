@@ -306,3 +306,8 @@ Vim
 You can use Ag with ack.vim by adding the following line to your .vimrc:
 let g:ackprg = 'ag --nogroup --nocolor --column'
 
+----------------
+mac arp防御
+在终端输入sudo arp -s 192.168.7.254 00:11:11:11:11:11
+其中 192.168.7.254 填你所在网络环境的网关 IP，后面的 12 个数字是网关的 MAC 地址，这样普通的伪装网关攻击就没什么用了。这条命令是永久性的，你可以输入arp -d 192.168.7.254来删除前面绑定的网关 MAC 地址。
+

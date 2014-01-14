@@ -694,4 +694,7 @@ sound card
 pinyin 
 /usr/lib/ibus-sunpinyin/ibus-setup-sunpinyin
 
-
+-------------
+服务器编码错误
+bash: warning: setlocale: LC_ALL: cannot change locale (en_GB.UTF-8)
+dpkg-reconfigure locales

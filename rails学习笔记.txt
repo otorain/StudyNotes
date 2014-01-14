@@ -1,4 +1,4 @@
- -*- coding: utf-8 -*-
+#encoding: UTF-8
 ----------------------------------------------------------------------
 一.rails 初步熟悉
 
@@ -492,6 +492,50 @@ get 'piece/shit' => 'piece#shit'
 (6)特殊条件限定 :constraints
 例如限制 :id 必须是整数
 match 'events/show/:id' => 'event#show' :constraints=>{:id=>/\d/}
+或者
+constraints(id: /\d+\.\d+/) do
+    resources :posts
+end
+resources :posts do
+  constraints(post_id: /\d+\.\d+/) do
+    resources :comments
+  end
+end
+
+constraints(ip: /192\.168\.\d+\.\d+/) do
+    resources :posts
+end
+
+这样去做params条件判断分路由
+scope :path => "/weixin", :via => :post do
+  root :to => 'weixin#method_a', :constraints => lambda { |request| request.params[:xml][:MsgType] == 'image'  }
+
+  root :to => 'weixin#method_b', :constraints => lambda { |request| request.params[:xml][:MsgType] == 'text' && request.params[:xml][:Content].start_with?('@')  }
+
+  root :to => 'weixin#method_c', :constraints => lambda { |request| request.params[:xml][:MsgType] == 'text'  }
+end
+
+还可以自己写一个class去适配
+scope :path => "/weixin", :via => :post do
+  root :to => 'weixin#method_a', :constraints => Weixin::Router.new(:type => "image")
+
+  root :to => 'weixin#method_b', :constraints => Weixin::Router.new(:type => "text", :content => /^@/)
+
+  root :to => 'weixin#method_c', :constraints => Weixin::Router.new(:type => "text")
+end
+
+class DemoWeixin::Router
+  def initialize(type="text")
+    @message_type = type
+  end
+
+  def matches?(request)
+    xml_data = request.params[:xml]
+    if xml_data and xml_data.is_a?(Hash)
+      @message_type == request.params[:xml][:MsgType]
+    end
+  end
+end
 
 (6.1) 还可以redirect
 match "/stories" => redirect("/posts")
@@ -568,6 +612,16 @@ resource :projects, :path => '/admin/projects'
 ----------------------------------------------------------------------
 五,Action Controllor
 所有预设生成的Controllor 都继承自ApplicationControllor,而ApplictionControllor 继承自ActionControllor::Base,里面的protect_from_forgery方法啟動了CSRF安全性功能，所有非GET的HTTP request都必須帶有一個Token參數才能存取，Rails會自動在所有表單中幫你插入Token參數，預設的Layout中也有一行<%= csrf_meta_tag %>
+
+取消 cancel csrf检测
+protect_from_forgery :except => :index
+
+class FooController < ApplicationController
+  protect_from_forgery :except => :index
+You can disable csrf protection on controller-by-controller basis:
+  skip_before_filter :verify_authenticity_token
+It can also be disabled for specific controller actions:
+  skip_before_filter :verify_authenticity_token, :except => [:create]
 
 #产生Controller#
 rails g controller events #如此便會產生app/controllers/events_controller.rb，依照RESTful設計的慣例，所有的Controller命名都是複數，而檔案名稱依照慣例都是{name}_controller.rb。一個Action就是Controller裡的一個Public方法：
@@ -1671,6 +1725,23 @@ d)自定义layout
 <% end %>
 然后就会放在#sidebar 里面
 
+e)different layout in each action
+class MyController < ApplicationController
+  layout :resolve_layout
+  private
+
+  def resolve_layout
+    case action_name
+    when "new", "create"
+      "some_layout"
+    when "index"
+      "other_layout"
+    else
+      "application"
+    end
+  end
+end
+
 # Partial局部样板 #
 局部樣板可以將Templaet中重複的程式碼抽出來，例如我們在Part1中示範過的新增和編輯的表單。Partial Template的命名慣例是底線開頭，但是呼叫時不需加上底線，例如：
 <%= render :partial => "common/nav" %>
@@ -2317,6 +2388,11 @@ end
 mock stub double都是用于创造假资料，官方貌似推荐用double，底层其实都是调用stub，理由是语义方面更好
 Article.should_receive(:create).with(title:"hello",content:"shit").and_return(true) 这里首先指定这里controller Article model里面会收跑create, 接收参数，然后麻烦都给我返回true
 controller_spec里面的assigns(:article)相当于articles_controller里面的@article实例变量
+
+#对于stub和mock的新解释
+驭件(mock)和桩件(stub)及其背后的概念如果不能写成一本书,也可以写成很长的单 独一章。在网上搜索,会不可避免的看到很多争论,辨析二者正确地用法。也会看到很多 人试图定义这两个概念。对我来说,二者最佳定义如下:
+• 驭件是用来替代真实对象的测试对象,也被称为“测试替身”(test double)。驭件有 点类似通过 Factory Girl 生成的对象,但不会改动数据库中的数据。所以速度快一些。
+• 桩件是对指定对象方法的重写,返回一个预设的值。也就是说,桩件虽是个虚假方 法,但调用时会返回一个真实的值供测试使用。桩件经常用来重写方法的默认功能, 特别是在频繁操作数据库或网络密集型交互中。
 
 
 ##自定义rspec
@@ -3625,3 +3701,9 @@ config.assets.cache_store = :memory_store, { :size => 32.megabytes  }
 ##
 rake 遇到no matches found: import_fontello[tmp/fontello-08685a8c.zip] 的时候时，是zsh错误
 用 noglob rake 可以过
+
+##
+element.scrollIntoView()可以让element滚动到可视范围
+
+##user_agent
+request.env["HTTP_USER_AGENT"]
