@@ -3707,3 +3707,18 @@ element.scrollIntoView()可以让element滚动到可视范围
 
 ##user_agent
 request.env["HTTP_USER_AGENT"]
+
+
+--------------------
+counter_cache, 把要要统计数量的关联model缓存
+class Blog < ActiveRecord::Base 
+  has_many :comments 
+end 
+
+class Comment < ActiveRecord::Base 
+  belongs_to :blog, :counter_cache => true 
+end 
+注意：  blogs中有一个字段是comments_count(整型)，当添加和删除comment的时候，会在它所对应的blogs中的comments_count加或减1，这里需要注意的是destroy和destroy_all,可以触发blogs中的comments_count加或减1，而delete和delete_all则不会。 
+
+此外如果要指定特定的名字的话呢，就 :counter_cache => :pinlun_counts,这样在blogs中就使用pinlun_counts,而不是comments_count. 
+             

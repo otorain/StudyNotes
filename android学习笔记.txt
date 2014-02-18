@@ -1,0 +1,10 @@
+eclipse 插件 market client, vrapper
+
+Activity生命周期
+onCreate()
+onStart()
+onRestart()
+onResume()
+onPause()
+onStop()
+onDestroy()
