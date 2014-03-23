@@ -1262,7 +1262,7 @@ end
 例如一个event有多个group，一个group有多个event，实现的方法是写一个中间表有event_id和group_id
   rails g model group name:string
   rails g model event_groupship event_id:integer group_id:integer
-  bundle exec db:migrate
+  bundle exec rake db:migrate
 
 分別編輯app/models/event.rb、app/models/group.rb和app/models/event_groupship.rb：
 class Event < ActiveRecord::Base

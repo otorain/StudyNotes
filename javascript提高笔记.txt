@@ -165,8 +165,8 @@ input.change(function(){
 
 3)拖曳
 事件有 dragstart, drag, dragover, dragenter, dragleave, drop, dropend
-启用(设置dragable属性):
-<div dragable="true" id="dragme">Drag me!</div> //我们可以调用dragstart事件,调用setData()函数
+启用(设置draggable属性):
+<div draggable="true" id="dragme">Drag me!</div> //我们可以调用dragstart事件,调用setData()函数
 var element = $("#dragme")
 element.bind("dragstart", function(event){
     event = event.originalEvent; //不用jquery的抽象对象,因为要用到dataTransfer里面的api
@@ -609,3 +609,30 @@ function(callback){
 
 ------------
 javascript 遇到 readAsText编码问题解决方法 document.defaultChartset file_reader.readAsText(file, document.defaultCharset), 分割换行符windows支持问题, xxx.split(/\r?\n/)
+
+
+============
+Canvas !!
+创建 canvas 的方法很简单，只需要在 HTML 页面中添加 <canvas> 元素：
+
+<canvas id="myCanvas" width="300" height="150">
+</canvas>
+为了能在 JavaScript 中引用元素，最好给元素设置 ID ；也需要给 canvas 设定高度和宽度。
+
+
+画个矩形
+var elem = document.getElementById('myCanvas');
+var context = elem.getContext('2d');
+context.fillRect(0, 0, 150, 100);
+
+裁剪图像
+context.drawImage(img_elem, dx, dy);
+
+context.drawImage(img_elem, dx, dy, dw, dh);
+
+context.drawImage(img_elem, sx, sy, sw, sh, dx, dy, dw, dh);
+
+3个参数：最基本的 drawImage 使用方法。一个参数指定图像位置，另两个参数设置图像在 canvas中的位置。
+5个参数：中级的 drawImage 使用方法，包括上面所述3个参数，加两个参数指明插入图像宽度和高度 (如果你想改变图像大小)。
+9个参数：最复杂drawImage 杂使用方法，包含上述5个参数外，另外4个参数设置源图像中的位置和高度宽度。这些参数允许你在显示图像前动态裁剪源图像。
+

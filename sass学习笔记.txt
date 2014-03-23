@@ -140,3 +140,66 @@ nth-child用法
 :nth-child(3n+1)自定义选取标签，3n+1表示“隔二取一”
 :last-child选取最后一个标签
 :nth-last-child(3)选取倒数第几个标签,3表示选取第3个
+
+
+##CSS3动画!!
+img{
+  height:15px;
+  width:15px;
+
+}
+
+img:hover{
+  height: 450px;
+  width: 450px;
+}
+//这里可以设定他们的果度状态长度
+img{
+  transition: 1s;
+}
+//可以指定height
+img{
+    transition: 1s height;
+}
+//同一个transition 可以指定多个属性
+img{
+    transition: 1s height, 1s width;
+}
+//先让height变化，delay一下再到width变化
+img{
+    transition: 1s height, 1s 1s width;
+}
+//逐渐放慢，非匀速
+img{
+  transition: 1s ease;
+}
+//还包括
+（1）linear：匀速
+（2）ease-in：加速
+（3）ease-out：减速
+（4）cubic-bezier函数：自定义速度模式
+
+img{
+    transition: 1s height cubic-bezier(.83,.97,.05,1.44);
+}
+
+CSSAnimation
+//先指定一个动画效果名称raibow
+div:hover {
+  animation: 1s rainbow;
+}
+
+//用keyframes定义rainbow效果
+@keyframes rainbow {
+  0% { background: #c00;  }
+  50% { background: orange;  }
+  100% { background: yellowgreen;  }
+}
+
+//加入infinite关键字，无限播放
+div:hover {
+  animation: 1s rainbow infinite; //infinite 可以变成次数，例如3
+}
+
+##css3transform
+scale(2,2), x,y同时扩展2倍

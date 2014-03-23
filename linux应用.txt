@@ -319,3 +319,10 @@ for i in $(seq 10000); do
   curl -d "表单数据" "http://bestapp.wufoo.com/forms/bestapp-cae/";
 done;
 
+要cookie 的话，document.cookie拿到后,  --cookie "auth_token=ObdKmfzC0Xj_t2_j2NDk4w; referer_url=https%3A%2F%2Fwww.jinshuju.net%2Flogin; request_method=GET; __utma=41636281.2050899793.1393836689.1393836689.1393836689.1; __utmb=41636281.41.9.1393837746331; __utmc=41636281; __utmz=41636281.1393836689.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"
+
+--user-agent
+
+---------------------
+du找出占用率高最前１０个文件夹
+du --max-depth=1 | sort -k1 -nr
