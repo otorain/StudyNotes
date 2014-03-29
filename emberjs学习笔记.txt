@@ -1,0 +1,546 @@
+核心概念
+Tenplate 用handlebar做的模板，展示数据用
+Router URl入口，管理该url时显示哪些model数据和template
+Component 自定义html tag,里面可包括其他js代码或handlebar template, 通常是script标签
+Model 顾名思义
+Route 是一个告诉template，你应该用哪个model的对象
+Controller 储存template和model状态的控制器
+
+约定命名
+ember启动时，会查找这些对象
+App.ApplicationRoute
+App.ApplicationController
+一个叫 application的template, 类似rails的application layout
+
+
+#Route和Controller初步
+App.ApplicationRoute = Ember.Route.extend({
+  setupController: function(controller) {
+    // `controller` is the instance of ApplicationController
+    controller.set('title', "Hello world!");
+  }
+});
+
+App.ApplicationController = Ember.Controller.extend({
+  appName: 'My First Example'
+});
+
+<!-- application template -->
+<h1>{{appName}}</h1>
+
+<h2>{{title}}</h2>
+
+#Router初步
+//每个router都有一个controller 和template
+App.Router.map(function() {
+  this.route('favorites');
+});
+
+当访问/favorites的时候
+ember会找
+App.FavoritesRoute
+App.FavoritesController
+the favorites template
+ember会先把favourites template读入application template的{{outlet}}, 然后会为App.FavoritesController创建一个实例去管理这些template
+如果你有一个App.FavouriteRoute, 在渲染template之前会调用他，可以在里面设个model
+App.FavoritesRoute = Ember.Route.extend({
+  model: function() {
+    // the model is an Array of all of the posts
+    return this.store.find('post');
+  }
+});
+这里我们没有创建FavourtiesController, 但是Ember为我们隐性提供了个Ember.ArrayController, 然后可以把这个ArrayController当成model那样用，因为在上面的route里提供的是一个数组
+<ul>
+  {{#each controller}}
+    <li>{{title}}</li>
+  {{/each}}
+</ul>
+
+#路由的动态参数
+App.Router.map(function() {
+  this.resource('post', { path: '/posts/:post_id' });
+});
+这里会先找
+App.PostRoute
+App.PostController
+the post template
+
+路由会传入params
+App.PostRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find('post', params.post_id);
+  },
+
+  serialize: function(post) {
+    return { post_id: post.get('id') };
+  }
+});
+
+#Route Controller 和Template的默认行为
+如果你没有定义App.PostRoute，ember还是会读取post template, 带着App.Postcontroller
+如果你连Postcontroller都没有定义的话，ember会给你返回个ArrayController(复数)或ObjectController（单数）
+如果连Template都没定义，ember什么都不会去render
+
+#嵌套路由
+App.Router.map(function() {
+  this.resource('posts', function() { // the `posts` route
+    this.route('favorites');          // the `posts.favorites` route
+    this.resource('post');            // the `post` route
+  });
+})
+即使上面的post是嵌套的，他的路由名还是叫App.PostRoute, PostController, post template
+当你把一个route嵌套在resource里，默认会给这个route加上posts.favourites
+约定的起名和路径
+Route Name            Controller                Route Template
+posts PostsController PostsRoute                posts
+posts.favorites       PostsFavoritesController  PostsFavoritesRoute posts/favorites
+post  PostController  PostRoute                 post
+
+#默认index
+ember会默认给app加index路由 this.route('index', {path: '/'})
+
+嵌套的路由也会有默认index
+App.Router.map(function() {
+  this.resource('posts', function() {
+  this.route('favorites');
+  });
+});
+相当于
+App.Router.map(function() {
+    this.route('index', { path: '/'  });
+    this.resource('posts', function() {
+    this.route('index', { path: '/'  });
+    this.route('favorites');
+    });
+});
+
+#model and class
+App.Person = Ember.Object.extend({
+  say: function(thing) {
+    alert(thing);
+  }
+});
+继承Ember.object
+App.PersonView = Ember.View.extend({
+  tagname: "li",
+  classNameBindings: ['isAdministrator']
+});
+继承后可以覆盖方法，通过_super()可以拿到父类method
+
+当创建了类后可以用create方法去创建实例
+var person = App.Person.create();
+person.say("fuck");
+
+一个object创建的时候init是他的初始化方法
+App.Person = Ember.Object.extend({
+  init: function() {
+    var name = this.get('name');
+    alert(name + ", reporting for duty!");
+  }
+});
+
+App.Person.create({
+  name: "Stefan Penner"
+});
+
+// alerts "Stefan Penner, reporting for duty!"
+
+记得继承Ember.View Ember.ArrayController的时候，init复写时要加上this._super(),不然会有奇怪错误
+
+使用一个实例的变量时，用get and set 方法，和backbone一样
+var person = App.Person.create();
+var name = person.get('name');
+person.set('name', "Tobias Fünke");
+
+#computed properties, 就是一个方法属性
+App.Person = Ember.Object.extend({
+  // these will be supplied by `create`
+  firstName: null,
+  lastName: null,
+
+  fullName: function() {
+    return this.get('firstName') + ' ' + this.get('lastName');
+  }.property('firstName', 'lastName') //这里定义方法的时候调用property, 告诉ember这是一个computesd property, 与firstName和lastName有关的
+});
+
+var ironMan = App.Person.create({
+  firstName: "Tony",
+  lastName:  "Stark"
+});
+
+ironMan.get('fullName') // "Tony Stark"
+
+
+也是要用get去调用, 这里的fullName方法也时属性，也可以绑定到template里
+
+computed property可以嵌套在另一个computed property里
+App.Person = Ember.Object.extend({
+  firstName: null,
+  lastName: null,
+  age: null,
+  country: null,
+
+  fullName: function() {
+    return this.get('firstName') + ' ' + this.get('lastName');
+  }.property('firstName', 'lastName'),
+
+  description: function() {
+    return this.get('fullName') + '; Age: ' + this.get('age') + '; Country: ' + this.get('country');
+  }.property('fullName', 'age', 'country')
+});
+
+var captainAmerica = App.Person.create({
+  firstName: 'Steve',
+  lastName: 'Rogers',
+  age: 80,
+  country: 'USA'
+});
+
+captainAmerica.get('description'); // "Steve Rogers; Age: 80; Country: USA"
+
+computed property会自动按照原始属性变动而变动
+
+用set去改变computed property
+App.Person = Ember.Object.extend({
+  firstName: null,
+  lastName: null,
+
+  fullName: function(key, value) {
+    // setter
+    if (arguments.length > 1) {
+      var nameParts = value.split(/\s+/);
+      this.set('firstName', nameParts[0]);
+      this.set('lastName',  nameParts[1]);
+    }
+
+    // getter
+    return this.get('firstName') + ' ' + this.get('lastName');
+  }.property('firstName', 'lastName')
+});
+
+
+var captainAmerica = App.Person.create();
+captainAmerica.set('fullName', "William Burnside");
+captainAmerica.get('firstName'); // William
+captainAmerica.get('lastName'); // Burnside
+
+#神奇的@each 给array对象属性加property
+App.TodosController = Ember.Controller.extend({
+  todos: [
+    Ember.Object.create({ isDone: false })
+  ],
+
+  remaining: function() {
+    var todos = this.get('todos');
+    return todos.filterBy('isDone', false).get('length');
+  }.property('todos.@each.isDone') //关键!!
+});
+
+这个特殊的key是告诉ember更新binding和调用观察者(callback)当下面这几种情况发生时
+todos里的每个对象isDone属性变化
+todos添加
+todos移除
+todos property变成另外一个array时
+
+App.todosController = App.TodosController.create();
+App.todosController.get('remaining'); // 1
+var todos = App.todosController.get('todos');
+var todo = todos.objectAt(0);
+todo.set('isDone', true);
+App.todosController.get('remaining'); // 0
+todo = Ember.Object.create({ isDone: false });
+todos.pushObject(todo);
+App.todosController.get('remaining'); // 1
+
+
+#观察者模式!
+property可以设定各种observes去做各种callback
+
+Person = Ember.Object.extend({
+  // these will be supplied by `create`
+  firstName: null,
+  lastName: null,
+
+  fullName: function() {
+    var firstName = this.get('firstName');
+    var lastName = this.get('lastName');
+
+    return firstName + ' ' + lastName;
+  }.property('firstName', 'lastName'),
+
+  fullNameChanged: function() {
+    // deal with the change
+  }.observes('fullName').on('init')
+});
+
+var person = Person.create({
+  firstName: 'Yehuda',
+  lastName: 'Katz'
+});
+
+person.set('firstName', 'Brohuda'); // observer will fire
+fullName依赖firstName, firstName改变了，fullName的observes就会跟着调用
+
+#observes异步的问题
+observes的发生是当属性改变的时候即刻发生，所以会引起有可能属性未改变完，observes方法里读取的属性不正确的bug
+
+Person.reopen({
+  lastNameChanged: function() {
+    // The observer depends on lastName and so does fullName. Because observers
+    // are synchronous, when this function is called the value of fullName is
+    // not updated yet so this will log the old value of fullName
+    console.log(this.get('fullName'));
+  }.observes('lastName')
+});
+
+也会引来observes调用多次的问题
+Person.reopen({
+  partOfNameChanged: function() {
+    // Because both firstName and lastName were set, this observer will fire twice.
+  }.observes('firstName', 'lastName')
+});
+
+person.set('firstName', 'John');
+person.set('lastName', 'Smith');
+
+用Ember.run.once去解决
+Person.reopen({
+  partOfNameChanged: function() {
+    Ember.run.once(this, 'processFullName');
+  }.observes('firstName', 'lastName'),
+
+  processFullName: function() {
+    // This will only fire once if you set two properties at the same time, and
+    // will also happen in the next run loop once all properties are synchronized
+    console.log(this.get('fullName'));
+  }
+});
+
+person.set('firstName', 'John');
+person.set('lastName', 'Smith');
+
+想observes在初始化调用时，加个on("nite")
+App.Person = Ember.Object.extend({
+  init: function() {
+    this.set('salutation', "Mr/Ms");
+  },
+
+  salutationDidChange: function() {
+    // some side effect of salutation changing
+  }.observes('salutation').on('init')
+});
+
+另一种写法
+Person.reopen({
+  fullNameChanged: Ember.observer('fullName', function() {
+    // deal with the change
+  })
+});
+
+类外面
+person.addObserver('fullName', function() {
+  // deal with the change
+});
+
+
+
+#Bindings 他妈两个类之间的属性可以绑定
+App.wife = Ember.Object.create({
+  householdIncome: 80000
+});
+
+App.husband = Ember.Object.create({
+  householdIncomeBinding: 'App.wife.householdIncome' //只要属性最后加个String Binding，就绑定了!
+});
+
+App.husband.get('householdIncome'); // 80000
+
+// Someone gets raise.
+App.husband.set('householdIncome', 90000);
+App.wife.get('householdIncome'); // 90000
+
+不想同名属性时，另外一种binding方法
+App.user = Ember.Object.create({
+  fullName: "Kara Gates"
+});
+
+App.userView = Ember.View.create({
+  userNameBinding: Ember.Binding.oneWay('App.user.fullName')
+});
+
+// Changing the name of the user object changes
+// the value on the view.
+App.user.set('fullName', "Krang Gates");
+// App.userView.userName will become "Krang Gates"
+
+// ...but changes to the view don't make it back to
+// the object.
+App.userView.set('userName', "Truckasaurus Gates");
+App.user.get('fullName'); // "Krang Gates"
+
+#reopen 重新打开类和对象，他妈的!
+不用再重新定义了，运行时重新指定
+Person.reopen({
+  isPerson: true
+});
+
+Person.create().get('isPerson') // true
+
+用reopen也能用_super()调之前的方法
+Person.reopen({
+  // override `say` to add an ! at the end
+  say: function(thing) {
+    this._super(thing + "!");
+  }
+});
+
+打开类
+Person.reopenClass({
+  createMan: function() {
+    return Person.create({isMan: true})
+  }
+});
+
+Person.createMan().get('isMan') // true
+
+!!!什么时候哪里用observers computed properties 和bind
+1. computed property做的事就应该只和数据显示相关，除了和原property有关的事其他都不做
+2. observer做的是，一个属性改变时，还要同时改变其他属性和行为时采用
+3. bind 通常是当对象在不同层面时，永远都是同步相同的, 例如 model变了，绑定的view也要变
+
+#Template
+template 最少要有个outlet的东西yield住
+<header>
+  <h1>Igor's Blog</h1>
+</header>
+
+<div>
+  {{outlet}}
+</div>
+
+<footer>
+  &copy;2013 Igor's Publishing, Inc.
+</footer>
+
+如果不用build工具去做，可以放在一个script标签
+<html>
+  <body>
+    <script type="text/x-handlebars" data-template-name="shit name"> //可以加上data-template-name去定义template的名称
+      Hello, <strong>{{firstName}} {{lastName}}</strong>!
+    </script>
+  </body>
+</html>
+
+每一个template都关联着一个controller, 然后像firstName和lastName这些property会去controller找
+
+条件显示
+{{#if person}}
+  Welcome back, <b>{{person.firstName}} {{person.lastName}}</b>!
+{{else}}
+  Please log in.
+{{/if}}
+handlebars的if判断会过滤掉 false, undefined, null or [] (i.e., any "falsy" value)
+
+unless
+{{#unless hasPaid}}
+  You owe: ${{total}}
+{{/unless}}
+
+each
+<ul>
+  {{#each people}}
+    <li>Hello, {{name}}!</li>
+  {{/each}}
+</ul>
+
+{{#each}}是有binding的，遍历的对象增加或减少，显示的html也会跟着变化
+
+自定义变量名的写法
+<ul>
+  {{#each friend in friends}}
+    <li>{{name}}s friend {{friend.name}}</li>
+  {{/each}}
+</ul>
+
+each可以带else，遍历变量为空时
+{{#each people}}
+  Hello, {{name}}!
+{{else}}
+  Sorry, nobody is here.
+{{/each}}  
+
+!!!!改变template的context,with 可以把执行的上下文改成person
+{{#with person}}
+  Welcome back, <b>{{firstName}} {{lastName}}</b>!
+{{/with}}
+
+{{#with person as user}}
+  {{#each book in books}}
+    {{user.firstName}} has read {{book.name}}!
+  {{/each}}
+{{/with}}
+
+#binding element attribute
+给某个element动态绑定数值
+<img {{bind-attr src=logoUrl}} alt="Logo">
+bind true or false, 会自动去disabled这个checkbox
+<input type="checkbox" {{bind-attr disabled=isAdministrator}}>
+
+#data-attribute
+一般来说，viewhelper不会去动data attribute
+{{#link-to "photos" data-toggle="dropdown"}}Photos{{/link-to}}
+{{input type="text" data-toggle="tooltip" data-placement="bottom" title="Name"}}
+出来会过滤掉data-toggle
+<a id="ember239" class="ember-view" href="#/photos">Photos</a>
+<input id="ember257" class="ember-view ember-text-field" type="text">
+
+一种方法是把helper打开
+Ember.LinkView.reopen({
+  attributeBindings: ['data-toggle']
+});
+
+Ember.TextField.reopen({
+  attributeBindings: ['data-toggle', 'data-placement']
+});
+
+另一种是重新打开类
+Ember.View.reopen({
+  init: function() {
+    this._super();
+    var self = this;
+
+    // bind attributes beginning with 'data-'
+    Em.keys(this).forEach(function(key) {
+      if (key.substr(0, 5) === 'data-') {
+        self.get('attributeBindings').pushObject(key);
+      }
+    });
+  }
+});
+
+#改class
+可以binding class property..
+<div {{bind-attr class="priority"}}>
+  Warning!
+</div>
+
+绑定true或false的情况
+<div {{bind-attr class="isUrgent"}}>
+  Warning!
+</div>
+
+
+If isUrgent is true, this emits the following HTML:c
+<div class="is-urgent">//自动加了减号 
+  Warning!
+</div>
+
+If isUrgent is false, no class name is added:
+<div>
+  Warning!
+</div>
+
+如果不想用ember的减号class命名
+<div {{bind-attr class="isUrgent:urgent"}}>
+  Warning!
+</div>

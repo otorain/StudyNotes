@@ -337,3 +337,6 @@ redis> sinter dba class
 1) "rulong"
 2) "changjie"
 ---注意：取交集，所以与各个key的位置无关  
+
+
+flushall删除所有

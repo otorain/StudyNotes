@@ -1943,6 +1943,15 @@ rvm pkg install openssl
 rvm install 2.0.0 --with-openssl-dir=~/.rvm/usr or
 --with-openssl-dir=brew --prefix openssl --with-readline-dir=brew --prefix readline
 
+
+::2.1.1 marverick ssl坑
+rvm osx-ssl-certs update all
+rvm reinstall ruby-2.1.1
+
+最后解决方法
+rvm reinstall ruby-2.1.1 --trace
+看到报错前有这个地址https://rubygems.org/api/v1/versions/rubygems-update.json
+用safari打开，提示证书有问题，设成总是信任
 ------------------------------------
 编程习惯
 把数据插入到string变量的时候，不要使用+，用<<追加,例如:
