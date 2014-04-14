@@ -102,16 +102,16 @@ ember会默认给app加index路由 this.route('index', {path: '/'})
 嵌套的路由也会有默认index
 App.Router.map(function() {
   this.resource('posts', function() {
-  this.route('favorites');
+    this.route('favorites');
   });
 });
 相当于
 App.Router.map(function() {
-    this.route('index', { path: '/'  });
-    this.resource('posts', function() {
+  this.route('index', { path: '/'  });
+  this.resource('posts', function() {
     this.route('index', { path: '/'  });
     this.route('favorites');
-    });
+  });
 });
 
 #model and class
@@ -319,7 +319,7 @@ Person.reopen({
 person.set('firstName', 'John');
 person.set('lastName', 'Smith');
 
-想observes在初始化调用时，加个on("nite")
+想observes在初始化调用时，加个on("init")
 App.Person = Ember.Object.extend({
   init: function() {
     this.set('salutation', "Mr/Ms");
@@ -544,3 +544,1492 @@ If isUrgent is false, no class name is added:
 <div {{bind-attr class="isUrgent:urgent"}}>
   Warning!
 </div>
+
+更hi方便的! 一行绑定true false
+<div {{bind-attr class="isEnabled:enabled:disabled"}}>
+  Warning!
+</div>
+isEnabled true的时候, enabled, 反之 disabled
+
+这种是，当他是false就是disabled, true的时候就是没有class
+<div>
+{{bind-attr class="isEnabled::disabled"}}>
+  Warning!
+</div>
+
+只想要静态的class
+<div {{bind-attr class=":high-priority isUrgent"}}>
+  Warning!
+</div>
+
+可以绑定多个property
+<div>
+{{bind-attr class="isUrgent priority"}}>
+  Warning!
+</div>
+
+#!!link-to
+简直就是把rails的urlhelper搬了下来，他妈以前写backbone写死我
+App.Router.map(function() {
+  this.resource("photos", function(){
+    this.route("edit", { path: "/:photo_id" });
+  });
+});
+
+<ul>
+{{#each photo in photos}}
+  <li>{{#link-to 'photos.edit' photo}}{{photo.title}}{{/link-to}}</li>
+{{/each}}
+</ul>
+
+生成
+<ul>
+  <li><a href="/photos/1">Happy Kittens</a></li>
+  <li><a href="/photos/2">Puppy Running</a></li>
+  <li><a href="/photos/3">Mountain Landscape</a></li>
+</ul>
+
+嵌套的link-to helper
+路由长这样
+App.Router.map(function() {
+  this.resource("photos", function(){
+    this.resource("photo", { path: "/:photo_id" }, function(){
+      this.route("comments");
+      this.route("comment", { path: "/comments/:comment_id" });
+    });
+  });
+});
+
+<div class="photo">
+  {{body}}
+</div>
+<p>{{#link-to 'photo.comment' primaryComment}}Main Comment{{/link-to}}</p>
+不给photo时，就默认用当前photo
+
+应该传入确切的photo_id和comment才好
+<p>
+  {{#link-to 'photo.comment' 5 primaryComment}}
+    Main Comment for the Next Photo
+  {{/link-to}}
+</p>
+
+加class
+<p>
+  {{link-to 'Edit this photo' 'photo.edit' photo class="btn btn-primary"}}
+</p>
+
+#!!action
+有时你显式一篇文章，想点击按钮显示更多，那就是改变了controller的状态,这时用action
+{{#if isExpanded}}
+  <div class='body'>{{body}}</div>
+  <button {{action 'contract'}}>Contract</button>
+{{else}}
+  <button {{action 'expand'}}>Show More...</button>
+{{/if}}
+
+controller长这样
+App.PostController = Ember.ObjectController.extend({
+  // initial value
+  isExpanded: false,
+
+  actions: {
+    expand: function() {
+      this.set('isExpanded', true);
+    },
+
+    contract: function() {
+      this.set('isExpanded', false);
+    }
+  }
+})
+
+注意action会一直从controller冒泡到 ->route -> appication route
+action对象里的this是controler(or route), 不是actions这个对象
+
+
+停止冒泡
+{{#link-to 'post'}}
+  Post
+  <button {{action 'close' bubbles=false}}>✗</button>
+{{/link-to}}
+
+action里传参数，可以传回去action的callback
+<p><button {{action "select" post}}>✓</button> {{post.title}}</p>
+App.PostController = Ember.ObjectController.extend({
+  actions: {
+    select: function(post) {
+      console.log(post.get('title'));
+    }
+  }
+});
+
+给action设定event 类型
+<p>
+  <button {{action "select" post on="mouseUp"}}>✓</button>
+  {{post.title}}
+</p>
+
+限制只有当alt这个key按下才fire
+<script type="text/x-handlebars" data-template-name='a-template'>
+  <div {{action 'anActionName' allowedKeys="alt"}}>
+    click me
+  </div>
+</script>
+
+target 指定哪一个去响应action，controller or view
+<p>
+  <button {{action "select" post target="view"}}>✓</button>
+  {{post.title}}
+</p>
+
+App.PostsIndexView = Ember.View.extend({
+  actions: {
+    select: function(post) {
+      // do your business.
+    }
+  }
+});
+
+#!!input helper
+有input(包含input checkbox), textarea
+{{input value="http://www.facebook.com"}}
+
+input包含以下参数
+value size name pattern placeholder disabled maxlength tabindex 
+
+{input type="text" value=firstName disabled=entryNotAllowed size="50"}}
+这里的disabled和entryNotAllowed绑定了
+
+checkbox 包含
+checked disabled tabindex indeterminate name 
+
+{{input type="checkbox" name="isAdmin" checked=isAdmin}}
+
+textarea 包含
+rows cols placeholder disabled maxlength tabindex 
+{{textarea value=name cols="80" rows="6"}}
+
+#开发helper
+
+log
+{{log 'Name is:', name}}
+
+断点
+{{debugger}}
+其中有两个有用的参数 templateContext typeOfTemplateContext
+
+#!!partial
+嵌套另一个partial
+<script type="text/x-handlebars" data-template-name='_author'>
+  Written by {{author.firstName}} {{author.lastName}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='post'>
+  <h1>{{title}}</h1>
+  <div>{{body}}</div>
+  {{partial "author"}}
+</script>
+partial模板名称必须要_开头
+The partial's' data-template-name must start with an underscore (e.g. data-template-name='_author' or data-template-name='foo/_bar')
+
+#!!view
+类似partial的作用，只是render的时候是个view class, 然后在view class里面指定partial，再做一些计算啊之类的操作
+
+定义view
+App.AuthorView = Ember.View.extend({
+  // We are setting templateName manually here to the default value
+  templateName: "author",
+
+  // A fullName property should probably go on App.Author,
+  // but we're doing it here for the example
+  fullName: (function() {
+    return this.get("author").get("firstName") + " " + this.get("author").get("lastName");
+  }).property("firstName","lastName")
+})
+
+template
+<script type="text/x-handlebars" data-template-name='author'>
+  Written by {{view.fullName}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='post'>
+  <h1>{{title}}</h1>
+  <div>{{body}}</div>
+  {{view App.AuthorView}} //关键
+</script>
+
+结果
+<div>
+  <h1>Why You Should Use Ember.JS</h1>
+  <div>Because it's' awesome!</div>
+  Written by Yehuda Katz
+</div>
+
+#!! render
+接收两个参数， 第一个是context上下文(通常是controller), 第二个可选model,如果有的话就提供给controller
+这家伙会自动处理很多东西，有controller就上controller， 无就直接template
+<script type="text/x-handlebars" data-template-name='author'>
+  Written by {{firstName}} {{lastName}}.
+  Total Posts: {{postCount}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='post'>
+  <h1>{{title}}</h1>
+  <div>{{body}}</div>
+  {{render "author" author}}
+</script>
+
+App.AuthorController = Ember.ObjectController.extend({
+  postCount: function() {
+    return App.Post.countForAuthor(this.get("model"));
+  }.property("model","App.Post.@each.author")
+})
+
+描述
+Get an instance of App.AuthorView if that class exists, otherwise uses a default generated view
+Use the corresponding template (in this case the default of "author")
+Get (or generate) the singleton instance of AuthorController
+Set the AuthorController's' model to the 2nd argument passed to render, here the author field on the post
+Render the template in place, with the context created in the previous steps.
+{{render}} does not require the presence of a matching route.
+{{render}} is similar to {{outlet}}. Both tell Ember.js to devote this portion of the page to something.
+{{outlet}}: The router determines the route and sets up the appropriate controllers/views/models. {{render}}: You specify (directly and indirectly) the appropriate controllers/views/models.
+
+
+灵活度
+render>view>partial
+
+##自件handlebars helper
+Ember.Handlebars.helper('highlight', function(value, options) {
+  var escaped = Handlebars.Utils.escapeExpression(value);
+  return new Handlebars.SafeString('<span class="highlight">' + escaped + '</span>');
+});
+
+用escape, SafeString变得更安全
+{{highlight name}}
+
+##路由详细
+打开log transition
+App = Ember.Application.create({
+  LOG_TRANSITIONS: true
+});
+
+指定root url
+App.Router.reopen({
+  rootURL: '/blog/'
+});
+
+
+路由的定义
+App.Router.map(function() {
+  this.route("about", { path: "/about" });
+  this.route("favorites", { path: "/favs" });
+});
+
+如果url名和路由名一样的时候，不需要去定义path
+
+
+link-to直接填路由名，url可以用"/index" 这样
+{{#link-to 'index'}}<img class="logo">{{/link-to}}
+
+<nav>
+  {{#link-to 'about'}}About{{/link-to}}
+  {{#link-to 'favorites'}}Favorites{{/link-to}}
+</nav>
+
+#定义Route
+App.IndexRoute = Ember.Route.extend({
+  setupController: function(controller) {
+    // Set the IndexController's `title`
+    controller.set('title', "My App");
+  }
+});
+
+
+动态指定
+App.PostsRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('posts');
+  }
+});
+直接指定model和template, 省掉中间的controller
+
+resource嵌套
+
+App.Router.map(function() {
+  this.resource('post', { path: '/post/:post_id' }, function() {
+    this.route('edit');
+    this.resource('comments', function() {
+      this.route('new');
+    });
+  });
+});
+
+这种是对应PostController, CommentsController
+
+App.Router.map(function() {
+  this.resource('foo', function() {
+    this.resource('foo.bar', { path: '/bar' }, function() {
+      this.route('baz'); // This will be foo.bar.baz
+    });
+  });
+});
+这种是对应FooController和FooBarController
+
+当写好route后，你没有定义controller的话,ember会帮你自动生成controller, 有三种,Ember.ObjectController, Ember.ArrayController, and Ember.Controller.
+生成哪种，取决于你定义哪种model的hook
+单个model的， ObjectController
+array的, ArrayController
+什么都没有的, 就Ember.Controller
+
+##在路由里定义model 
+一个template如何知道显式什么数据，用哪个model呢？这是route的工作,
+App.PhotosRoute = Ember.Route.extend({
+  model: function() {
+    return [{
+      title: "Tomster",
+      url: "http://emberjs.com/images/about/ember-productivity-sm.png"
+    }, {
+      title: "Eiffel Tower",
+      url: "http://emberjs.com/images/about/ember-structure-sm.png"
+    }];
+  }
+});
+
+!!异步式读取model
+当要ajax请求model数据，你可以先返回一个model的promise的对象, 然后ember会等到promise对象ok后再render template
+App.PullRequestsRoute = Ember.Route.extend({
+  model: function() {
+    return Ember.$.getJSON('https://api.github.com/repos/emberjs/ember.js/pulls');
+  }
+});
+
+
+promise链式返回运算后的结果，只要是promise对象就行
+App.PullRequestsRoute = Ember.Route.extend({
+  model: function() {
+    var url = 'https://api.github.com/repos/emberjs/ember.js/pulls';
+    return Ember.$.getJSON(url).then(function(data) {
+      return data.splice(0, 3);
+    });
+  }
+});
+
+接下来，model会被分配到对应的Controller的model property, 然后Template无论你的model有没有set，都会render了
+
+#route设置动态model
+App.Router.map(function() {
+  this.resource('photo', { path: '/photos/:photo_id' });
+});
+
+App.Router.map(function() {
+  this.resource('photo', { path: '/photos/:photo_id' });
+});
+
+App.PhotoRoute = Ember.Route.extend({
+  model: function(params) {
+    return Ember.$.getJSON('/photos/'+params.photo_id);
+  }
+});
+
+#route里设置controller
+设置Controller主要在Route的setupController方法
+App.Router.map(function() {
+  this.resource('post', { path: '/posts/:post_id' });
+});
+
+App.PostRoute = Ember.Route.extend({
+  // The code below is the default behavior, so if this is all you
+  // need, you do not need to provide a setupController implementation
+  // at all.
+  setupController: function(controller, model) {
+    controller.set('model', model);
+  }
+});
+setupController里第一个参数就是Ember帮你找到关联的Controller, 这个例子默认就是App.PostController
+
+
+这样可以用controllerName去设置controller
+App.SpecialPostRoute = Ember.Route.extend({
+  controllerName: 'post'
+});
+
+指定非关联而来的Controller,用controllerFor
+App.PostRoute = Ember.Route.extend({
+  setupController: function(controller, model) {
+    this.controllerFor('topPost').set('model', model);
+  }
+});
+
+#在Route里设置Template
+不想render关联Template的时候
+App.PostsRoute = Ember.Route.extend({
+  renderTemplate: function() {
+    this.render('favoritePost');
+  }
+});
+
+如果想render另外一个controller的templat
+App.PostsRoute = Ember.Route.extend({
+  renderTemplate: function() {
+    this.render({ controller: 'favoritePost' });
+  }
+});
+
+
+!!Template可以yield outlet不同的名称
+<div class="toolbar">{{outlet toolbar}}</div>
+<div class="sidebar">{{outlet sidebar}}</div>
+然后
+App.PostsRoute = Ember.Route.extend({
+  renderTemplate: function() {
+    this.render({ outlet: 'sidebar' });
+  }
+});
+
+render不同的Template在不同的outlet
+App.PostRoute = App.Route.extend({
+  renderTemplate: function() {
+    this.render('favoritePost', {   // the template to render
+      into: 'posts',                // the template to render into
+      outlet: 'posts',              // the name of the outlet in that template
+      controller: 'blogPost'        // the controller to use for the template
+    });
+    this.render('comments', {
+      into: 'favoritePost',
+      outlet: 'comment',
+      controller: 'blogPost'
+    });
+  }
+});
+
+
+#!!redirect
+从controller调用transitionTo或transitionToRoute将会停止一切当前的运行，开始跳转
+如果你跳去另外一个route的话，记得带上要动态分发的model
+
+
+一个进入首页跳去PostsController的例子, 在beforeModel的hook设吧
+App.Router.map(function() {
+  this.resource('posts');
+});
+
+App.IndexRoute = Ember.Route.extend({
+  beforeModel: function() {
+    this.transitionTo('posts');
+  }
+});
+
+afterModel的版本(alias redirect)
+App.Router.map(function() {
+  this.resource('posts');
+  this.resource('post', { path: '/post/:post_id' });
+});
+
+App.PostsRoute = Ember.Route.extend({
+  afterModel: function(posts, transition) {
+    if (posts.get('length') === 1) {
+      this.transitionTo('post', posts[0]); //当posts的长度只有1的时候就直接跳过去post/1
+    }
+  }
+});
+
+#!!设置url type
+不用"#"的话
+App.Router.reopen({
+  location: 'history'
+});
+
+用回"#"的话，方便调试
+App.Router.reopen({
+  location: 'none'
+});
+
+#query params //url动态参数, ?aaa=xxx&aa=xx这种
+这种处理在ember里面是controller去控制, 用来controller之间额外传递查询啊过滤的参数
+
+给article加一个category的筛选条件
+App.ArticlesController = Ember.ArrayController.extend({
+  queryParams: ['category'],
+  category: null
+});
+
+然后这会给url设上一个query param, 还有在ArticlesController设一个category的property, 然后当静如articles route的时候, 就会改变category query param, 同时也会改到ArticlesController的category property
+
+现在只要加个computed property, 就可以过滤出来到template里显示articles的地方
+App.ArticlesController = Ember.ArrayController.extend({
+  queryParams: ['category'],
+  category: null,
+
+  filteredArticles: function() {
+    var category = this.get('category');
+    var articles = this.get('model');
+
+    if (category) {
+      return articles.filterProperty('category', category);
+    } else {
+      return articles;
+    }
+  }.property('category', 'model')
+});
+
+这里我们做了这些事情 
+1. 用户访问/articles, category是null, 返回所有的articles
+2. 用户访问/articles?articles[category]=recent, 然后category就会变成recent, 就会过滤出最近的articles
+3. 当url上的category属性变化，页面上的articles也跟着变化
+
+helper这么写
+// 指定值
+{{#link-to 'posts' (query-params direction="asc")}}Sort{{/link-to}}
+// 支持用binding属性
+{{#link-to 'posts' (query-params direction=otherDirection)}}Sort{{/link-to}}
+
+transition 和transitionToRoute都可以加query prarms
+this.transitionTo('post', object, {queryParams: {showDetails: true}});
+this.transitionTo('posts', {queryParams: {sort: 'title'}});
+// if you just want to transition the query parameters without changing the route
+this.transitionTo({queryParams: {direction: 'asc'}});
+直接加也行
+this.transitionTo("/posts/1?sort=date&showDetails=true");
+
+记得transition加query param是不会把route里面的model hook调用的，这时可以用一下refreshModel
+App.ArticlesRoute = Ember.Route.extend({
+  queryParams: {
+    category: {
+      refreshModel: true
+    }
+  },
+  model: function(params) {
+    // This gets called upon entering 'articles' route
+    // for the first time, and we opt in refiring it
+    // upon query param changes via `queryParamsDidChange` action
+
+    // params has format of { category: "someValueOrJustNull" },
+    // which we can just forward to the server.
+    return this.store.findQuery('articles', params);
+  }
+});
+
+App.ArticlesController = Ember.ArrayController.extend({
+  queryParams: ['category'],
+  category: null
+});
+
+不想query params成为浏览器历史的话，用replace
+App.ArticlesRoute = Ember.Route.extend({
+  queryParams: {
+    category: {
+      replace: true
+    }
+  }
+});
+
+自定义在url里显示的名字
+App.ArticlesController = Ember.ArrayController.extend({
+  queryParams: ['category:articles_category'],
+  category: null
+});
+
+这就会修改ArticlesController的category property, 但url的属性是articles_category
+
+String integer的问题
+App.ArticlesController = Ember.ArrayController.extend({
+  queryParams: 'page',
+  page: 1
+});
+当你设了page: 1时， 改/page=2，也会读回integer, 而不是string
+
+
+#再来异步
+router所有object都可以用then去设定一个promise对象
+App.TardyRoute = Ember.Route.extend({
+  model: function() {
+    return new Ember.RSVP.Promise(function(resolve) {
+      Ember.run.later(function() {
+        resolve({ msg: "Hold Your Horses" });
+      }, 3000);
+    });
+  }, 
+
+  setupController: function(controller, model) {
+    console.log(model.msg); // "Hold Your Horses"
+  }
+});
+
+#当promise reject了，可以用actions 设error去处理
+App.GoodForNothingRoute = Ember.Route.extend({
+  model: function() {
+    return Ember.RSVP.reject("FAIL");
+  },
+
+  actions: {
+    error: function(reason) {
+      alert(reason); // "FAIL"
+
+      // Can transition to another route here, e.g.
+      // this.transitionTo('index');
+
+      // Uncomment the line below to bubble this error event:
+      // return true;
+    }
+  }
+});
+当actions error最后返回true，就会继续向上bubble
+
+#加载中loading路由
+App.LoadingView = Ember.View.extend({
+  templateName: 'global-loading',
+  elementId: 'global-loading'
+});
+
+App.ApplicationRoute = Ember.Route.extend({
+  actions: {
+    loading: function() {
+      var view = this.container.lookup('view:loading').append();
+      this.router.one('didTransition', view, 'destroy');
+    }
+  }
+});
+
+
+#阻止transition
+准备transition时，当前Route的willTransition会hook，然后可以把他abort掉
+App.FormRoute = Ember.Route.extend({
+  actions: {
+    willTransition: function(transition) {
+      if (this.controllerFor('form').get('userHasEnteredData') &&
+          !confirm("Are you sure you want to abandon progress?")) {
+        transition.abort();
+      } else {
+        // Bubble the `willTransition` action so that
+        // parent routes can decide whether or not to abort.
+        return true;
+      }
+    }
+  }
+});
+
+#在beforeModel和afterModel也能block transition
+App.DiscoRoute = Ember.Route.extend({
+  beforeModel: function(transition) {
+    if (new Date() < new Date("January 1, 1980")) {
+      alert("Sorry, you need a time machine to enter this route.");
+      transition.abort();
+    }
+  }
+});
+
+#存储和重连transition
+App.SomeAuthenticatedRoute = Ember.Route.extend({
+  beforeModel: function(transition) {
+    if (!this.controllerFor('auth').get('userIsLoggedIn')) {
+      var loginController = this.controllerFor('login');
+      loginController.set('previousTransition', transition);
+      this.transitionTo('login');
+    }
+  }
+});
+
+App.LoginController = Ember.Controller.extend({
+  actions: {
+    login: function() {
+      // Log the user in, then reattempt previous transition if it exists.
+      var previousTransition = this.get('previousTransition');
+      if (previousTransition) {
+        this.set('previousTransition', null);
+        previousTransition.retry();
+      } else {
+        // Default back to homepage
+        this.transitionToRoute('index');
+      }
+    }
+  }
+});
+
+#!!!Component
+创建component在"components/"下, 改名一定要有个dash "-"
+<script type="text/x-handlebars" id="components/blog-post">
+  <h1>Blog Post</h1>
+  <p>Lorem ipsum dolor sit amet.</p>
+</script>
+
+如果用build tools, 可以创建"templates/components/blog-post.handlebars"
+
+这样用, 有点像partial
+<h1>My Blog</h1>
+{{#each}}
+  {{blog-post}}
+{{/each}}
+
+默认会外面包个div,可以这样去改变
+App.NavigationBarComponent = Ember.Component.extend({
+  tagName: 'nav'
+});
+
+subclass改名
+blog-post 对应 App.BlogPostComponent
+
+
+#!!Controller
+Template 显式数据-> Controller组织数据 -> Model 存储数据 这个是由左找到右，是不应该反向
+
+搜索框的例子
+<!-- application.handlebars -->
+<header>
+  {{input type="text" value=search action="query"}}
+</header>
+{{outlet}}
+
+App.ApplicationController = Ember.Controller.extend({
+  // the initial value of the `search` property
+  search: '',
+
+  actions: {
+    query: function() {
+      // the current value of the text field
+      var query = this.get('search');
+      this.transitionToRoute('search', { query: query });
+    }
+  }
+});
+
+#ArrayController可以sort, 好７牛逼
+App.SongsController = Ember.ArrayController.extend({
+  sortProperties: ['name', 'artist'],
+  sortAscending: true // false for descending 升序or降序
+});
+
+
+#!!指定每一个单体的controller
+App.SongsController = Ember.ArrayController.extend({
+  itemController: 'song'
+});
+
+也可以这样只在template做
+{{#each itemController="song"}}
+  <li>{{name}} by {{artist}}</li>
+{{/each}}
+
+#!!Controller与Controller之间的嵌套，联系
+
+App.Router.map(function() {
+  this.resource("post", { path: "/posts/:post_id" }, function() {
+    this.resource("comments", { path: "/comments" });
+  });
+});
+
+
+App.CommentsController = Ember.ArrayController.extend({
+  needs: "post" //这里告诉ember, CommentsController需要post, 无论在template或者controller
+  post: Ember.computed.alias("controllers.post") //这一句意思是post状态变化这里也变
+});
+
+然后comments_controller.post就可以访问PostController
+
+联系多个Controller
+App.AnotherController = Ember.Controller.extend({
+  needs: ['post', 'comments']
+});
+
+
+#!!Model
+基础概念
+Store 理解为一个cache好数据的地方,controller或其他地方需要请求数据，首先要问Store, 他是Ds.Store的一个实例
+App.IndexRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('person', 1);
+  }
+});
+
+models, 就是定义class的地方
+
+this.store.find('order'); //拿所有的orders
+
+设定一个model, 属性类型
+App.Person = DS.Model.extend({
+  firstName: DS.attr('string'),
+  birthday:  DS.attr('date')
+});
+
+
+has_many和belongs_to，注意单复数的写法
+App.Order = DS.Model.extend({
+  lineItems: DS.hasMany('lineItem')
+});
+
+App.LineItem = DS.Model.extend({
+  order: DS.belongsTo('order')
+});
+
+models是只定义了属性还有关系，他们没有数据的，数据叫records
+
+record是一个加载了数据的model实例, record有两个唯一认证,model_type和id
+
+his.store.find('person', 1); // => { id: 1, name: 'steve-buscemi' }
+
+adapter, 是一个将server数据适配到ember model的东西
+
+serializer json相关，或回来的数据怎么组装成model
+
+自动cache, 这个很简单，拉过id 1的person,下次拉就是内存里的数据
+
+#定义Model
+App.Person = DS.Model.extend();
+store.find('person', 1);
+
+注意model名在这里和model class的对应
+name              Class
+photo             App.Photo
+adminUserProfile  App.AdminUserProfile
+
+
+定义属性，给Ds.attr一个helper会方便点
+var attr = DS.attr;
+App.Person = DS.Model.extend({
+  firstName: attr(),
+  lastName: attr(),
+  birthday: attr()
+});
+
+model属性是可以直接像之前的自定义属性一样用，也可以用作computed property
+var attr = DS.attr;
+App.Person = DS.Model.extend({
+  firstName: attr(),
+  lastName: attr(),
+
+  fullName: function() {
+    return this.get('firstName') + ' ' + this.get('lastName');
+  }.property('firstName', 'lastName')
+});
+
+默认支持string, number, boolean, and date, 还可以自定义adapter去增加更多类型
+
+Ds.attr支持还支持一个默认值的参数,这个调用真不够backbone方便
+var attr = DS.attr;
+
+App.User = DS.Model.extend({
+  username: attr('string'),
+  email: attr('string'),
+  verified: attr('boolean', {defaultValue: false}),
+  createdAt: DS.attr('string', {
+      defaultValue: function() { return new Date(); }
+  })
+});
+
+model关系
+1-1
+App.User = DS.Model.extend({
+  profile: DS.belongsTo('profile')
+});
+
+App.Profile = DS.Model.extend({
+  user: DS.belongsTo('user')
+});
+
+1-n
+App.Post = DS.Model.extend({
+  comments: DS.hasMany('comment')
+});
+
+App.Comment = DS.Model.extend({
+  post: DS.belongsTo('post')
+});
+
+n-n
+App.Post = DS.Model.extend({
+  tags: DS.hasMany('tag')
+});
+
+App.Tag = DS.Model.extend({
+  posts: DS.hasMany('post')
+});
+
+inverse,手动指定关系的ClassName
+var belongsTo = DS.belongsTo,
+    hasMany = DS.hasMany;
+
+App.Comment = DS.Model.extend({
+  onePost: belongsTo('post'),
+  twoPost: belongsTo('post'),
+  redPost: belongsTo('post'),
+  bluePost: belongsTo('post')
+});
+
+
+App.Post = DS.Model.extend({
+  comments: hasMany('comment', {
+    inverse: 'redPost'
+  })
+});
+
+#create or delete
+store.createRecord('post', {
+  title: 'Rails is Omakase',
+  body: 'Lorem ipsum'
+});
+
+要记得不要把属性设成promise, 
+
+var store = this.store;
+store.createRecord('post', {
+  title: 'Rails is Omakase',
+  body: 'Lorem ipsum',
+  author: store.find('user', 1)
+});
+
+用其他方法
+var store = this.store;
+
+var post = store.createRecord('post', {
+  title: 'Rails is Omakase',
+  body: 'Lorem ipsum'
+});
+
+store.find('user', 1).then(function(user) {
+  post.set('author', user);
+});
+
+delete 和 destroy很好理解了,后者同步到数据库
+var post = store.find('post', 1);
+post.deleteRecord();
+post.get('isDeleted'); // => true
+post.save(); // => DELETE to /posts/1
+
+// OR
+var post = store.find('post', 2);
+post.destroyRecord(); // => DELETE to /posts/2
+
+push数据去store
+var attr = DS.attr;
+
+App.Album = DS.Model.extend({
+  title: attr(),
+  artist: attr(),
+  songCount: attr()
+});
+
+App.ApplicationRoute = Ember.Route.extend({
+  model: function() {
+    this.store.push('album', {
+      id: 1,
+      title: "Fewer Moving Parts",
+      artist: "David Bazan",
+      songCount: 10
+    });
+
+    this.store.push('album', {
+      id: 2,
+      title: "Calgary b/w I Can't Make You Love Me/Nick Of Time",
+      artist: "Bon Iver",
+      songCount: 2
+    });
+  }
+});
+
+持久化
+var post = store.createRecord('post', {
+  title: 'Rails is Omakase',
+  body: 'Lorem ipsum'
+});
+
+post.save(); // => POST to '/posts'
+
+var post = store.find('post', 1);
+
+post.get('title') // => "Rails is Omakase"
+post.set('title', 'A new post');
+post.save(); // => PUT to '/posts/1'
+
+save()会返回promise
+var post = store.createRecord('post', {
+  title: 'Rails is Omakase',
+  body: 'Lorem ipsum'
+});
+var self = this;
+function transitionToPost(post) {
+  self.transitionToRoute('posts.show', post);
+}
+function failure(reason) {
+  // handle the error
+}
+post.save().then(transitionToPost).catch(failure);
+
+!!then是可以同时处理错误
+post.save().then(onSuccess, onFail);
+
+另外一种更底层的处理方式
+function retry(callback, nTimes) {
+  // if the promise fails
+  return callback().fail(function(reason) {
+    // if we haven't hit the retry limit
+    if (nTimes-- > 0) {
+      // retry again with the result of calling the retry callback
+      // and the new retry limit
+      return retry(callback, nTimes);
+    }
+    // otherwise, if we hit the retry limit, rethrow the error
+    throw reason;
+  });
+}
+// try to save the post up to 5 times
+retry(function() {
+  return post.save();
+}, 5);
+
+find, findAll, findQuery
+var posts = this.store.find('post'); // => GET /posts
+sts = this.store.all('post'); // => no network request
+
+find会返回DS.PromiseArray,　然后填充到DS.RecordArray, all只会返回Ds.RecordArray
+DS.RecordArray不是js的array, 他实现了Ember.Enumerable, 他不能用[x]这种取值，要用objectAt(index) 这样
+
+找单个
+var aSinglePost = this.store.find('post', 1); // => GET /posts/1
+
+findQuery
+var peters = this.store.find('person', { name: "Peter" }); // => GET to /persons?name='Peter'
+
+再一次，像find这种返回promise的，可以很轻松地用同步数据后再render
+App.Router.map(function() {
+  this.resource('posts');
+  this.resource('post', { path: ':post_id' });
+});
+
+App.PostsRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('post');
+  }
+});
+
+App.PostRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find('post', params.post_id);
+  }
+})
+
+model的attribute状态
+var tyrion = this.store.find('person', 1);
+// ...after the record has loaded
+tyrion.set('firstName', "Yollo");
+person.incrementProperty('age');
+
+
+changedAttributes
+person.get('isAdmin');      //=> false
+person.get('isDirty');      //=> false
+person.set('isAdmin', true);
+person.get('isDirty');      //=> true
+person.changedAttributes(); //=> { isAdmin: [false, true] }
+
+修改过的东西可以rollback()
+person.get('isDirty');      //=> true
+person.changedAttributes(); //=> { isAdmin: [false, true] }
+
+person.rollback();
+
+person.get('isDirty');      //=> false
+person.get('isAdmin');      //=> false
+person.changedAttributes(); //=> {}
+当用户取消时rollback()一下太方便了！
+
+#fixtures, 未搞掂api时就可以开始搞ember的开发，搞完换上api就行
+var App = Ember.Application.create();
+App.ApplicationAdapter = DS.FixtureAdapter; //搞个adapter
+搞个model
+App.Documenter = DS.Model.extend({
+  firstName: DS.attr( 'string' ),
+  lastName: DS.attr( 'string' )
+});
+fake数据
+App.Documenter.FIXTURES = [
+  { id: 1, firstName: 'Trek', lastName: 'Glowacki' },
+  { id: 2, firstName: 'Tom' , lastName: 'Dale'     }
+];
+
+App.DocumenterRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('documenter', 1); // returns a promise that will resolve
+                                             // with the record representing Trek Glowacki
+  }
+});
+
+#链接htptp服务器
+复习一下restful
+
+当你这样调用时 ,GET request to /photos/1.
+App.PhotoRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find('photo', params.photo_id);
+  }
+});
+
+Action  HTTPVerb URL
+Find    GET      /people/123
+FindAll GET      /people
+Update  PUT      /people/123
+Create  POST     /people
+Delete  DELETE   /people/123
+
+json约定
+var attr = DS.attr,
+    hasMany = DS.hasMany,
+    belongsTo = DS.belongsTo;
+
+App.Post = DS.Model.extend({
+  title: attr(),
+  comments: hasMany('comment'),
+  user: belongsTo('user')
+});
+
+App.Comment = DS.Model.extend({
+  body: attr()
+});
+那么ember就希望返回的json数据是这样的
+{
+  "post": {
+    "id": 1,
+    "title": "Rails is omakase",
+    "comments": ["1", "2"], //艹尼玛id放这里,应该是comment才好点吧!
+    "user" : "dhh"
+  },
+
+  "comments": [{
+    "id": "1",
+    "body": "Rails is unagi"
+  }, {
+    "id": "2",
+    "body": "Omakase O_o"
+  }]
+}
+
+自定义一下adapter
+App.PostAdapter = DS.RESTAdapter.extend({
+  namespace: 'api/v2',
+  host: 'https://api.example2.com'
+});
+
+App.PhotoAdapter = DS.RESTAdapter.extend({
+  namespace: 'api/v1'
+  host: 'https://api.example.com'
+});
+namespace可以单独指定，host可以不指定默认host
+
+可以在header指定访问的key
+App.ApplicationAdapter = DS.RESTAdapter.extend({
+  headers: {
+    "API_KEY": "secret key",
+    "ANOTHER_HEADER": "Some header value"
+  }
+});
+
+!!metadata　拿额外的json数据
+这样拿blog数据
+this.store.findQuery("post", {
+  limit: 10,
+  offset: 0
+});
+
+服务器返回
+{
+  "post": {
+    "id": 1,
+    "title": "Progressive Enhancement is Dead",
+    "comments": ["1", "2"],
+    "links": {
+      "user": "/people/tomdale"
+    },
+    // ...
+  },
+
+  "meta": {
+    "total": 100
+  }
+}
+
+var meta = this.store.metadataFor("post"); //拿到meta的参数
+
+你复写extractMeta可以自定义metadata的输出
+{
+  "post": [
+    // ...
+  ],
+  "total": 100
+}
+
+App.ApplicationSerializer = DS.RESTSerializer.extend({
+  extractMeta: function(store, type, payload) {
+    if (payload && payload.total) {
+      store.metaForType(type, { total: payload.total });  // sets the metadata for "post"
+      delete payload.total;  // keeps ember data from trying to parse "total" as a record
+    }
+  }
+});
+
+这里就是把返回的json转成embermodel!!, payload就是返回的数据, 也可以单个model定义，例如App.UserSerializer
+
+#!!自定义Adapter
+App.ApplicationAdapter = DS.RESTAdapter.extend({
+    // Application specific overrides go here
+});
+
+一般约定命名都是用ModelName+Adapter
+DS.Adapter 
+DS.FixtureAdapter 
+DS.RESTAdapter  最常用
+DS.ActiveModelAdapter 
+这些都可以继承复写
+
+namespace host上面有例子了
+
+自定义path
+App.ApplicationAdapter = DS.RESTAdapter.extend({
+  pathForType: function(type) {
+    return Ember.String.underscore(type);
+  }
+});
+Requests for App.Person would now target /person/1. Requests for App.UserProfile would now target /user_profile/1.
+
+MyCustomAdapterAdapter = DS.RESTAdapter.extend({
+  defaultSerializer: '-default'
+});
+
+#!!View 处理各种事件, 提高复用性, 可以再各种controller里复用
+<html>
+  <head>
+    <script type="text/x-handlebars" data-template-name="say-hello">
+      Hello, <b>{{view.name}}</b>
+    </script>
+  </head>
+</html>
+
+var view = Ember.View.create({
+  templateName: 'say-hello', //用这个告诉view用哪个template
+  name: "Bob"
+});
+
+加去document或移走
+view.append();
+view.remove();
+
+#!!view处理event
+定义个template
+{{#view App.ClickableView}}
+This is a clickable area!
+{{/view}}
+
+App.ClickableView = Ember.View.extend({
+  click: function(evt) {
+    alert("ClickableView was clicked!");
+  }
+});
+
+想跟controller互动
+App.ClickableView = Ember.View.extend({
+  click: function(evt) {
+    this.get('controller').send('turnItUp', 11); //注意这个send
+  }
+});
+
+App.PlaybackController = Ember.ObjectController.extend({
+  actions: {
+    turnItUp: function(level){ //这里注册好事件
+      //Do your thing
+    }
+  }
+});
+
+假如controller没有定，就会冒泡到route
+App.PlaybackRoute = Ember.Route.extend({
+  actions: {
+    turnItUp: function(level){
+      //This won't be called if it's defined on App.PlaybackController
+    }
+  }
+});
+
+handlebars支持的event事件
+Touch events:
+
+touchStart
+touchMove
+touchEnd
+touchCancel
+Keyboard events
+
+keyDown
+keyUp
+keyPress
+Mouse events
+
+mouseDown
+mouseUp
+contextMenu
+click
+doubleClick
+mouseMove
+focusIn
+focusOut
+mouseEnter
+mouseLeave
+Form events:
+
+submit
+change
+focusIn
+focusOut
+input
+HTML5 drag and drop events:
+
+dragStart
+drag
+dragEnter
+dragLeave
+drop
+dragEnd
+
+#把view插进template的方法
+
+子view插进parentView
+// Define parent view
+App.UserView = Ember.View.extend({
+  templateName: 'user',
+
+  firstName: "Albert",
+  lastName: "Hofmann"
+});
+
+// Define child view
+App.InfoView = Ember.View.extend({
+  templateName: 'info',
+
+  posts: 25,
+  hobbies: "Riding bicycles"
+});
+
+<script type="text/x-handlebars" data-template-name="user">
+  User: {{view.firstName}} {{view.lastName}}
+  {{view App.InfoView}}
+</script>
+
+<script type="text/x-handlebars" data-template-name="info">
+  <b>Posts:</b> {{view.posts}}
+  <br>
+  <b>Hobbies:</b> {{view.hobbies}}
+</script>
+于是我们创建UserView就会有
+User: Albert Hofmann
+<div>
+  <b>Posts:</b> 25
+  <br>
+  <b>Hobbies:</b> Riding bicycles
+</div>
+
+另一种View套View
+App.UserView = Ember.View.extend({
+  templateName: 'user',
+
+  firstName: "Albert",
+  lastName: "Hofmann",
+
+  infoView: Ember.View.extend({
+    templateName: 'info',
+
+    posts: 25,
+    hobbies: "Riding bicycles"
+  })
+});
+
+User: {{view.firstName}} {{view.lastName}}
+{{view view.infoView}}
+
+#给view设layout
+layout也是个template,就是有个yield拿来放view
+
+<script type="text/x-handlebars" data-template-name="my_layout">
+  <div class="content-wrapper">
+    {{yield}}
+  </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="my_content">
+  Hello, <b>{{view.name}}</b>!
+</script>
+
+AViewWithLayout = Ember.View.extend({
+  name: 'Teddy',
+  layoutName: 'my_layout',
+  templateName: 'my_content'
+});
+
+结果
+<div class="content-wrapper">
+  Hello, <b>Teddy</b>!
+</div>
+
+#自定义View的元素
+App.MyView = Ember.View.extend({
+  tagName: 'span' //使用那种tag
+});
+
+App.MyView = Ember.View.extend({
+  classNames: ['my-view'] //指定class
+});
+
+App.MyView = Ember.View.extend({
+  classNameBindings: ['isUrgent'], //class绑定属性
+  isUrgent: true
+});
+
+App.MyView = Ember.View.extend({
+  classNameBindings: ['isUrgent:urgent'], //设定哪个属性绑定boolean
+  isUrgent: true
+});
+
+App.MyView = Ember.View.extend({
+  tagName: 'a',
+  attributeBindings: ['href'],
+  href: "http://emberjs.com"
+});
+
+也可以直接在handlebars里面复写view的参数
+{{view App.InfoView tagName="span"}}
+{{view App.InfoView id="info-view"}}
+
+ember的select_helper
+{{view Ember.Select viewName="select"
+                    contentBinding="people"
+                    optionLabelPath="model.fullName"
+                    optionValuePath="model.id"
+                    prompt="Pick a person:"
+                    selectionBinding="selectedPerson"}}
+
+#!!Enumable
+ember的enumable会帮很多集合都添加一些helper方法
+
+例如forEach
+var array = [1,2,3];
+
+array.forEach(function(item) {
+  console.log(item, this.indexOf(item));
+}, array)
+
+想转回Array调用toArray()就行
+还有一些常用map filter的方法
+
+
+--------
+rails g ember:install --channel=canary //拿最新的canary build
+
+rails generate ember:install --tag=v1.0.0-beta.2 --ember-data //把ember-data的版本都下进vendor
+
+---------
+handlebars拿到集合的index
+
+{{#each array}}
+    {{@index}}: {{this}}
+{{/each}}
+
+object的话
+{{#each object}}
+    {{@key}}: {{this}}
+{{/each}} 

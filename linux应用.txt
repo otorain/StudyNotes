@@ -8,6 +8,11 @@ ls -l
 mkdir deploy
 chmod  0700 deploy
 chown -R deploy:deploy deploy
+gpasswd -a deploy root
+
+vim /etc/sudoers
+root    ALL=(ALL:ALL) ALL
+deploy  ALL=(ALL:ALL) ALL
 
 chsh 修改默认shell
 
@@ -169,6 +174,8 @@ wget -mkp -e robots=off -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1
 -p, --page-requisites, 把正確顯示網頁所需的圖片, 樣式表什麼的一併保存下來.
 -e robots=off, 忽略robots.txt, 有些網站使用robots.txt禁止抓取.
 -U "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6" , --user-agent, 把自己爲裝成瀏覽器. 有些網站只允許瀏覽器訪問.
+load cookie
+wget --load-cookies cookies.txt
 
 其他参数
 -c 断点续传
@@ -326,3 +333,32 @@ done;
 ---------------------
 du找出占用率高最前１０个文件夹
 du --max-depth=1 | sort -k1 -nr
+
+
+------------------
+format 硬盘
+linode挂载好硬盘后
+fdisk -l |grep '^Disk' 查看一下
+fdisk /dev/xdvc
+
+m - print help
+p - print the partition table
+n - create a new partition
+d - delete a partition
+q - quit without saving changes
+w - write the new partition table and exit
+
+创建partition后
+sudo mkfs.ext4 /dev/sda2
+
+-----------------
+改网卡配置
+/etc/network/interfaces
+
+auto eth0 eth0:0
+iface eth0:0 inet static
+address 192.168.181.81
+netmask 255.255.128.0
+
+修改完后
+sudo /etc/init.d/networking restart

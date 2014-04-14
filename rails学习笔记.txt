@@ -2635,7 +2635,7 @@ windows 的 Git 請安裝 msysgit。如果是透過 RailsInstaller 安裝，則�
   $ c:\RailsInstaller\Git\bin\ssh-keygen.exe -t rsa -C "your_email@example.org"
 接著用文字編輯器打開 “%homedrive%%homepath%.ssh\id_rsa.pub” 的內容，即是你的 Public SSH key。
 
-#中文乱码问题#
+#git中文乱码问题#
 git config core.quotepath false
 #Ubuntu#
 $  sudo apt-get install -y git-core
@@ -3002,6 +3002,14 @@ url 'http://www.littlecms.com/lcms-1.19.tar.gz'
 with
 url 'http://www.imagemagick.org/download/delegates/lcms-1.19.tar.gz' #(or an URL where you could find “lcms-1.19.tar.gz”)
 sudo gem install rmagick
+
+apt-get install imagemagick后
+找不到Magick-config的话, 用
+sudo apt-get install libmagick9-dev libmagicwand-dev
+
+Can't' find MagickWand.h.的话
+sudo apt-get install libmagickwand-dev
+
 
 --------------------------------------
 表单form_tag check_box_tag

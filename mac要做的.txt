@@ -311,3 +311,17 @@ mac arp防御
 在终端输入sudo arp -s 192.168.7.254 00:11:11:11:11:11
 其中 192.168.7.254 填你所在网络环境的网关 IP，后面的 12 个数字是网关的 MAC 地址，这样普通的伪装网关攻击就没什么用了。这条命令是永久性的，你可以输入arp -d 192.168.7.254来删除前面绑定的网关 MAC 地址。
 
+--------------
+禁用虚拟内存
+Mac OS X有个很奇葩的设定，它把内存分为了可用内存、联动内存、活跃内存和非活跃内存，详情可以看《通过活动监视器了解系统内存使用情况》。
+其中，当你退出一个软件时，它所占用的部分内存并不会释放，而是标记为非活跃，下次运行它时可以转换成活跃内存。但如果你不幸把可用内存用完了，Mac OS X并不会使用这些非活跃内存，而是直接使用虚拟内存（交换文件），这会严重影响运行效率。
+如下命令可以查看当前虚拟内存的大小：
+sysctl vm.swapusage
+如果你的内存有4GB以上，大部分情况下都已经够用了，于是就可以禁用虚拟内存，以获得更快的速度：
+sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.dynamic_pager.plist
+禁用以后，磁盘上还保留着这些交换文件，它们已经没用了，也可以删掉：
+sudo rm /private/var/vm/swapfile*
+如果要重新启用虚拟内存的话，可以执行这条命令：
+sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.dynamic_pager.plist
+如果要临时释放不活跃内存，可以执行这条命令（需要安装Xcode，执行时会比较卡）：
+purge
