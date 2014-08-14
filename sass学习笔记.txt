@@ -203,3 +203,14 @@ div:hover {
 
 ##css3transform
 scale(2,2), x,y同时扩展2倍
+
+
+#box-shadow
+box-shadow: inset? && [ <offset-x> <offset-y> <blur-radius>? <spread-radius>? <color>?  ]  
+
+inset关键字，将外部投影转变为内部阴影。
+第1个长度offset-x代表阴影x轴向的偏移，正值向右，负值向左。
+第2个长度offset-y代表阴影y轴向的偏移，正值向下，负值向上。
+第3个长度blur-radius代表阴影模糊半径，不允许负值。
+第4个长度spread-radius代表阴影扩展半径，正值放大，负值缩小。
+color代表投影的颜色。

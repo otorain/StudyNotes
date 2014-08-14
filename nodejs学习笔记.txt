@@ -4,6 +4,21 @@ curl http://npmjs.org/install.sh | sudo sh
 npm install -g n
 通过n 获取的 Node.js 实例都会安装在 /usr/local/n/versions/ 目录中
 
+npm设代理
+npm config set strict-ssl false 
+npm config set registry "http://registry.npmjs.org/"
+npm config set proxy=http://代理服务器ip:代理服务器端口
+清理代理
+npm config delete http-proxy
+npm config delete https-proxy
+单独任务设置代理
+npm install -g pomelo --proxy http://代理服务器ip:代理服务器端口
+
+装cnpm
+npm install -g cnpm --registry=http://r.cnpmjs.org
+
+或者不安装也行
+alias cnpm="npm --registry=http://registry.cnpmjs.org --cache=$HOME/.npm/.cache/cnpm"
 
 #语言
 1.创建一个http服务器
@@ -168,8 +183,8 @@ process.nextTick(callback)为事件循环设置一个任务，再下次事件循
 
 3.util核心函数库，弥补原来javascript的功能太少
 a)util.inherits(constructor,superConstructor) 方便提供继承
-varutil = require('util');
-functionBase() { 
+var util = require('util');
+function Base() { 
  this.name = 'base'; 
  this.base = 1991;
  this.sayHello = function() {

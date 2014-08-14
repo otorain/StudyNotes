@@ -729,6 +729,12 @@ log
   <div>{{body}}</div>
   {{partial "author"}}
 </script>
+
+指定partial的index!
+{{#with xxx}}
+  {{parital "xxx"}}
+{{/with}}
+
 partial模板名称必须要_开头
 The partial's' data-template-name must start with an underscore (e.g. data-template-name='_author' or data-template-name='foo/_bar')
 
@@ -1364,8 +1370,7 @@ App.LineItem = DS.Model.extend({
 models是只定义了属性还有关系，他们没有数据的，数据叫records
 
 record是一个加载了数据的model实例, record有两个唯一认证,model_type和id
-
-his.store.find('person', 1); // => { id: 1, name: 'steve-buscemi' }
+this.store.find('person', 2); // => { id: 1, name: 'steve-buscemi' }
 
 adapter, 是一个将server数据适配到ember model的东西
 
@@ -2033,3 +2038,56 @@ object的话
 {{#each object}}
     {{@key}}: {{this}}
 {{/each}} 
+---------
+clear unloadAll(App.Post)
+清除所有model
+
+
+--------
+  浏览器调试Model
+App.__container__.lookup('store:main').find('org');
+App.Org.store.find('org').then( function(result) { console.log(result.getEach('name').toString());  } );
+
+----------
+要更新其他view的template可以用这样的trick然后调用jquery去打到目的
+Handlebars.registerHelper("title", function(fn) {
+    $('title').html(fn(this));
+    return "";
+});
+
+
+然后在任何template里可以这样去更新title了
+{{#title}}{{your title name}}{{/title}}
+
+----------
+!!controller 里访问route　instance 和 router instance
+controller里
+this.get("target")是route
+route 里 this.router就是router!!
+
+----------
+用router.generate生成url
+router.generate("tag.eaid", 1)
+
+----------
+路由嵌套时候拿到上层的model id
+
+例如这种
+@resource "tag", {path: "/tags/:tag_id"}, ()->
+  @route("page", {path: "/page/:page"})
+
+page里要拿到tag_id的话要
+this.modelFor("tag").id
+
+--------------
+controller render template 之后的hook
+
+after_action
+
+改写 didInsertElement这个方法
+在这个方法里 this.$()就可以拿到这个view的jquery object
+
+
+
+
+

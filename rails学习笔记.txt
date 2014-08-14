@@ -1834,8 +1834,8 @@ content_tag("select", options, :multiple => true)
 <% end -%>
  # => <div class="strong">Hello world!</div>
 
-c）其他輔助方法
-escape_javascript
+c）其他輔助方法 !!
+escape_javascript 输出javascript可用的字符串, 简写可以用 alias j() 
 debug
 number_to_currency
 
@@ -2733,6 +2733,14 @@ git cherry-pick 321d76f #只合併特定其中一個 commit。如果要合併多
 git revert 版本号 #令本地代码还原至xx版本号
 
 #如果要換 branch 的暫時的解決方式是使用 git stash 會先把修改暫存下來，要回復則執行 git stash pop
+这个在要保存不commit的修改时，还要切换分支合并分支什么的特别有用
+git stash: 备份当前的工作区的内容，从最近的一次提交中读取相关内容，让工作区保证和上次提交的内容一致。同时，将当前的工作区内容保存到Git栈中。
+git stash pop: 从Git栈中读取最近一次保存的内容，恢复工作区的相关内容。由于可能存在多个Stash的内容，所以用栈来管理，pop会从最近的一个stash中读取内容并恢复。
+git stash list: 显示Git栈内的所有备份，可以利用这个列表来决定从那个地方恢复。
+git stash clear: 清空Git栈。此时使用gitg等图形化工具会发现，原来stash的哪些节点都消失了。
+
+git stash list 找到你要保存的栈时，例如是1
+git stash apply stash@{1} 就是拿回1
 
 9）远程库操作 remote Repo
 首先要認識的是 Protocol，像在 Github 上面看自己的 Project，會有分 Public Clone URL 跟 Your Clone URL，這有什麼差?
@@ -3397,6 +3405,10 @@ end
 4) turbo_links pjax
 可以通过turbolinks.js来做全站的ajax...
 
+关闭turbolinks
+Remove the gem 'turbolinks' line from your Gemfile.
+Remove the //= require turbolinks from your app/assets/javascripts/application.js.
+Remove the two "data-turbolinks-track" => true hash key/value pairs from your app/views/layouts/application.html.erb.
 5)russian doll caching 缓存策略
 旧的cache view的方式，设好memcache或redis后
 <% cache ["v1", Catagory] do%>
@@ -3706,7 +3718,7 @@ config.assets.cache_store = :memory_store, { :size => 32.megabytes  }
 如果使用了rabl, 那么在view里面也可以继续用data-attributes去传文件给javascript
 <div data-article="<%= render template: "article/articles.json.rabl" %>" ></div>
 
-##
+/##
 rake 遇到no matches found: import_fontello[tmp/fontello-08685a8c.zip] 的时候时，是zsh错误
 用 noglob rake 可以过
 
@@ -3729,4 +3741,85 @@ end
 注意：  blogs中有一个字段是comments_count(整型)，当添加和删除comment的时候，会在它所对应的blogs中的comments_count加或减1，这里需要注意的是destroy和destroy_all,可以触发blogs中的comments_count加或减1，而delete和delete_all则不会。 
 
 此外如果要指定特定的名字的话呢，就 :counter_cache => :pinlun_counts,这样在blogs中就使用pinlun_counts,而不是comments_count. 
-             
+
+
+
+-------------------------
+缓存技巧, 
+#304 Not Modified 客户端缓存
+用fresh_when
+class ArticlesController
+  def show
+    @article = Article.find(params[:id])
+    fresh_when :last_modified => @article.updated_at.utc, :etag => @article
+  end
+end
+下次用户再访问的时候，会对比request header里面的If-Modified-Since和If-None-Match，如果相符合，就直接返回304，而不再生成response body。
+
+但是这样会遇到一个问题，假设我们的网站导航有用户信息，一个用户在未登陆专题访问了一下，然后登陆以后再访问，会发现页面上显示的还是未登陆状态。或者在app访问一篇文章，做了一下收藏，下次再进入这篇文章，还是显示未收藏状态。解决这个问题的方法很简单，将用户相关的变量也加入到etag的计算里面：
+
+fresh_when :etag => [@article.cache_key, current_user.id]
+fresh_when :etag => [@article.cache_key, current_user_favorited]
+要注意nginx gzip的坑
+
+Rails4的cache_action, 利用cache_path可以把一些类似分页的请求参数也缓存起来
+class CategoriesController
+  caches_action :index, :expires_in => 1.day, :cache_path => proc {"categories/index/#{params[:page].to_i}"}
+end
+
+例如对非登陆用户，缓存首页
+class HomeController
+  caches_action :index, :expires_in => 3.hours, :if => proc {!user_signed_in?}
+end
+
+1. 静态资源的缓存
+rails Assets Pipeline，一定要开启！
+# config/environments/production.rb
+config.assets.digest = true
+
+
+2、在 Nginx 里面将 CSS, JS, Image 的缓存有效期设成 max；
+location ~ (/assets|/favicon.ico|/*.txt) {
+  access_log        off;
+  expires           max;
+  gzip_static on;
+}
+/
+
+
+-------
+rails c tips
+上一个命名的结果
+
+执行完一条命令
+
+Article.first
+但其实你还想对这个返回的 article 对象继续操作。再执行一遍？
+
+article = Article.first
+NO！ 你可以用
+
+article = _
+"_"保存着上一条命令返回的结果
+
+发起HttpRequest
+
+>>app.get “/“
+=> 200
+>>app.get “/orders”
+=> 302
+
+Rails沙盒
+
+console可以已沙盒的模式运行，
+
+rails console --sandbox
+>>User.destroy(1)
+>>exit
+(0.1ms) rollback transaction
+
+
+#Rails4.1部署坑
+用capistrano2部署时找不到manifest的话，去shared/assets下面创建个空文件 manifest.yml就行
+
+记得有secrets.yml的话，rake secrets一下把key更新上去

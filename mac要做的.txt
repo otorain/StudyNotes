@@ -325,3 +325,21 @@ sudo rm /private/var/vm/swapfile*
 sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.dynamic_pager.plist
 如果要临时释放不活跃内存，可以执行这条命令（需要安装Xcode，执行时会比较卡）：
 purge
+
+-------------
+brew 安装mongodb
+brew update
+brew install mongodb
+#openssl
+brew install mongodb --with-openssl
+
+#upgrade
+brew update
+brew upgrade mongodb
+
+
+-------------
+brew 更新遇到问题时，reset一下git
+cd $(brew --prefix)
+git reset --hard HEAD
+brew update

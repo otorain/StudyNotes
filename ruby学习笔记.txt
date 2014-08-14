@@ -704,6 +704,8 @@ format("%.2f",f).to_f #6.33
 ::string.strip 类似java里面trim的用法，消除两边空格
 
 ::字符串链接，可以用+ <<和concat()，用后两个效率更高
+和concat
+#justfor show
 
 ::字符串变字符数组 用str.split(//s)是英文，UTF8中文用 str.split(//u)
 
@@ -1207,9 +1209,11 @@ produces:
 Page title is The Pragmatic Bookshelf
 <p>
 Copyright &copy; 1999&#8211;2010 The Pragmatic Programmers, LLC.
-</p>
+</p>  
 Second hyperlink is
 <a href="http://pragprog.com/community">Connect!</a>
+
+"
 
 --------------------------------------------------------------------------------------
 第十一章 线程 纤维 (threads fibers)
