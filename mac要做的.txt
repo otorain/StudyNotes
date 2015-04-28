@@ -343,3 +343,25 @@ brew 更新遇到问题时，reset一下git
 cd $(brew --prefix)
 git reset --hard HEAD
 brew update
+
+--------------
+brew安装postgresql
+
+brew install postgresql
+说明详尽, 还包括怎么装 gem
+brew info postgresql
+
+easiest way info
+http://postgresapp.com/
+
+装好Postgres.app后，gem install失败时
+Latest Postgres App has pg_config located in the app bundler in 
+Applications/Postgres.app/Contents/Versions/9.3/bin/pg_config, so the new ge command 
+
+所以是
+gem install pg -- --with-pg-config=/Applications/Postgres.app/Contents/Versions/9.3/bin/pg_config
+
+-------------
+youtube-dl
+
+

@@ -3822,7 +3822,7 @@ rails console --sandbox
 #Rails4.1部署坑
 用capistrano2部署时找不到manifest的话，去shared/assets下面创建个空文件 manifest.yml就行
 
-记得有secrets.yml的话，rake secrets一下把key更新上去
+记得有secrets.yml的话，rake secret一下把key更新上去
 
 
 #Rails 4.2 新增后端任务框架 - Active Job
@@ -3917,3 +3917,229 @@ Conversation.archived # => Relation for all archived Conversations
  
 Conversation.statuses # => { "active" => 0, "archived" => 1  }
 
+#第二中描述
+class Bug < ActiveRecord::Base
+  # Relevant schema change looks like this:
+  #
+  # create_table :bugs do |t|
+  #   t.column :status, :integer, default: 0 # defaults to the first value (i.e. :new)
+  # end
+  enum status: [ :new, :assigned, :in_progress, :resolved, :rejected, :reopened ]
+  belongs_to :assignee, class_name: 'Developer'
+  def assignee=(developer)
+    if developer && self.new?
+      self.status = :assigned
+    else
+      self.status = :new
+    end
+
+    super
+  end
+end
+
+Bug.resolved           # => a scope to find all resolved bugs
+
+bug.resolved?          # => check if bug has the status :resolved
+
+bug.resolved!          # => update! the bug with status set to :resolved
+
+bug.status             # => 4.2变成String a symbol describing the bug's status
+
+bug.status = :resolved # => set the bug's status to :resolved
+
+#注意的是用数组方式去注明status的话，以后不能修改他们的位置状态，因为会导致原有数据错乱，可以用下面的方法声明时指定他们的数据
+class Bug < ActiveRecord::Base
+  enum status: {
+    new: 0,
+    in_progress: 2,
+    resolved: 3,
+    rejected: 4,
+    reopened: 5
+  }
+end
+
+#不同状态不要用相同的symbol
+class Bug < ActiveRecord::Base
+  enum status: [ :new, ... ]
+  enum code_review_status: [ :new, ... ] # WARNING: Don't do this!
+end
+
+#用scope查询的时候，要传真实的enum值，可以用enum常量去做
+class Bug < ActiveRecord::Base
+  scope :open, -> {
+    where('status <> ? OR status <> ?', STATUS[:resolved], STATUS[:rejected])
+  }
+end
+
+##4.2
+#class Conversation < ActiveRecord::Base
+#  enum status: [ :active, :archived  ]
+#  end
+#
+#  # conversation.update! status: 0
+#  conversation.active!
+#  conversation.active? # => true
+#  conversation.status  # => "active"
+#
+#  # conversation.update! status: 1
+#  conversation.archived!
+#  conversation.archived? # => true
+#  conversation.status    # => "archived"
+#
+#  # conversation.update! status: 1
+#  conversation.status = "archived"
+#
+#  # conversation.update! status: nil
+#  conversation.status = nil
+#  conversation.status.nil? # => true
+#  conversation.status      # => nil
+#
+
+
+-------------------
+Rails 使用postgresql
+#in Gemfile: 
+gem 'pg'
+
+#in databases.yml:
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+#Array数据类型
+# db/migrate/20140207133952_create_books.rb
+create_table :books do |t|
+  t.string 'title'
+  t.string 'tags', array: true
+  t.integer 'ratings', array: true
+end
+add_index :books, :tags, using: 'gin'
+add_index :books, :ratings, using: 'gin'
+ 
+# app/models/book.rb
+class Book < ActiveRecord::Base
+end
+ 
+# Usage
+Book.create title: "Brave New World",
+            tags: ["fantasy", "fiction"],
+            ratings: [4, 5]
+ 
+## Books for a single tag
+Book.where("'fantasy' = ANY (tags)")
+## Books for multiple tags
+Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
+## Books with 3 or more ratings
+Book.where("array_length(ratings, 1) >= 3")
+
+#另一例子
+create_table :categories do |t|
+  t.string :name, null: false
+end
+
+create_table :products do |t|
+  t.string :name, null: false
+  t.references :category, null: false
+  t.text :tags, array: true, default: []
+end
+
+然后开个db玩玩
+$ rails db
+> insert into products(name, category_id, tags) values('T-Shirt', 3, '{clothing, summer}');
+> insert into products(name, category_id, tags) values('Sweater', 3, ARRAY['clothing', 'winter']);
+> select * from products;
+1  |  T-Shirt  |  3  | {clothing, summer}
+2  |  Sweater  |  3  | {clothing, winter}
+
+原生语句用 {xxx, xxx}, 或ARRAY['xxxx', 'xxxx']都可以
+
+#Hstore 类似hash类型
+# db/migrate/20131009135255_create_profiles.rb
+ActiveRecord::Schema.define do
+  create_table :profiles do |t|
+    t.hstore 'settings'
+  end
+end
+ 
+# app/models/profile.rb
+class Profile < ActiveRecord::Base
+end
+ 
+# Usage
+Profile.create(settings: { "color" => "blue", "resolution" => "800x600" })
+ 
+profile = Profile.first
+profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
+ 
+profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
+profile.save!
+ 
+## you need to call _will_change! if you are editing the store in place
+profile.settings["color"] = "green"
+profile.settings_will_change!
+profile.save!
+
+#JSON类型
+# db/migrate/20131220144913_create_events.rb
+create_table :events do |t|
+  t.json 'payload'
+end
+ 
+# app/models/event.rb
+class Event < ActiveRecord::Base
+end
+ 
+# Usage
+Event.create(payload: { kind: "user_renamed", change: ["jack", "john"]})
+ 
+event = Event.first
+event.payload # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
+ 
+## Query based on JSON document
+Event.where("payload->'kind' = ?", "user_renamed")
+
+
+#Range 类型, 类似Ruby类型
+
+# db/migrate/20130923065404_create_events.rb
+create_table :events do |t|
+  t.daterange 'duration'
+end
+ 
+# app/models/event.rb
+class Event < ActiveRecord::Base
+end
+# Usage
+Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+ 
+event = Event.first
+event.duration # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
+ 
+## All Events on a given date
+Event.where("duration @> ?::date", Date.new(2014, 2, 12))
+ 
+## Working with range bounds
+event = Event.
+  select("lower(duration) AS starts_at").
+  select("upper(duration) AS ends_at").first
+ 
+event.starts_at # => Tue, 11 Feb 2014
+event.ends_at # => Thu, 13 Feb 2014
+
+#UUID 类型, 类似monogo
+
+要用uuid的插件
+# db/migrate/20131220144913_create_devices.rb
+enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
+create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
+  t.string :kind
+end
+ 
+# app/models/device.rb
+class Device < ActiveRecord::Base
+end
+ 
+# Usage
+device = Device.create
+device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
