@@ -1,5 +1,5 @@
 核心概念
-Tenplate 用handlebar做的模板，展示数据用
+Template 用handlebar做的模板，展示数据用
 Router URl入口，管理该url时显示哪些model数据和template
 Component 自定义html tag,里面可包括其他js代码或handlebar template, 通常是script标签
 Model 顾名思义
