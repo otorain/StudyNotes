@@ -364,4 +364,55 @@ gem install pg -- --with-pg-config=/Applications/Postgres.app/Contents/Versions/
 -------------
 youtube-dl
 
+------------
+环境变量的修改和查看
+echo $SHELL #查看shell
 
+如果是bash sh 或者zsh,那么你可以把你要添加的环境变量添加到你主目录下面的.profile或者.bash_profile，如果存在没有关系添加进去即可，如果没有生成一个。
+
+/etc/profile #全局的配置，不建议修改这个
+/etc/bashrc or /etc/zshrc #一般在这里添加系统环境变量，每个用户都能用
+~/.bash_profile #单个用户环境变量
+
+添加一个新变量到$PATH
+export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+
+
+---------------
+Mac原生支持NTFS
+
+如果您确实需要开启OS X原生NTFS支持，开启方法如下：
+
+首先你需要卸载原先安装的第三方写nfts的插件，比如Paragon NTFS或者Tuxera NTFS，彻底卸载干净。
+
+然后在终端输入
+
+sudo nano /etc/fstab
+
+输入密码
+
+在里面添加一行：
+
+LABEL=myharddrive none ntfs rw
+
+（注意要举一反三，上面的是例子，我的盘子叫myharddrive，你的分区会有另外的名字，将它填到等号后面，但none ntfs rw要保留）。
+
+不过，如果你的盘子有uuid，你也可以填
+
+UUID=029F9ED4-7157-49E2-9B55-852E490C8BD9 none ntfs rw
+
+（怎样查uuid？打开disk utility，点你的盘子，再点上面信息，在弹出来的窗口里面即有）。
+
+两种方法只选其一即可。不过，并不是所有盘子都有uuid的，所以还是LABEL方便，又不用特意去查。
+
+如果你有好几个ntfs盘，就陆续添加下去。给你看看我编辑的：
+
+LABEL=formac none ntfs rw
+
+UUID=029F9ED4-7157-49E2-9B55-852E490C8BD9 none ntfs rw
+
+LABEL=Maxtor none ntfs rw
+
+然后按ctrl+x,问你是否保存，点一下y，再按一下回车。
+
+重启电脑。

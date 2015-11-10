@@ -12,6 +12,22 @@ vm-xxx 虚拟内存，默认no
 启动：(1)先启动redis-server ==> redis-server /etc/redis/redis.conf
  (2)启动redis-cli -a password
 
+生产环境开机自启动
+在redis安装包里utils的文件夹里，有redis_init_script
+$ cp redis_init_script /etc/init.d/redisd
+在启动脚本里头加上chkconfig的级别
+
+#!/bin/sh  
+# chkconfig:   2345 90 10  
+# description:  Redis is a persistent key-value database  
+
+#设置为开机自启动服务器  
+chkconfig redisd on  
+#打开服务  
+service redisd start  
+#关闭服务  
+service redisd stop  
+
 使用:
 
 （1）简单设入值
