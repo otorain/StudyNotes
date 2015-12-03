@@ -302,9 +302,16 @@ alias -g GG='| grep'
 以后可以 ll GG desktop 这样相当于 ll | grep desktop
 
 ------------------------------
-find --exec用法
+nd --exec用法
 find . -type d -exec du {} \;
 {}代表查到的文件，交给du去算算搜到用了的容量， 最后记得\;
+
+举一反三，删除掉vim的swp文件
+find . -name ".*.swp" -exec rm {} \;
+
+查找隐藏文件
+find . -name ".?*"
+
 
 ------------------------------
 sort 
@@ -362,3 +369,32 @@ netmask 255.255.128.0
 
 修改完后
 sudo /etc/init.d/networking restart
+
+----------------
+修改系统限制文件句柄数，解决多线程时Rails日志读取太多的问题
+先用ulimit命令查看硬链接限制和软限制
+ulimit -Hn
+ulimit -Sn
+
+vi /etc/sysctl.conf 增加一行
+fs.file-max = 70000
+
+# vi /etc/security/limits.conf 增加两行
+nginx       soft    nofile   10000
+nginx       hard    nofile  30000
+
+# sysctl -p
+重启下sysctl
+
+# vi /usr/local/nginx/conf/nginx.conf 修改nginx.conf
+# set open fd limit to 30000
+worker_rlimit_nofile 30000;
+
+重启下nginx
+# /usr/local/nginx/sbin/nginx -t && /usr/local/nginx/sbin/nginx -s reload
+# su - nginx
+$ ulimit -Hn
+$ ulimit -Sn
+
+
+

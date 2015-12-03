@@ -355,6 +355,14 @@ arr.inspect #=>可以转换成字符串输出,输出成"[1,2,3]"
 前端操作：放入unshift 取出shift 读取first
 后端操作：放入push 取出pop 读取last
 
+::Array Batch的用法，数组太大的时候，使用each_slice分批处理
+(1..10).each_slice(3) {|a| p a}
+# outputs below
+# [1, 2, 3]
+# [4, 5, 6]
+# [7, 8, 9]
+# [10]
+
 （2）hashes (associat array关联数组，maps，字典)
 使用{}
 ：：一般情况下的hashes定义
@@ -1299,6 +1307,9 @@ ruby -r debug debug-options programfile program-arguments
 
 --------------------------------------------------------------------------------------
 第十三章 Ruby Seting
+mac系统下检查xcode command line工具
+$ xcode-select --install
+
 ::解决了gem安装慢的问题（或根本安装不了）
 先上github下载gem-fast
 然后进入解压gem-fast的目录运行 gem install gem-fast.gemspec
@@ -1316,6 +1327,12 @@ $ gem install builder --version '< 1' #指定安装version
 $ gem build anagram.gemspec #从文件建立gem
 
 #gem install from github
+
+gem install native gem时候，可以用cppfile 属性强制指定cpp include file 位置
+gem install nokogiri -v '1.6.6.2' -- --with-cppflags=-I/usr/local/opt/libxml2/include
+gem install nokogiri -- --use-system-libraries=true --with-xml2-include=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/include/libxml2
+或者先处理一下依赖的问题
+bundle config build.nokogiri --use-system-libraries
 
 #删除原有gem source gem source -r http://rubygems.org/ gem source -r http://production.s3.rubygems.org/   #增加新source源 gem source -a http://gems.rubyonrails.org
 ::使用gem,假设已经下了builder,直接在程序中 require 'builder'就好
@@ -2068,6 +2085,8 @@ gem open rails
 
 2)gem install qwandry
 qw rails
+
+3)bundle open rails
 
 -------------------------
 CharlockHolmes 检测编码的gem

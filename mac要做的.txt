@@ -1,6 +1,10 @@
 安装
 homebrew rvm xcode(with comandline tool) paragon-ntfs macvim cloc(代码统计工具)
 ---------------------------------------
+检查xcode有没有安装command line
+命令行运行: 
+xcode-select --install
+---------------------------------------
 复制粘贴快捷键
 cmd+option+v = 剪切
 Command+拖拽=剪切
