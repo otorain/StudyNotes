@@ -37,3 +37,11 @@ exportDOCKER_HOST=tcp://192.168.59.103：2375。此语句的作用是在系统�
 $ sudo docker pull ubuntu
 这样就会拉下ubuntu:lastest
 
+$ sudo docker pull ubuntu: 14.04
+下载指定版本的ubuntu
+
+默认是从registry.hub.docker.com这个源下载的，也可以手动指定从哪个源下
+$ sudo docker pull dl.dockerpool.com:5000/ ubuntu
+
+下载完就可以用镜像创建一个容器了, 例如用ubuntu的/bin/bash
+$ sudo docker run -t -i ubuntu /bin/bash
