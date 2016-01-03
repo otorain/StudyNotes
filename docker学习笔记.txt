@@ -1,0 +1,39 @@
+##安装
+ubuntu里安装最新版本的方法
+$ sudo apt-get install apt-transport-https
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+$ sudo bash -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+$ sudo apt-get update
+$ sudo apt-get install -y lxc-docker
+在安装了Docker官方软件源后，若需要更新Docker软件版本，只需要执行以下命令即可升级：
+$ sudo apt-get update -y lxc-docker
+
+官方安装例子:
+Get the latest Docker package.
+$ wget -qO- https://get.docker.com/ | sh
+
+#Note: If your company is behind a filtering proxy, you may find that the apt-key command fails for the Docker repo during installation. To work around this, add the key directly using the following:
+
+$ wget -qO- https://get.docker.com/gpg | sudo apt-key add -
+
+
+Mac安装
+在Mac OS上使用Docker，同样需要Boot2Docker工具的支持。主要步骤如下：
+1）下载最新官方Docker for OS X Installer。读者可以从https://docs.docker.com/installation/mac/下载。
+2）双击运行安装包。这个过程将安装一个VirtualBox虚拟机、Docker本身以及Boot2Docker管理工具，如图2-4所示。
+3）安装成功后，找到Boot2Docker（Mac系统的Application或“应用”文件夹中）并运行它。现在进行Boot2Docker的初始化：
+$ boot2docker init
+$ boot2docker start
+$ $(boot2docker shellinit)
+读者将看到虚拟机在命令行窗口中启动运行，并显示Docker的启动信息，则说明Docker安装成功。
+当虚拟机初始化完毕后，可以使用boot2docker stop和boot2docker start来控制它。
+注意：如果在命令行中看到如下提示信息：To connect the Docker client to the Docker daemon, please set: export  DOCKER_HOST=tcp://192.168.59.103:2375可以执行提示信息中的语句：
+exportDOCKER_HOST=tcp://192.168.59.103：2375。此语句的作用是在系统环境变量中设置Docker的主机地址。
+
+
+##三大核心概念 镜像(只读，相当于模板，限制了边界), 容器(镜像跑起来的一个实例，里面的操作就在容器里玩), 仓库（简单理解就是github一样存放镜像就好）
+
+##拉镜像
+$ sudo docker pull ubuntu
+这样就会拉下ubuntu:lastest
+

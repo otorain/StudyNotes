@@ -1,0 +1,69 @@
+搜集信息
+./nslookup
+>www.163.com
+> www.163.com
+Server:   114.114.114.114
+Address:  114.114.114.114#53
+
+Non-authoritative answer:
+www.163.com canonical name = www.163.com.lxdns.com.
+www.163.com.lxdns.com canonical name = 163.xdwscache.ourglb0.com.
+Name: 163.xdwscache.ourglb0.com
+Address: 14.215.9.83
+Name: 163.xdwscache.ourglb0.com
+Address: 58.63.233.35
+Name: 163.xdwscache.ourglb0.com
+Address: 125.90.204.122
+Name: 163.xdwscache.ourglb0.com
+Address: 183.61.67.43
+
+#上面会找到挺多的dns指向ip
+
+
+#nmap扫描目标ip的开放端口 sS参数使用隐蔽的tcp扫描 Pn参数是不使用ping命令去扫描目标主机是否存活 -A参数穷举所有端口
+nmap -sS -Pn -A 183.61.68.43
+
+#数据库连接 默认用的是pg 用户名:密码@ip/数据库
+msf>db_connect postgres:toor@127.0.0.1/msfbook
+
+msf>db_status #查看链接状态
+
+#所以有了数据库后，nmap可以加 -oX 可以输出xml
+nmap -sS -Pn -oX xml文件名 xxx.xxx.xxx.xxxx/端口号
+然后
+msf> db_import xxx.xml
+#然后
+msf> db_hosts -c address
+就可以查看到入库的主机列表
+
+
+#nmap的高端用法，可以冒充网络上的空闲ip去做端口探测
+可以用scanner/ip/ipidseq模块,去需找网络上的空闲主机
+msf> use-auxiliary/scanner/ip/ipidseq
+msf auxiliary(ipidseq) > show options #列出当前扫描的选项
+   Name       Current Setting  Required  Description
+   ----       ---------------  --------  -----------
+   INTERFACE                   no        The name of the interface
+   RHOSTS                      yes       The target address range or CIDR identifier
+   RPORT      80               yes       The target port
+   SNAPLEN    65535            yes       The number of bytes to capture
+   THREADS    1                yes       The number of concurrent threads
+   TIMEOUT    500              yes       The reply read timeout in milliseconds
+
+RHOST可以指定扫描的ip段范围(192.168.0.10-192.168.0.100) 
+CIDR(无类型) 192.168.10.4/24
+都好分割 192.168.10.4/24, 192.168.1.1/22
+又或者文件也行
+Thread参数默认是1，可以指定扫描的线程数
+
+所以
+msf> set RHOST 192.168.1.14/24
+msf> set THREADS 10
+msf> run
+例如找到了192.168.1.109  Incremental!
+nmap就可以用sI参数用109的ip去嗅探目标ip
+nmap -PN -sI xxx.xxx.xxx.109 目标ip 
+
+使用空闲主机，我们可以不发送任何的数据包给目标主机就能接收他的信息
+
+

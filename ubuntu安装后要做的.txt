@@ -698,3 +698,7 @@ pinyin
 服务器编码错误
 bash: warning: setlocale: LC_ALL: cannot change locale (en_GB.UTF-8)
 dpkg-reconfigure locales
+
+------------
+14.04 lts 软件源有校验不符导致apt-get update出错 再导致rvm 出错的解决办法
+ubuntu内搜索软件源，在"其他软件"把所有钩去掉

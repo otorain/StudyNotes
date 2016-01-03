@@ -341,6 +341,11 @@ brew install mongodb --with-openssl
 brew update
 brew upgrade mongodb
 
+#brew update出现问题的时候
+cd $(brew --prefix)
+git reset --hard HEAD #或者git reset --hard origin/master
+brew update
+
 
 -------------
 brew 更新遇到问题时，reset一下git
@@ -420,3 +425,23 @@ LABEL=Maxtor none ntfs rw
 然后按ctrl+x,问你是否保存，点一下y，再按一下回车。
 
 重启电脑。
+
+------------
+苹果开始弃用openssl
+A CA file has been bootstrapped using certificates from the system
+keychain. To add additional certificates, place .pem files in
+/usr/local/etc/openssl/certs
+
+and run
+/usr/local/opt/openssl/bin/c_rehash
+
+This formula is keg-only, which means it was not symlinked into /usr/local.
+
+Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries
+
+Generally there are no consequences of this for you. If you build your
+own software and it requires this formula, you'll need to add to your
+build variables:
+
+LDFLAGS:  -L/usr/local/opt/openssl/lib
+CPPFLAGS: -I/usr/local/opt/openssl/include
