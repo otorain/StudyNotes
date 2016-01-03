@@ -1,0 +1,4 @@
+##docker中安装kali
+$ docker pull kalilinux/kali-linux-docker
+$ docker run -t -i kalilinux/kali-linux-docker /bin/bash
+/bin/bash apt-get install metasploit

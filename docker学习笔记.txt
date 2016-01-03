@@ -45,3 +45,136 @@ $ sudo docker pull dl.dockerpool.com:5000/ ubuntu
 
 下载完就可以用镜像创建一个容器了, 例如用ubuntu的/bin/bash
 $ sudo docker run -t -i ubuntu /bin/bash
+
+查看镜像信息
+$ sudo docker images
+可以看到诸如此类的信息,其中id标明唯一
+REPOSITORY                    TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+kalilinux/kali-linux-docker   latest              e49f6054690a        9 weeks ago         420.3 MB
+
+有时打个tag会挺方便的
+$ sudo docker tag dl.dockerpool.com:5000/ubuntu:latest ubuntu:latest
+就打出了一个ubuntu:latest的标签，他和源的id是一样的
+
+docker inspect id可以产看镜像的详细信息
+
+docker search TERM 可以搜索仓库里的镜像
+例如 $ docker search mysql
+
+删除镜像,
+docker rmi [IMAGE] #iamge可以是tag或者id
+有时容器在跑时删不了可以加-f参数
+
+查看所有容器
+$ docker ps -a
+
+删除容器
+docker rm 容器id
+
+
+导入导出镜像
+导出
+$ sudo docker save -o ubuntu_14.04.tar
+导入
+$ sudo docker load --input ubuntu_14.04.tar
+or
+$ sudo docker load < ubuntu_14.04.tar
+
+
+##!!!容器
+容器相比起镜像，他就是一个轻量实例，有额外的可写入文件层
+
+新建容器
+$ sudo docker create -it ubuntu:lastest
+$ sudo docker ps -a
+create完可以用start启用他, docker run相当于先create再start
+
+当利用docker run来创建并启动容器时，Docker在后台运行的标准操作包括：   
+•检查本地是否存在指定的镜像，不存在就从公有仓库下载。
+•利用镜像创建并启动一个容器。
+•分配一个文件系统，并在只读的镜像层外面挂载一层可读写层。
+•从宿主主机配置的网桥接口中桥接一个虚拟接口到容器中去。
+•从地址池配置一个IP地址给容器。
+•执行用户指定的应用程序。
+•执行完毕后容器被终止。
+
+$ sudo docker run -ti ubuntu /bin/bash #创建了一个可交互的终端
+t选项就是分配一个伪终端pseudo-tty, i参数就是标准输入保持打开
+
+让容器在Daemonized形式后台运行
+$ sudo docker run -d ubuntu /bin/sh -c "loop do sth"
+ce554xxxxxx #执行完后会返回一个唯一id
+
+用logs id查看上面输出的信息
+$ sudo docker logs ce5
+
+终止容器 docker stop
+例如上面的ce5容器
+$ docker stop ce5
+
+$ docker -a -q #可以列出所有stop状态的容器
+$ docker start ce5 #又再打开
+$ docker restart ce5 #先stop再start
+
+进入容器
+如果进入daemon状态的容器，大家都看不到他的信息，这时可以用docker attach或docker exec或nsenter等，都和linux差不多
+$ docker attach id或容器names
+$ docker exec -ti 容器id /bin/bash
+
+导入导出容器
+导出容器
+$ docker export 容器id > xxx.tar
+
+导出的文件可以使用docker import导入，成为镜像
+$ cat xxx.tar | sudo docker import -test/ubuntu:v1.0
+
+!!容器数据管理,主要有两种方式:
+·数据卷
+·数据卷容器
+
+数据卷
+数据卷是一个可供容器使用的特殊目录，它绕过文件系统，可以提供很多有用的特性：
+•数据卷可以在容器之间共享和重用。
+•对数据卷的修改会立马生效。
+•对数据卷的更新，不会影响镜像。
+•卷会一直存在，直到没有容器使用。数据卷的使用，类似于Linux下对目录或文件进行mount操作。
+
+docker run时，使用-v标记可以创建一个数据卷，多个v可以创建多个
+使用training/webapp镜像创建一个容器
+$ sudo docker run -d -P --name web -v /webapp training/webapp python app.py
+-P是允许外部访问容器暴露的端口
+
+用-v可以挂在本地已有的目录到容器里做数据卷, 这个是加载主机/src/webapp到容器的/opt/webapp目录
+$ sudo docker run -d -P --name web -v /src/webapp:/opt/webapp training/webapp python app.py
+
+目录不存在是docker会自动创建, 默认挂载权限是rw,可以变只读ro
+$ sudo docker run -d -P --name web -v /src/webapp:/opt/webapp:ro training/webapp python app.py
+
+-v也可以挂载单个文件做数据卷
+$ sudo docker run --rm -it -v ~/.bash_history:/.bash_history ubuntu /bin/bash #这样就可以记录下容器的bash历史了
+
+
+数据卷容器
+用途是让容器之间共享一些持续更新的数据, 数据卷容器本质就是一个普通容器，专门用它提供数据卷供其他容器挂载使用
+
+例: 创建一个数据卷容器dbdata并挂一个数据卷到/dbdata
+$ sudo docker run -it -v /dbdata --name dbdata ubuntu
+然后可以用--volumes-from挂载dbdata容器里面的数据卷
+$ sudo docker run -it --volumes-from dbdata --name db1 ubuntu
+$ sudo docker run -it --volumes-from dbdata --name db2 ubuntu
+此时容器db1和db2都挂载同一个数据卷到/dbdata目录，三个容器任何一方在该目录写入，其他容器都可以看到
+还可以从已经挂载过的容器创建新的容器，使用同一个数据卷容器
+$ sudo docker run -d --name db3 --volumes-from db1 training/postgres
+
+利用数据卷容器迁移数据
+备份上面例子的dbdata
+$ sudo docker run -volumes-from dbdata -v $(pwd):/backup --name worker ubuntu tar cvf /backup/backup.tar /dbdata
+首先利用ubuntu镜像创建了一个容器worker。使用--volumes-from dbdata参数来让worker容器挂载dbdata容器的数据卷；使用-v $(pwd):/backup参数来挂载本地的当前目录到worker容器的/backup目录。worker容器启动后，使用了tar cvf/backup/backup.tar/dbdata命令来将/dbdata下内容备份为容器内的/backup/backup.tar，即宿主主机当前目录下的backup.tar。
+
+恢复数据到一个容器
+首先创建一个带有数据卷的容器dbdata2：
+$ sudo docker run -v /dbdata --name dbdata2 ubuntu /bin/bash
+然后创建另一个新的容器，挂载dbdata2的容器，并使用untar解压备份文件到所挂载的容器卷中即可：
+$ sudo docker run --volumes-from dbdata2 -v $(pwd):/backup busybox tar xvf/backup/backup.tar
+
+
