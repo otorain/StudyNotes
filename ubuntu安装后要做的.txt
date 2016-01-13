@@ -40,6 +40,8 @@ tmux shell窗口管理好用工具 #解决不读取bashrc的问题，cat ~/.bash
 
 12.04 也开始装gnome-shell，配合compiz 非常好用
 
+14.04 sudo apt-get install gnome-session-fallback
+
 ----------------------------------------
 unity 安装屏幕保护程序
 sudo apt-get remove gnome-screensaver

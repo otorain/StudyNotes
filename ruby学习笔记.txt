@@ -1166,6 +1166,11 @@ FileUtils.mv("from","to")
 .rm()
 .mv()
 
+(2.2)File append, 添加到file
+File.open("xxxx", "a") do |file|
+  file << "xxx"
+end
+
 ::删除 File.delete("filename")
 
 ::目录Dir，和File一样，open时直接使用区块就不用创建对象不用close

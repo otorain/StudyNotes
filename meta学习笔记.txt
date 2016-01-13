@@ -1,3 +1,15 @@
+ubuntu安装，官网下载metasploit_framework就好
+#发现网页端破解非常简单,跑的是ruby的网页系统，/opt/metasploit-framework/apps/pro下跟着routes去修改Licence实例就好
+#重启网页instance
+cd /opt/metasploit/
+sudo bash ctlscript.sh restart
+
+##NexPose安装后
+安装完毕后:
+cd /opt/rapid7/nexpose/nsc 然后执行./nsc
+https://ip:3780 登录页面出来后就ok了。
+
+
 搜集信息
 ./nslookup
 >www.163.com

@@ -45,6 +45,13 @@ drop database if exists school; //如果存在SCHOOL则删除
 7、将表中记录清空：
 delete from 表名;
 
+7.1 删除操作
+delete from命令格式：delete from 表名 where 表达式
+
+例如，删除表 MyClass中编号为1 的记录：
+mysql> delete from MyClass where id=1;
+
+
 8、显示表中的记录：
 select * from 表名;
 
@@ -52,6 +59,13 @@ select * from 表名;
 \s #查看整个mysql状态
 show character set; #查看所有字符标示，在create table后面指定字符集有用
 show variables; #显示配置文件设置,可以用 show variables like xxx 去筛选
+show完可以set
+set wait_timeout=10;
+set global wait_timeout=10;
+
+show variables，show session variables，show global variables
+其中：show variables等同于show session variables
+
 insert into draws(english,chinese) values('a','b'), ('b','c')
 show engines; #查看所有支持的引擎
 
