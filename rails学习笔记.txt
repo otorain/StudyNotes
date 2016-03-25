@@ -4606,4 +4606,7 @@ humanize 现在会去掉前面的底线。 (Commit)
 
 新增一篇指南，关于常量的载入与重载。
 
-
+-------------
+  group出时间日期统计
+@clicks = Click.select("count(*) as c, date_part('year', created_at) as y, date_part('month', created_at) as m").group("y", "m").where({:user_id => current_user.id})
+This will give you a hash in the format [year, month] => count. 

@@ -3,6 +3,7 @@ ubuntu安装，官网下载metasploit_framework就好
 #重启网页instance
 cd /opt/metasploit/
 sudo bash ctlscript.sh restart
+sudo msfconsole
 
 ##NexPose安装后
 安装完毕后:
@@ -51,7 +52,7 @@ msf> db_hosts -c address
 
 #nmap的高端用法，可以冒充网络上的空闲ip去做端口探测
 可以用scanner/ip/ipidseq模块,去需找网络上的空闲主机
-msf> use-auxiliary/scanner/ip/ipidseq
+msf> use auxiliary/scanner/ip/ipidseq
 msf auxiliary(ipidseq) > show options #列出当前扫描的选项
    Name       Current Setting  Required  Description
    ----       ---------------  --------  -----------

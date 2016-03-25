@@ -224,3 +224,44 @@ jas   null
 交叉联接（cross join）执行两个表的笛卡尔积（就是把表A和表B的数据进行一个N*M的组合）。也就是说，它匹配一个表与另一个表中的每一行；我们不能通过使用ON子句在交叉联接指定谓词，虽然我们可以使用WHERE子句来实现相同的结果，这是交叉联接基本上是作为一个内部联接了。
 
 没啥用
+
+like查询
+一、SQL的模式匹配允许你使用“_”匹配任何单个字符，而“%”匹配任意数目字符（包括零个字符）。在 MySQL中，SQL的模式缺省是忽略大小写的。下面显示一些例子。注意在你使用SQL模式时，你不能使用=或！=；而使用LIKE或NOT LIKE比较操作符。
+
+SELECT 字段 FROM 表 WHERE 某字段 Like 条件
+
+其中关于条件，SQL提供了四种匹配模式：
+
+1，%：表示任意个或多个字符。可匹配任意类型和长度的字符。
+
+比如 SELECT * FROM ［user］ WHERE u_name LIKE ‘%三%’
+
+将会把u_name为“张三”，“张猫三”、“三脚猫”，“唐三藏”等等有“三”的记录全找出来。
+
+另外，如果需要找出u_name中既有“三”又有“猫”的记录，请使用and条件
+
+SELECT * FROM ［user］ WHERE u_name LIKE ‘%三%’ AND u_name LIKE ‘%猫%’
+
+若使用 SELECT * FROM ［user］ WHERE u_name LIKE ‘%三%猫%’
+
+虽然能搜索出“三脚猫”，但不能搜索出符合条件的“张猫三”。
+
+2，_：表示任意单个字符。匹配单个任意字符，它常用来限制表达式的字符长度语句：（可以代表一个中文字符）
+
+比如 SELECT * FROM ［user］ WHERE u_name LIKE ‘_三_’
+
+只找出“唐三藏”这样u_name为三个字且中间一个字是“三”的;
+
+再比如 SELECT * FROM ［user］ WHERE u_name LIKE ‘三__’;
+
+只找出“三脚猫”这样name为三个字且第一个字是“三”的;
+----------
+update 修改
+mysql> update MyClass set name='Mary' where id=1;
+
+例子1，单表的MySQL UPDATE语句：
+UPDATE [LOW_PRIORITY] [IGNORE] tbl_name SET col_name1=expr1 [, col_name2=expr2 ...] [WHERE where_definition] [ORDER BY ...] [LIMIT row_count];
+
+例子2，多表的UPDATE语句：
+UPDATE [LOW_PRIORITY] [IGNORE] table_references SET col_name1=expr1 [, col_name2=expr2 ...] [WHERE where_definition];
+

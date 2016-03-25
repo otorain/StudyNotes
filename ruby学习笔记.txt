@@ -497,6 +497,10 @@ puts testYield(10) {|num| num*num>=100} #如果传进来的数相乘大于等于
 
 :: 函数中判断 调用函数时是否有使用block
 使用block_given?
+方法里有yield时，没给block的话，会抛异常，可以用block_given?去判断的话就不会了
+def f1
+  yield if block_given?
+end
 
 ::block可以存储起来用变量去使用，在方法参数使用&符号的参数，代表接收一个block
 class ProcExample
