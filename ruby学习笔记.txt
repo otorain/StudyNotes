@@ -2501,3 +2501,11 @@ def my_method
     Right
   HERE
 end
+
+
+-----------
+ruby数字进位,例如要格式化 1输出 001, 12输出012
+irb(main):003:0> sprintf '%02d', 1
+=> "01"
+irb(main):004:0> sprintf '%02d', 10
+=> "10"

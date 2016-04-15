@@ -6,7 +6,11 @@ Then to load mongodb now:
   launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
 Or, if you don't want/need launchctl, you can just run:
   mongod
+or
+  launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist
 做完前两步，可以用mongo加入
+
+brew services restart mongodb
 
 #查看当前db
 db

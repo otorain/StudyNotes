@@ -63,8 +63,8 @@ npm install -g supervisor
 
 3.node.js的异步I/O在完成时都会发送一个事件去事件队列，事件是由EventEmitter提供
 //event.js
-varEventEmitter = require('events').EventEmitter;
-varevent = new EventEmitter();
+var EventEmitter = require('events').EventEmitter;
+var event = new EventEmitter();
 event.on('some_event',function() { console.log('some_event occured.');
 });
 setTimeout(function(){ event.emit('some_event');
@@ -84,7 +84,7 @@ exports.sayHello= function() { console.log('Hello ' + name);
 };
 
 //getmodule.js
-varmyModule = require('./module');
+var myModule = require('./module');
 myModule.setName('BYVoid');
 myModule.sayHello();
 
@@ -170,6 +170,44 @@ scripts指定了运行脚本命令的npm命令行缩写，比如start指定了�
 插入号（caret）+指定版本：比如ˆ1.2.2，表示安装1.x.x的最新版本（不低于1.2.2），但是不安装2.x.x，也就是说安装时不改变大版本号。需要注意的是，如果大版本号为0，则插入号的行为与波浪号相同，这是因为此时处于开发阶段，即使是次要版本号变动，也可能带来程序的不兼容。
 latest：安装最新版本。
 
+peerDependencies字段，主要用来供插件指定其所需要的主软件的版本。
+{
+  "name": "chai-as-promised",
+  "peerDependencies": {
+    "chai": "1.x"
+  }
+}
+
+bin项用来指定各个内部命令对应的可执行文件的位置。
+"bin": {
+  "someTool": "./bin/someTool.js"
+}
+上面代码指定，someTool 命令对应的可执行文件为 bin 子目录下的 someTool.js。Npm会寻找这个文件，在node_modules/.bin/目录下建立符号链接。在上面的例子中，someTool.js会建立符号链接npm_modules/.bin/someTool。由于node_modules/.bin/目录会在运行时加入系统的PATH变量，因此在运行npm时，就可以不带路径，直接通过命令来调用这些脚本。
+因此，像下面这样的写法可以采用简写。
+
+scripts: {  
+  start: './node_modules/someTool/someTool.js build'
+}
+// 简写为
+scripts: {  
+  start: 'someTool build'
+}
+
+
+config字段用于向环境变量输出值。
+下面是一个package.json文件。
+{
+  "name" : "foo",
+  "config" : { "port" : "8080"  },
+  "scripts" : { "start" : "node server.js"  }
+}
+然后，在server.js脚本就可以引用config字段的值。
+http.createServer(...).listen(process.env.npm_package_config_port)
+用户可以改变这个值。 
+$ npm config set foo:port 80
+
+
+
 
 
 5.node.js 包管理 npm
@@ -223,10 +261,14 @@ node--debug-brk[=port] script.js //这种方式在服务器启动时暂停脚本
 客户端终端
 nodedebug 127.0.0.1:5858
 
+
+//这是最好的调试方法
 c)使用node-inspector去调试
 npminstall -g node-inspector
 然后启动一个debug服务器
-node--debug-bkr debug.js
+node-inspector &
+
+node --debug-bkr debug.js
 node-inspector
 然后在浏览器用http://localhost:8080/debug?port=5858
 
@@ -292,7 +334,7 @@ a)error事件
 fs模块提供了异步和同步的两个版本,例如读取文件内容的函数有异步的 fs.readFile() 和同步的 fs.readFileSync()
 
 a)fs.readFile(filename,[encoding],[callback(err,data)])
-varfs = require('fs');
+var fs = require('fs');
 fs.readFile('content.txt',function(err, data) {  //最好指定编码"utf-8"
  if (err) {
    console.error(err); 
@@ -579,3 +621,13 @@ res.redirect 是重定向功能,通过它会向用户返回一个 303 See Other 
 crypto 是 Node.js 的一个核心模块,功能是加密并生成各种散列,使用它之前首先要声明 var crypto = require('crypto')。我们代码中使用它计算了密码的散列值。
 
 #node.js高级
+
+npm install -g cloc //统计代码行数的工具
+
+chalk //命令行颜色输出
+
+pm2 //生产环境守护启动
+
+Commander.js //命令行工具生产
+
+iron-node //最后的调试工具
