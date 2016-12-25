@@ -302,7 +302,7 @@ alias -g GG='| grep'
 以后可以 ll GG desktop 这样相当于 ll | grep desktop
 
 ------------------------------
-nd --exec用法
+find --exec用法
 find . -type d -exec du {} \;
 {}代表查到的文件，交给du去算算搜到用了的容量， 最后记得\;
 
@@ -397,4 +397,12 @@ $ ulimit -Hn
 $ ulimit -Sn
 
 
-
+#linux几种快速清空文件内容的方法
+几种快速清空文件内容的方法：
+$ : > filename #其中的 : 是一个占位符, 不产生任何输出.
+$ > filename
+$ echo “” > filename
+$ echo /dev/null > filename
+$ echo > filename
+$ cat /dev/null > filename
+$ cp /dev/null filename 

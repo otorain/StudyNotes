@@ -33,6 +33,9 @@ brew install openssl
 brew link openssl
 这样装ruby的时候就不用再with-openssl-dir了
 
+有时bundle install时候找不到native lib的时候，也可以brew upgrade libxml2（之类），然后在brew link一下
+
+
 brew --cache 可以看到cache文件下载到哪里
 /Library/Cache/HOMEBREW, 把自己下载的文件移动到这里就可以快速安装
 

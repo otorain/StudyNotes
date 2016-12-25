@@ -358,6 +358,12 @@ rails非常注重单数复数形式，这个文件记录了各种转换规则，
   $ > "Business".singularize  => "Busines" # 轉單數 单数
   $ > "moose".pluralize => "mooses"  # 轉複數
 
+有时修改了不符合rails复数的表名会有问题，找不到表，可以修改
+config/infections.rb
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.irregular 'campus', 'campuses'
+end
+
 (3)mime_types 定义各种request数据文件类型
 
 (4)secret_token 定义cookie的一些加密信息
@@ -1290,6 +1296,16 @@ end
   e1.groups
   e2.groups
 
+比较复杂的多对多关联 写campus_net时候的user has_many temp_relation, temp_relation里receiver和requestor_id都是对应User
+
+User model
+has_many :temp_relations, foreign_key: :receiver_id
+has_many :request_friends, through: :temp_relations, foreign_key: :requestor_id, source: :requestor
+
+TempRelation model
+belongs_to :receiver, foreign_key: :receiver_id, class_name: "User"
+belongs_to :requestor, foreign_key: :requestor_id, class_name: "User"
+
 #多态关联!!!#
 有些model会被多个不同model has_many，例如picture 可以同时属于 employee 和 product，那么就可以使用polymorphic多态
 写法
@@ -1308,26 +1324,26 @@ end
 
 生成表是这样:
 #分别有一个id和一个type,id就是所属的model_id, type就是所属model的类型
-    class CreatePictures < ActiveRecord::Migration
-      def change
-	create_table :pictures do |t|
-	  t.string  :name
-	  t.integer :imageable_id
-	  t.string  :imageable_type
-	  t.timestamps
-	end
-      end
+class CreatePictures < ActiveRecord::Migration
+  def change
+    create_table :pictures do |t|
+      t.string  :name
+      t.integer :imageable_id
+      t.string  :imageable_type
+      t.timestamps
     end
+  end
+end
 #可以使用 t.refernces 更方便
-    class CreatePictures < ActiveRecord::Migration
-      def change
-	create_table :pictures do |t|
-	  t.string :name
-	  t.references :imageable, :polymorphic => true
-	  t.timestamps
-	end
-      end
+class CreatePictures < ActiveRecord::Migration
+  def change
+    create_table :pictures do |t|
+      t.string :name
+      t.references :imageable, :polymorphic => true
+      t.timestamps
     end
+  end
+end
 
 # 关联参数和方法 #
 a）class_name
@@ -4610,3 +4626,144 @@ humanize 现在会去掉前面的底线。 (Commit)
   group出时间日期统计
 @clicks = Click.select("count(*) as c, date_part('year', created_at) as y, date_part('month', created_at) as m").group("y", "m").where({:user_id => current_user.id})
 This will give you a hash in the format [year, month] => count. 
+
+---------------
+使用 logrotate 来管理日志文件
+
+28 June 2012
+
+logrotate 是 Linux 下的一个日志管理工具。通过 logrotate 可以很轻松地管理（拆分、压缩等）系统的所有日志文件。 通过配置，我们可以按日志大小或者固定周期来管理日志文件。
+
+安装 logrotate
+
+sudo apt-get install logrotate
+打开配置文件
+
+sudo vim /etc/logrotate.conf
+在文件最后增加以下配置
+
+/PATH/TO/YOUR/LOG/*.log {
+    daily          # 按日，也可以 weekly 按周，monthly 按月
+    dateext        # 增加日期作为后缀
+    missingok      # 如果文件不存在，忽略错误信息
+    rotate 30      # 保留 30 份
+    compress       # 压缩
+    delaycompress  # 延迟压缩，也就是本次拆分的文件在下次执行时再压缩
+    notifempty     # 忽略空白文件
+    copytruncate   # 拆分文件后，清空原有文件，而不是创建一个新文件
+    size 100M
+}
+马上执行 logrotate
+
+sudo /usr/sbin/logrotate -f /etc/logrotate.conf
+查看你的 log 文件所在目录，应该可以得到类似这个的结果
+
+-rw-r--r-- 1 deploy deploy  0K 2012-06-27 23:39 production.log
+-rw-r--r-- 1 deploy deploy  27M 2012-06-27 23:15 production.log-20120627
+
+-------------
+Rails5.0新特性
+
+
+再也不需要用 Grape 来写 API 了！轻量级的 Controller，为富客户端而设计！
+
+你甚至可以直接 rails new backend --api 创建 API only 的 Rails Application！当然依然还有许多有待完善的地方，这是一个新的起点。默认 API mode 只是尝试调用 Model 的 "#to_json" 方法来输出结果。但你可以选择用 Jbuilder, Active Model Serializers, 或者尝试新出的 JSONAPI::Resources 等来实现一些高级特性。
+
+命令行里，以后 rails 一个命令包涵了 rake, rails 里面的所有内容，所以现在 bin/rails db:migrate 代替了 bin/rake db:migrate；
+New Attributes API - 在某些时候如果你需要的话，你可以在 Model 里面定义用 attribute 定义一个新的类型，它会覆盖原有的字段；
+"https://github.com/rails/rails/blob/8c752c7ac739d5a86d4136ab1e9d0142c4041e58/activerecord/lib/active_record/attributes.rb"
+现在跑测试的时候如果有错误会直接输出，无需等待跑完整个用例；
+Model 现在开始继承于 ApplicationRecord ，在 app/models 里面的一个新文件；
+ActiveRecord::Relation#in_batches 更低的内存消耗；
+Active Record 新的 or 查询方式：Post.where(‘id = 1’).or(Post.where(‘id = 2’)) ；
+Active Record callbacks 要中断执行，现在需要用 throw(:abort) 的方式，而不是像以前返回 false。
+同时也带来了 Turbolinks 5
+
+
+
+-------------
+mongoid取代active record 
+Getting Rid of Active Record
+
+Now that you have a mongoid.yml you can't wait to delete that pesky database.yml, right? Do it and you'll start getting ActiveRecord errors all over the place. You don't need ActiveRecord unless you're trying to use Mongo in concert with a SQL database. Here's how you remove ActiveRecord from the most recent version of Rails.
+
+Open myapp/config/application.rb and near the top, remove the line require "rails/all" and add the following lines so you end up with this:
+
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie" # Comment this line for Rails 4.0+
+require "rails/test_unit/railtie"
+# require "sprockets/railtie" # Uncomment this line for Rails 3.1+
+For Rails 3.2+ you'll also need to remove configuration options for Active Record that reside in your environments, ie myapp/config/environments/development.rb. Make sure any references to active_record are commented out like as follows
+
+# Rails 3.2+, < 4.0
+# config.active_record.mass_assignment_sanitizer = :strict
+# config.active_record.auto_explain_threshold_in_seconds = 0.5
+#
+# Rails 4.0+
+# config.active_record.migration_error = :page_load
+For Rails 3.2.3+ but < 4.0 you'll also need to comment out the following line in myapp/config/application.rb.
+
+# config.active_record.whitelist_attributes = true
+You can also generate your new rails app sans Active Record like so.
+
+rails new app_name --skip-active-record
+Sinatra, Padrino, and others
+
+You can create your mongoid.yml and place it anywhere you like. Just be sure that on application initialization you do the following:
+
+Mongoid.load!("path/to/your/mongoid.yml") '
+
+
+---------------------
+默认api action都用json格式的 hack
+官方例子 resource :people, defaults: {format: :json} 不靠谱, 用这个
+
+You can add a before_filter in your controller to set the request format to json:
+
+# app/controllers/foos_controller.rb
+#
+ before_action :set_default_response_format
+#
+ protected
+
+def set_default_response_format
+ request.format = :json
+end
+#   This will set all response format to json. If you want to allow other formats, you could check for the presence of format parameter when setting request.format, for e.g:
+#
+def set_default_response_format
+ request.format = :json unless params[:format]
+end
+
+-----------------------
+修改 resource 下member等里默认的/:id param name 
+
+例如: 需要 show /users/:out_id/fuck
+Rails5 可以
+resouces :users, param: :out_id do
+  member do
+    get :fuck
+  end
+end
+
+Rails 3
+resources :events do
+  member do
+    get 'register/:participant_type_id', :action => 'register'
+  end
+end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+

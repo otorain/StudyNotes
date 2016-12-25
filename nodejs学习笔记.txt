@@ -627,7 +627,99 @@ npm install -g cloc //统计代码行数的工具
 chalk //命令行颜色输出
 
 pm2 //生产环境守护启动
+$ npm install pm2 -g            # Install PM2
+$ pm2 start app.js              # Start, Daemonize and auto restart application
+$ pm2 start app.js -i 4         # Start 4 instances of application in cluster mode
+                                # it will load balance network queries to each app
+$ pm2 start app.js --name="api" # Start application and name it "api"
+$ pm2 start app.js --watch      # Restart application on file change
+$ pm2 start script.sh           # Start bash script
+
+$ pm2 list                      # List all processes started with PM2
+$ pm2 monit                     # Display memory and cpu usage of each app
+$ pm2 show [app-name]           # Show all informations about application
+
+$ pm2 logs                      # Display logs of all apps
+$ pm2 logs [app-name]           # Display logs for a specific app
+$ pm2 flush
+
+$ pm2 stop all                  # Stop all apps
+$ pm2 stop 0                    # Stop process with id 0
+$ pm2 restart all               # Restart all apps
+$ pm2 reload all                # Reload all apps in cluster mode
+$ pm2 gracefulReload all        # Graceful reload all apps in cluster mode
+$ pm2 delete all                # Kill and delete all apps
+$ pm2 delete 0                  # Delete app with id 0
+$ pm2 scale api 10              # Scale app with name api to 10 instances
+$ pm2 reset [app-name]          # Reset number of restart for [app-name]
+
+$ pm2 startup                   # Generate a startup script to respawn PM2 on boot
+$ pm2 save                      # Save current process list
+$ pm2 resurrect                 # Restore previously save processes
+$ pm2 update                    # Save processes, kill PM2 and restore processes
+$ pm2 generate                  # Generate a sample json configuration file
+
+$ pm2 deploy app.json prod setup    # Setup "prod" remote server
+$ pm2 deploy app.json prod          # Update "prod" remote server
+$ pm2 deploy app.json prod revert 2 # Revert "prod" remote server by 2
+
+$ pm2 module:generate [name]    # Generate sample module with name [name]
+$ pm2 install pm2-logrotate     # Install module (here a log rotation system)
+$ pm2 uninstall pm2-logrotate   # Uninstall module
+$ pm2 publish                   # Increment version, git push and npm publish
+Different ways of starting processes
+
+$ pm2 start app.js --watch      # Restart application on file change
+$ pm2 start script.sh           # Start bash script
+$ pm2 start app.js -- -a 34     # Start app and pass option -a 34
+$ pm2 start app.json            # Start all applications declared in app.json
+$ pm2 start my-python-script.py --interpreter python
 
 Commander.js //命令行工具生产
 
 iron-node //最后的调试工具
+
+nodemon文件变化工具
+{
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --exec babel-node -- $npm_package_main"
+  }
+}
+
+代码入库前检查
+husky 可以修改你的git命令，提供hook点在commit/push/merge 前执行检查
+npm run precommit : npm test
+npm run prepush : npm-run-all lint test test:deps
+npm run inspect : jsinspect
+
+plato// JavaScript 源代码可视化, 静态分析和复杂度管理
+
+jsinspect // 找出粘贴复制和代码结构类似的代码
+
+ioredis //使用redis的工具,注意项目配套使用hiredis，性能会更高
+
+还有一些其他需要了解的库
+测试 ava
+mysql bookshelf
+turbolinks
+istanbul //测试覆盖率
+
+
+webstorm遇到v8debug is not define时候，edit Run/Debug Configurations, node parameters上加上"--expose_debug_as=v8debug"
+
+babel和nodemon的结合
+In your package.json file make the following changes:
+
+{
+  "scripts": {
+    "babel-node": "babel-node --presets=es2015 --ignore='foo|bar|baz'"
+  }
+}
+Then call your script with:
+
+$ nodemon --exec npm run babel-node -- path/to/script.js
+
+webstorm里的run设置
+Node Iterpreter: /usr/local/bin/node
+Node Parameters: /user/local/bin/nodemon --exec npm run babel-node -- 
