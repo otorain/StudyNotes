@@ -1,0 +1,29 @@
+mac里面一般用PostgressApp会方便点
+
+用PostgresApp安装postgresql时，遭遇bundle 不能通过pg gem, 找不到pg_conf的话
+
+find /Application/ -name pg_conf, 可以找到以下项目
+
+/Applications/Postgres.app/Contents/Versions/9.6/bin/pg_config
+
+然后 bundle config build.pg --with-pg-config=/Applications/Postgres.app/Contents/Versions/9.6/bin/pg_config
+
+#rails db:create 说权限不足时
+ALTER USER scott CREATEDB; #相当于给用户赋值创建db权限
+
+#已存在db时
+GRANT ALL PRIVILEGES ON  DATABASE database_name to new_user;
+ALTER DATABASE database_name owner to new_user;
+
+\q退出命令台
+
+
+
+
+
+
+
+
+
+
+
