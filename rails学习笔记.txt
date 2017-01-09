@@ -140,7 +140,7 @@ validates_presence_of :name #加入event model里，说明：name 不能为空
 #Layout模板布局初步#
 layout用于所有.erb文件的头部或者尾部，默认的layout在 app/views/layout/application.html.erb
 <%= yield %> 的地方就是会替换成样板的地方
-例如修改title: <title><%= @page_title || 'DEMO FUCK?' %></title>
+例如修改title: <title><%= @page_title || 'DEMO FUCK?' %></title>  /
 然后在controle中的action中加入 @show_title = @event.name
 那该页面的title就会变成event.name 或者 'DEMO FUCK?'的值
 
@@ -1737,7 +1737,7 @@ d)自定义layout
    <ul>
        <li>foo</li>
        <li>bar</li>
-   </ul>
+   </ul> #/
 <% end %>
 然后就会放在#sidebar 里面
 
@@ -4679,7 +4679,9 @@ Active Record 新的 or 查询方式：Post.where(‘id = 1’).or(Post.where(�
 Active Record callbacks 要中断执行，现在需要用 throw(:abort) 的方式，而不是像以前返回 false。
 同时也带来了 Turbolinks 5
 
-
+#!!!!Rails5 model association belongs_to required默认为true
+在initializers/net_framework_defaults.rb下可以修改这个，把他改为false
+Rails.application.config.active_record.belongs_to_required_by_default = false
 
 -------------
 mongoid取代active record 
@@ -4755,8 +4757,18 @@ resources :events do
 end
 end
 
+----------------------
+before_filter 或 before_action里传参数的写法
+before_filter(only: [:index, :show]) { check_login(params[:user_out_id])  } #这样就可以定义不一样的验证参数
 
+---------------------
+用PostgresApp安装postgresql时，遭遇bundle 不能通过pg gem, 找不到pg_conf的话
 
+find /Application/ -name pg_conf, 可以找到以下项目
+
+/Applications/Postgres.app/Contents/Versions/9.6/bin/pg_config
+
+然后 bundle config build.pg --with-pg-config=/Applications/Postgres.app/Contents/Versions/9.6/bin/pg_config
 
 
 
