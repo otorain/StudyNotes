@@ -4032,6 +4032,11 @@ create_table :books do |t|
 end
 add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
+
+
+postgres migration里如果遇到change_column要把字符串转成数组,要这样写
+change_column :movies, :aliases, "varchar[] USING (string_to_array(aliases, ','))", default: []
+
  
 # app/models/book.rb
 class Book < ActiveRecord::Base

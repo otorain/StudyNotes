@@ -1184,7 +1184,7 @@ Dir.open('/usr/bin'){|dir| #dir就是内建block对象，block执行完后变量
   }
 }
 
-#!!把目录下的所有目录名称和文件获取成一个数组
+#!!把目录下的所有目录名称和文件获取成一个数组 ,所有文件名
 Dir.glob("#{Rails.root}/app/*")
 
 （3）网络IO，各种类 UDPSocket TCPSocket等等
