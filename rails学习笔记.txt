@@ -4156,7 +4156,18 @@ enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
 create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
   t.string :kind
 end
- 
+
+#遇到postgres需要change_column 的migration时，要用特别的写法
+  def up
+    change_column :messages, :duration, 'integer USING CAST(duration AS integer)'
+    remove_column :messages, :pic
+  end
+
+  def down
+    change_column :messages, :duration, 'string USING CAST(duration AS string)'
+    add_column :messages, :pic, :string
+  end 
+
 # app/models/device.rb
 class Device < ActiveRecord::Base
 end
