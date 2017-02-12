@@ -1784,7 +1784,7 @@ end
 <ul>
 可以改使用Collection方式，
 <ul>
-    <%= render :partial => "person", :collection => @people %>
+    <li><%= render :partial => "person", :collection => @people %></li>
 <ul>
 如此既可以少掉兩行each程式碼，執行的效能又更好。指定locals之后如上述例子可以直接在partial中直接使用person这个对象
 
@@ -4800,10 +4800,31 @@ ALTER DATABASE database_name owner to new_user;
 
 
 
+--------------------
+console清理session
+rake db:sessions:clear
 
 
+-------------------
+写rails tasks or rake tasks 传参数的方法，还有zsh里遇到传参数不行的问题解决办法
+namespace :tweets do
+  desc 'Send some tweets to a user'
+  task :send, [:username] => [:environment] do |t, args|
+    Tweet.send(args[:username])
+  end
+end
 
+这样在console 跑 rake tweets:send[jas] 就可以把 "jas"传到程序里，
 
+但是在zsh会遇到no matches found的问题,用单引号去跑就好
 
+rake 'tweets:send[jas]'
 
+----------------
+factory_girl 从已存在的model中再生成
+
+rails g factory_girl:model Car name speed:integer
+还可以删除
+
+rails d factory_girl:model Car name speed:integer
 
