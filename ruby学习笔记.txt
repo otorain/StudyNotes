@@ -2509,3 +2509,22 @@ irb(main):003:0> sprintf '%02d', 1
 => "01"
 irb(main):004:0> sprintf '%02d', 10
 => "10"
+
+
+-------------
+有时我们想module不需要include就使用里面的方法时
+例如 WechatService::Wepay.prepay(options)
+经常要用到extend self之类的各种嵌套写法，或者singleton method
+
+其实有个简单的方法 module_function
+module WechatService
+  module Wepay    
+    module_function
+    def prepay(options)
+      #...
+    end
+  end
+end
+
+这样写简单直接，里面的方法直接用module调用就好
+
