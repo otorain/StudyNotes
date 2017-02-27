@@ -35,4 +35,11 @@ select pg_size_pretty(pg_database_size('playboy'));      //以KB，MB，GB的方
 
 
 
+导出数据库
+pg_dump -v -d onwall_server_production -f ~/onwall_server_production.sql -h localhost -U scott -W
+rsync -avP yueren_staging:/home/deploy/onwall_server_production.sql ./
+
+
+导入数据库sql版
+/Applications/Postgres.app/Contents/Versions/9.6/bin/psql -h localhost -d onwall_server_development -U scott -f onwall_server_production.sql -W
 

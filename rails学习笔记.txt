@@ -1375,6 +1375,24 @@ includes方法也可以加上條件：
 Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
 
 #个人总结:join和includes的差别,例如一个user对多个post,join的作用是查post id为5的那个user，并不会取出post,include则会同时取出post#
+# Consider these relations:
+User has_many :posts
+Post belongs_to :user
+
+# Usage of joins/includes & where:
+User.includes(:posts).where(posts: { name: 'BlogPost #1' })
+                  #^            ^
+Post.joins(:user).where(users: { name: 'Little Boby Table' })
+
+!!如果要includes 关联model的某几个column,只能用下面这种hack
+
+belongs_to :user_only_fetch_email, :select => "users.id, users.email", :class_name => "User"
+#just i created one more association but it points to User model only. So you query will be,
+
+Profile.includes(:user_only_fetch_email)
+or
+Profile.includes(:user_only_fetch_email).find(some_profile_ids)
+
 
 # model中要注意的事项!!!#
 1)controller中的cache问题
@@ -4828,3 +4846,6 @@ rails g factory_girl:model Car name speed:integer
 
 rails d factory_girl:model Car name speed:integer
 
+--------
+model before_update 只检测某个attribute 变化
+before_update :check_share_cut, if: :share_cut_changed?
