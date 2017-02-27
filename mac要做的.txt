@@ -54,6 +54,8 @@ brew versions zmq
 checkout 查到需要的版本
 brew unlink zmq
 brew install zmq 就可以了
+
+cd $(brew --prefix python3)就可以打开formular的目录
 ---------------------------------------
 一些mac本来的快捷键
 cmd+~ 同一应用多窗口切换

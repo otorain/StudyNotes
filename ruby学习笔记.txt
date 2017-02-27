@@ -2528,3 +2528,126 @@ end
 
 这样写简单直接，里面的方法直接用module调用就好
 
+-------------
+pg使用jsonb示例
+# db/migrate/*_create_users.rb
+class CreateUsers < ActiveRecord::Migration
+  def change
+    enable_extension 'citext'
+
+    create_table :users do |t|
+      t.text :name, null: false
+      t.citext :username, null: false
+      t.jsonb :preferences, null: false, default: '{}'
+    end
+
+    add_index  :users, :preferences, using: :gin
+  end
+end
+
+# db/migrate/*_add_jsonb_column_to_users.rb
+class AddJsonbColumnToUsers < ActiveRecord::Migration
+  def change
+    add_column :users, :preferences, :jsonb, null: false, default: '{}'
+    add_index  :users, :preferences, using: :gin
+  end
+end
+
+由于用到gin作为jsonb users perferences作index, Rails自己不知道怎么去处理jsonb 的index，所以要手写jsonb sql index
+# config/initializers/active_record.rb
+Rails.application.config.active_record.schema_format = :sql
+
+# db/migrate/*_add_index_to_preferences_path_on_users.rb
+class AddIndexToPreferencesPathOnUsers < ActiveRecord::Migration
+  def change
+    execute <<-SQL
+      CREATE INDEX user_prefs_newsletter_index ON users ((preferences->>'newsletter'))
+    SQL
+  end
+end
+
+然后model可以直接存复杂的json结构作为字段
+user = User.create!({
+  name: 'John Doe',
+  username: 'johndoe',
+  preferences: {
+    twitter: 'johndoe',
+    github: 'johndoe',
+    blog: 'http://example.com'
+  }
+})
+
+# Reload record from database to enforce serialization.
+user.reload
+
+# Show preferences.
+user.preferences
+#=> {"blog"=>"http://example.com", "github"=>"johndoe", "twitter"=>"johndoe"}
+
+# Get blog.
+user.preferences['blog']
+#=> http://example.com
+
+因为json出来的数据，要注意key是hash，想用symbol做key，也可以去这样hack一下
+# app/models/user.rb
+class User < ActiveRecord::Base
+  serialize :preferences, HashSerializer
+end
+
+# app/serializers/hash_serializer.rb
+class HashSerializer
+  def self.dump(hash)
+    hash.to_json
+  end
+
+  def self.load(hash)
+    (hash || {}).with_indifferent_access
+  end
+end
+
+使用store_accessor去把json的key作为model的key
+class User < ActiveRecord::Base
+  serialize :preferences, HashSerializer
+  store_accessor :preferences, :blog, :github, :twitter
+end
+
+#Now you can simply assign these properties.
+
+user = User.new(blog: 'http://example.org', github: 'johndoe')
+
+user.preferences
+#=> {"blog"=>"http://example.org", "github"=>"johndoe"}
+
+user.blog
+#=> http://example.org
+
+user.preferences[:github]
+#=> johndoe
+
+user.preferences['github']
+#=> johndoe
+
+用store_accessor的好处是，json里的key成为了model属性后，可以使用active_record的validates去验证属性
+
+查询!!!
+#Users that opt-in newsletter
+# preferences->newsletter = true
+User.where('preferences @> ?', {newsletter: true}.to_json)
+Users that are interested in Ruby
+
+# preferences->interests = ['ruby', 'javascript', 'python']
+User.where("preferences -> 'interests' ? :language", language: 'ruby')
+This query won’t use the column index; if you need to query arrays, make sure you create an expression index.
+CREATE INDEX preferences_interests_on_users ON users USING GIN ((preferences->'interests'))
+
+Users that set Twitter and Github accounts
+# preferences->twitter AND preferences->github
+User.where('preferences ?& array[:keys]', keys: ['twitter', 'github'])
+
+Users that set Twitter or Github account
+# preferences->twitter OR preferences->github
+User.where('preferences ?| array[:keys]', keys: ['twitter', 'github'])
+
+Users that live in San Francisco/California
+# preferences->state = 'SP' AND preferences->city = 'São Paulo'
+User.where('preferences @> ?', {city: 'San Francisco', state: 'CA'}.to_json)
