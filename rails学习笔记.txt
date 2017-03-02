@@ -4815,6 +4815,21 @@ ALTER DATABASE database_name owner to new_user;
 
 \q退出命令台
 
+生产环境里的pg postgres安装
+sudo apt-get install postgresql-client
+服务器安装
+sudo apt-get install postgresql postgresql-contrib
+获取Installing PostGIS, procedural languages, client interfaces等插件列表
+apt-cache search postgres
+Ruby PG gem安装，需要生成Native Extension
+首先安装相应package
+sudo apt-get install libpq-dev
+找到pg_config所在位置
+sudo find / -name pg_config
+安装pg gem
+gem install pg -- --with-pg-config=/usr/bin/pg_config
+到这里位置，数据库就安装完成了
+
 
 
 
@@ -4849,3 +4864,71 @@ rails d factory_girl:model Car name speed:integer
 --------
 model before_update 只检测某个attribute 变化
 before_update :check_share_cut, if: :share_cut_changed?
+
+
+----------------
+Rails5 skip_before_action 会出现非常蛋疼的问题，有时明明继承父类已经有了这个方法，但是在子类Controller里skip这个before_action, 居然会报 method undefined, 加上raise: false的参数，不让error冒泡出来，到读取到父类方法即可  
+
+ok, this is because now, in Rails 5,
+ActiveSupport::Callbacks#skip_callback now raises an ArgumentError if an unrecognized callback is removed. (https://github.com/rails/rails/blob/v5.0.0.beta1/activesupport/CHANGELOG.md)
+
+You can see the diff for skip_callback here:
+  Rails 4 will ignore the unrecognized callback
+https://github.com/rails/rails/blob/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4/activesupport/lib/active_support/callbacks.rb#L626
+
+Rails 5 will raise the exception https://github.com/rails/rails/blob/6dfab475ca230dfcad7a603483431c8e7a8f908e/activesupport/lib/active_support/callbacks.rb#L634
+
+A solution is then to add the option raise: false, to the skip_before_action :set_user_by_token
+
+I know this is not a pretty solution, but it replicate Rails 4 behavior.
+
+class Operation::SessionsController < Operation::ApplicationController
+ skip_before_action :check_merchant_login, only: [:new, :create], raise: false
+
+
+
+
+
+
+
+
+
+------------
+使用ActiveSupport::Rescuble更好的处理controller里的exception
+
+class Queue::Jobs::Base
+  include ActiveSupport::Rescuable
+
+  rescue_from ActiveRecord::RecordNotFound, :with => :known_error
+
+  protected
+
+    def execute(&block)
+      yield
+    rescue Exception => exception
+      rescue_with_handler(exception) || raise
+    end
+
+    def known_error(exception)
+      @error = exception
+      Rails.logger.error "[JOBS] Exception #{exception.class}: #{exception.message}"
+    end
+
+end
+
+class Queue::Jobs::FetchWhois < Queue::Jobs::Base
+
+  rescue_from Hostname::NotLikeDomain, :with => :known_error
+  # ActiveRecord::RecordNotFound already defined in parent class
+
+  def initialize(hostname_id)
+    @hostname_id = hostname_id
+  end
+
+  def perform
+    execute do
+      hostname = Hostname.find(@hostname_id)
+    end
+  end
+
+end
