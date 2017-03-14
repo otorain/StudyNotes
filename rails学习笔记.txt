@@ -2962,7 +2962,7 @@ export EDITOR='gvim -f'
 另外：如果想让 ActiveSupport::Dependencies.autoload_paths 中的某个目录的子目录只加载一次，可以添加到 config.autoload_once_paths 中。
 
 -----------------------------------
-rails console 技巧from 37signals
+!! rails console 技巧from 37signals
 用app这个对象的一些方便工具
 1）查看路由出来的url
 app.topics_path, app.topics_path(1)
@@ -4932,3 +4932,93 @@ class Queue::Jobs::FetchWhois < Queue::Jobs::Base
   end
 
 end
+
+
+--------------------
+Rails里的事务与锁
+悲观锁: 悲观锁采用相对保守的策略，在资源争用比较严重的时候比较合适。悲观锁在事务开始之前就去尝试获得写权限，事务结束后释放锁；也就是说对于同一行记录，只有一个写事务可以并行；
+乐观锁: 乐观锁是在提交事务之前，大家可以各自修改数据，但是在提交事务的时候，如果发现在这个过程中，数据发生了改变，那么直接拒绝此次事务提交。乐观锁适合在资源争用不激烈的时候使用。
+
+一般对于资源的争用都可以使用悲观锁，比如电商系统中涉及到订单的部分，比如用户支付完成后可能会同时有多条支付成功的通知（做过支付的都知道一般有同步通知和异步通知），比如订单改价的同时可能用户正在支付等等，对于这种会对订单状态发生改变的操作，我们内部一般对这种操作都做加锁处理。
+
+悲观锁:
+查询的时候
+
+# select * from accounts where id=1 for update
+Account.lock.find(1)
+# 注意，这种最终会导致一个行锁
+
+# select * from accounts where name = 'shugo' limit 1 for update
+Account.where("name = 'shugo'").lock(true).first
+# 注意，这里可不是行锁，这里会是一个表锁
+
+注意上面的区别，mysql innodb 里面，对于 "select * from where xxx for update" 的情况，是会锁住整张表的，所以最好不要这样来用。Rails 也提供了一个很方便的方法 with_lock 来锁住单个记录，并且内嵌在事务之中。下面代码中的两段是等价的：
+
+account = Account.find(1)
+Account.transaction do
+	account.lock!
+	account.balance -= 100
+	account.save! 
+end
+
+# 和下面是等价的
+
+account.with_lock do
+	account.balance -= 100
+	account.save!
+end
+
+
+乐观锁的例子:
+悲观锁出错概率小，因为一旦获得锁，其他进程会堵塞，但是也导致速度会受影响，系统开销比较大，不利于并发。乐观锁适用于资源竞争不是那么多的地方，这样系统的开销较小，速度也比较快。
+
+乐观锁本质上算是一个利用多版本管理来控制并发的技术，如果事务提交之后，数据库发现写入进程传入的版本号与目前数据库中的版本号不一致，说明有其他人已经修改过数据，不再允许本事务的提交。所以，使用乐观锁之前需要给数据库增加一列 :lock_version，Rails 会自动识别这一列，像数据库提交数据的时候自动带上。另外，乐观锁是默认打开的，如果要关闭，需要配置一下。
+
+记得使用前添加 lock_version 的字段给相应的表，其他的就是自动的了，如果事务提交失败，那么 Rails 会抛一个 ActiveRecord::StaleObjectError 的异常。
+
+比如，下面这段代码会进行重试：
+
+retry_times = 3
+
+begin
+	@order.with_lock do
+		@order.set_paid!
+	end
+rescue ActiveRecord::StaleObjectError => e
+	retry_times -= 1
+	if retry_times > 0
+		retry
+	else
+		raise e
+	end
+rescue => e
+	raise e
+end
+
+一般，使用锁的时候和事务同时使用，所以 with_lock 是用的比较多的，而且尽量使用行锁而不是表锁。
+另外，也注意异常的处理，需要使用那些会抛异常的方法；
+对于乐观锁，还需要注意如果是前端操作频繁，那么还需要把 lock_version 写入到 form 表单中，否则起不到锁的作用，这里讲的很详细了
+以上~ （发现这篇没什么内容，不过我记得最初大家写的时候也经常犯错，算是一个总结吧）
+
+
+------------------
+5.1 beta
+
+如何将 Rails 5.0 升级 5.1
+
+修改 Gemfile
+
+gem 'rails', '~> 5.1.0.beta' 
+and run bundle update rails
+
+执行 rails app:update 检查 Rails 标准的几个文件的改动
+
+Overwrite config/secrets.yml? (enter "h" for help) [Ynaqdh] 
+遇到这类提示的时候，选 d，查看 Diff，根据情况手工修改你的文件.
+
+  看起来重要的是 config/environments/production.rb 里面新增了一个配置 ：
+
+ Attempt to read encrypted secrets from `config/secrets.yml.enc`.
+ # Requires an encryption key in `ENV["RAILS_MASTER_KEY"]` or
+ # `config/secrets.yml.key`.
+ config.read_encrypted_secrets = true

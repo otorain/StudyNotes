@@ -20,6 +20,17 @@ npm install -g cnpm --registry=http://r.cnpmjs.org
 查看全局安装所有模块
 npm ls -g
 
+yarn完全取代npm!!
+
+修改yarn的源
+yarn config get registry
+# -> https://registry.yarnpkg.com
+可以改成 taobao 的源：
+
+yarn config set registry 'https://registry.npm.taobao.org'
+
+
+
 或者不安装也行
 alias cnpm="npm --registry=http://registry.cnpmjs.org --cache=$HOME/.npm/.cache/cnpm"
 
@@ -44,6 +55,12 @@ sudo npm cache clean -f
 sudo npm install -g n
 sudo n stable
 sudo n 0.12.1
+
+
+有时装完模块npm install -g prettyjson
+但是在脚本里require('prettyjson') 发现cannot find module时， 其实是$NODE_PATH没设置
+所以跑 npm install -g prettyjson加个 --verbose
+再export NODE_PATH=/path/to/node_modules
 
 #语言
 1.创建一个http服务器
