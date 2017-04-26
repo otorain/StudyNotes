@@ -641,3 +641,12 @@ syn cluster sassCssAttributes add=@cssColors
 可以inornmap <leader>a do sth
 :let mapleader= ","
 
+
+
+
+----------------
+tmux mac vim 复制粘贴问题
+brew install macvim --override-system-vim && brew linkapps
+brew install reattach-to-user-namespace
+in .vimrc: set clipboard=unnamed
+in .tmux.conf: set-option -g default-command "reattach-to-user-namespace -l bash"

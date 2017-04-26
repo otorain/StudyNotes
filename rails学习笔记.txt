@@ -179,6 +179,20 @@ Rails.logger.info "something"
 3)清除log
 rake log:clear
 
+自定义 logger和格式
+def booking_log
+  # An existing booking.log is taken or a new log file is created in project directory's log directory with name booking
+  @@booking_log ||= Logger.new("#{Rails.root}log/booking.log")
+  # The format for the log is set as [Timestamp] - Log Type - Log Message
+  @@booking_log.formatter = proc do |log_type, timestamp, app_name, message|  
+    "[#{timestamp.strftime("%Y-%m-%d %H:%M:%S")}] - #{log_type} - #{message}\n" 
+  end
+  @@booking_log
+end
+ 
+booking_log.error("Booking failed")
+ 
+
 #一个简单的rake任务#
 脚本写在 lib/tasks里面，要以.rake后缀名
 
@@ -2748,6 +2762,9 @@ git checkout filename #會從 unstaging 狀態回到最初 repo. 的檔案(檔�
 git config --global core.excludesfile ~/.gitignore
 语法："#"用于注释, !用于取反,/结尾当作文件夹/
 也可以在当前文件指定
+
+有时gitignore了本来已经check进代码库的文件，会ignore失败，要用下面的命令
+git update-index --assume-unchanged public/dist/build.js
 
 8）branch
 git branch <new_branch_name> #建立本地 local branch
