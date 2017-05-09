@@ -5039,3 +5039,31 @@ Overwrite config/secrets.yml? (enter "h" for help) [Ynaqdh]
  # Requires an encryption key in `ENV["RAILS_MASTER_KEY"]` or
  # `config/secrets.yml.key`.
  config.read_encrypted_secrets = true
+
+
+ -------------------
+部署时，遇到明明nvm 安装了 node, 但是execjs找不到node运行环境的问题, 这是因为nvm 是one shell one user, 所以execjs 找不到 "nodejs"
+ln -s $(which node) /usr/bin/nodejs
+
+---------------
+在model里用jbuilder partial
+class Reminder < ActiveRecord::Base
+
+  # Returns a builder
+  def fcm_format
+    context = ActionController::Base.new.view_context
+    JbuilderTemplate.new(context) do |json|
+      json.partial! 'api/v1/gigs/summary', gig: remindable
+    end
+  end
+
+  # Calls builder.target! to render the json
+  def as_json
+    fcm_format.target!
+  end
+
+  # Calls builder.attributes to return a hash representation of the json
+  def as_hash
+    fcm_format.attributes!
+  end
+end

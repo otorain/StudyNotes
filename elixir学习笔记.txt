@@ -1,0 +1,870 @@
+elixir版本管理工具kiex
+安装
+curl -sSL https://raw.githubusercontent.com/taylor/kiex/master/install | bash -s
+
+把下面的行添加到.bashrc, .zshrc 或 .cshrc中:
+
+test -s "$HOME/.kiex/scripts/kiex" && source "$HOME/.kiex/scripts/kiex"
+
+显示已安装版本
+kiex list
+
+显示已知的版本
+kiex list releases
+
+显示当前分支
+kiex list branches
+
+安装一个已知的版本或分支
+kiex install 0.12.5 或者 kiex install stable
+
+使用特定的Elixir版本
+kiex install 0.12.5
+
+为指定的版本创建一个别名
+kiex alias 0.12.5 0.12
+
+在子SHELL中使用特定的版本, 退出子SHELL后回到默认版本
+kiex shell 0.12.5
+
+设置默认版本
+kiex default 0.12.5
+
+卸载所有通过kiex安装的elixir版本和所有kiex组件
+kiex implode
+
+升级kiex
+kiex selfupdate
+
+2-基本类型
+
+本章介绍Elixir的基本类型。Elixir主要的基本类型有： 整型（integer），浮点（float），布尔（boolean），原子（atom，又称symbol符号）， 字符串（string），列表（list）和元组（tuple）等。
+
+它们在iex中显示如下：
+
+iex> 1          # integer
+iex> 0x1F       # integer
+iex> 1.0        # float
+iex> true       # boolean
+iex> :atom      # atom / symbol
+iex> "elixir"   # string
+iex> [1, 2, 3]  # list
+iex> {1, 2, 3}  # tuple
+2.1-基本算数运算
+
+打开iex，输入以下表达式：
+
+iex> 1 + 2
+3
+iex> 5 * 5
+25
+iex> 10 / 2
+5.0
+10 / 2返回了一个浮点型的5.0而非整型的5，这是预期的。
+在Elixir中，/运算符总是返回浮点型数值。
+如果你想进行整型除法，或者求余数，可以使用函数div和rem。 （rem的意思是division remainder，余数）：
+
+iex> div(10, 2)
+5
+iex> div 10, 2
+5
+iex> rem 10, 3
+1
+在写函数参数时，括号是可选的。（ruby程序员会心一笑）
+Elixir支持用 捷径（shortcut） 书写二进制、八进制、十六进制整数。如：
+
+iex> 0b1010
+10
+iex> 0o777
+511
+iex> 0x1F
+31
+揉揉眼，八进制是0o，数字0 + 小写o。
+输入浮点型数字需要一个小数点，且在其后至少有一位数字。 Elixir支持使用e来表示指数：
+
+iex> 1.0
+1.0
+iex> 1.0e-10
+1.0e-10
+Elixir中浮点型都是64位双精度。
+
+2.2-布尔
+
+Elixir使用true和false两个布尔值。
+
+iex> true
+true
+iex> true == false
+false
+Elixir提供了许多用以判断类型的函数，如is_boolean/1函数可以用来检查参数是不是布尔型。
+
+在Elixir中，函数通过名称和参数个数（又称元数，arity）来识别。 如is_boolean/1表示名为is_boolean，接受一个参数的函数； 而is_boolean/2表示与其同名、但接受2个参数的不同函数。（只是打个比方，这样的is_boolean实际上不存在）
+另外，<函数名>/<元数>这样的表述是为了在讲述函数时方便，在实际程序中如果调用函数， 是不用注明/1或/2的。
+iex> is_boolean(true)
+true
+iex> is_boolean(1)
+false
+类似的函数还有is_integer/1，is_float/1，is_number/1， 分别测试参数是否是整型、浮点型或者两者其一。
+
+可以在交互式命令行中使用h命令来打印函数或运算符的帮助信息。 如h is_boolean/1或h ==/2。 注意此处提及某个函数时，不但要给出名称，还要加上元数/<arity>。
+2.3-原子
+
+原子（atom）是一种常量，名字就是它的值。 有些语言中称其为 符号（symbol）（如ruby）：
+
+iex> :hello
+:hello
+iex> :hello == :world
+false
+布尔值true和false实际上就是原子：
+
+iex> true == :true
+true
+iex> is_atom(false)
+true
+2.4-字符串
+
+在Elixir中，字符串以 双括号 包裹，采用UTF-8编码：
+
+iex> "hellö"
+"hellö"
+Elixir支持字符串插值（和ruby一样使用#{ ... }）：
+
+iex> "hellö #{:world}"
+"hellö world"
+字符串可以直接包含换行符，或者其转义字符：
+
+iex> "hello
+...> world"
+"hello\nworld"
+iex> "hello\nworld"
+"hello\nworld"
+你可以使用IO模块（module）里的IO.puts/1方法打印字符串：
+
+iex> IO.puts "hello\nworld"
+hello
+world
+:ok
+函数IO.puts/1打印完字符串后，返回原子值:ok。
+
+字符串在Elixir内部被表示为二进制数值（binaries），也就是一连串的字节（bytes）：
+
+iex> is_binary("hellö")
+true
+注意，二进制数值（binary）是Elixir内部的存储结构之一。 字符串、列表等类型在语言内部就表示为二进制数值，因此它们也可以被专门操作二进制数值的函数修改。
+你可以查看字符串包含的字节数量：
+
+iex> byte_size("hellö")
+6
+为啥是6？不是5个字符么？注意里面有一个非ASCII字符ö，在UTF-8下被编码为2个字节。
+我们可以使用专门的函数来返回字符串中的字符数量：
+
+iex> String.length("hellö")
+5
+String模块中提供了 很多符合Unicode标准的函数来操作字符串。如：
+
+iex> String.upcase("hellö")
+"HELLÖ"
+记住，单引号和双引号包裹的字符串在Elixir中是两种不同的数据类型：
+
+iex> 'hellö' == "hellö"
+false
+我们将在之后关于“二进制、字符串与字符列表”章节中详细讲述它们的区别。
+
+2.5-匿名函数
+
+在Elixir中，使用关键字fn和end来界定函数。如：
+
+iex> add = fn a, b -> a + b end
+#Function<12.71889879/2 in :erl_eval.expr/5>
+iex> is_function(add)
+true
+iex> is_function(add, 2)
+true
+iex> is_function(add, 1)
+false
+iex> add.(1, 2)
+3
+在Elixir中，函数是 一等公民。你可以将函数作为参数传递给其他函数，就像整型和浮点型一样。 在上面的例子中，我们向函数is_function/1传递了由变量add表示的匿名函数， 结果返回true。 我们还可以调用函数is_function/2来判断该参数函数的元数（参数个数）。
+
+注意，在调用一个匿名函数时，在变量名和写参数的括号之间要有个 点号(.)。
+
+匿名函数是闭包，意味着它们可以保留其定义的作用域（scope）内的其它变量值：
+
+iex> add_two = fn a -> add.(a, 2) end
+#Function<6.71889879/1 in :erl_eval.expr/5>
+iex> add_two.(2)
+4
+这个例子定义的匿名函数add_two它内部使用了之前在同一个iex内定义好的add变量。 但要注意，在匿名函数内修改了所引用的外部变量的值，并不实际反映到该变量上：
+
+iex> x = 42
+42
+iex> (fn -> x = 0 end).()
+0
+iex> x
+42
+这个例子中匿名函数把引用了外部变量x，并修改它的值为0。这时函数执行后，外部的x没有被影响。
+
+2.6-（链式）列表
+
+Elixir使用方括号标识列表。列表可以包含任意类型的值：
+
+iex> [1, 2, true, 3]
+[1, 2, true, 3]
+iex> length [1, 2, 3]
+3
+两个列表可以使用++/2拼接，使用--/2做“减法”：
+
+iex> [1, 2, 3] ++ [4, 5, 6]
+[1, 2, 3, 4, 5, 6]
+iex> [1, true, 2, false, 3, true] -- [true, false]
+[1, 2, 3, true]
+本教程将多次涉及列表头（head）和尾（tail）的概念。 列表的头指的是第一个元素，而尾指的是除了第一个元素以外，其它元素组成的列表。 它们分别可以用函数hd/1和tl/1从原列表中取出：
+
+iex> list = [1,2,3]
+iex> hd(list)
+1
+iex> tl(list)
+[2, 3]
+尝试从一个空列表中取出头或尾将会报错：
+
+iex> hd []
+** (ArgumentError) argument error
+2.7-元组
+
+Elixir使用大括号（花括号）定义元组（tuples）。类似列表，元组也可以承载任意类型的数据：
+
+iex> {:ok, "hello"}
+{:ok, "hello"}
+iex> tuple_size {:ok, "hello"}
+2
+元组使用 连续的内存空间 存储数据。 这意味着可以很方便地使用索引访问元组数据，以及获取元组大小（索引从0开始）：
+
+iex> tuple = {:ok, "hello"}
+{:ok, "hello"}
+iex> elem(tuple, 1)
+"hello"
+iex> tuple_size(tuple)
+2
+也可以很方便地使用函数put_elem/3设置某个位置的元素值：
+
+iex> tuple = {:ok, "hello"}
+{:ok, "hello"}
+iex> put_elem(tuple, 1, "world")
+{:ok, "world"}
+iex> tuple
+{:ok, "hello"}
+注意函数put_elem/3返回一个新元组。原来那个由变量tuple标识的元组没有被改变。 这是因为Elixir的数据类型是 不可变的。 这种不可变性使你永远不用担心你的数据会在某处被某些代码改变。 在处理并发程序时，这种不可变性有利于减少多个程序实体同时修改一个数据结构时引起的竞争以及其他麻烦。
+
+2.8-列表还是元组？
+
+列表与元组的区别：列表在内存中是以链表的形式存储的，一个元素指向下一个元素， 然后再下一个...直到到达列表末尾。 我们称这样的一对数据（元素值 和 指向下一个元素的指针）为列表的一个单元（cons cell）。
+
+用Elixir语法表示这种模式：
+
+iex> list = [1|[2|[3|[]]]]
+[1, 2, 3]
+列表方括号中的竖线（|）表示列表头与尾的分界。
+这个原理意味着获取列表的长度是一个线性操作：我们必须遍历完整个列表才能知道它的长度。 但是列表的前置拼接操作很快捷：
+
+iex> [0] ++ list
+[0, 1, 2, 3]
+iex> list ++ [4]
+[1, 2, 3, 4]
+上面例子中第一条语句是 前置 拼接操作，执行起来很快。 因为它只是简单地添加了一个新列表单元，它的尾指针指向原先列表头部。而原先的列表没有任何变化。
+
+第二条语句是 后缀 拼接操作，执行速度较慢。 这是因为它 重建 了原先的列表，让原先列表的末尾元素指向那个新元素。
+
+另一方面，元组在内存中是连续存储的。 这意味着获取元组大小，或者使用索引访问元组元素的操作十分快速。 但是元组在修改或添加元素时开销很大，因为这些操作会在内存中对元组的进行整体复制。
+
+这些讨论告诉我们当如何在不同的情况下选择使用不同的数据结构。
+
+函数常用元组来返回多个信息。如File.read/1，它读取文件内容，返回一个元组：
+
+iex> File.read("path/to/existing/file")
+{:ok, "... contents ..."}
+iex> File.read("path/to/unknown/file")
+{:error, :enoent}
+如果传递给函数File.read/1的文件路径有效，那么函数返回一个元组， 其首元素是原子:ok，第二个元素是文件内容。 如果路径无效，函数也将返回一个元组，其首元素是原子:error，第二个元素是错误信息。
+
+大多数情况下，Elixir会引导你做正确的事。 比如有个叫elem/2的函数，它使用索引来访问一个元组元素。 这个函数没有相应的列表版本，因为根据存储机制，列表不适用通过索引来访问：
+
+iex> tuple = {:ok, "hello"}
+{:ok, "hello"}
+iex> elem(tuple, 1)
+"hello"
+当需要计算某数据结构包含的元素个数时，Elixir遵循一个简单的规则： 如果操作在常数时间内完成（答案是提前算好的），这样的函数通常被命名为 *size。 而如果操作需要显式计数，那么该函数通常命名为 *length。
+
+例如，目前讲到过的4个计数函数：byte_size/1（用来计算字符串有多少字节），tuple_size/1 （用来计算元组大小），length/1（计算列表长度） 以及String.length/1（计算字符串中的字符数）。
+
+按照命名规则，当我们用byte_size获取字符串所占字节数时，开销较小。 但是当我们用String.length获取字符串unicode字符个数时，需要遍历整个字符串，开销较大。
+
+除了本章介绍的数据类型，Elixir还提供了 Port，Reference 和 PID 三个数据类型（它们常用于进程交互）。这些数据类型将在讲解进程时详细介绍。
+
+3-基本运算符
+
+通过前几章的学习，我们知道Elixir提供了 +，-，*，/ 4个算术运算符，外加整数除法函数div/2和 取余函数rem/2。 Elixir还提供了++和--运算符来操作列表：
+
+iex> [1,2,3] ++ [4,5,6]
+[1,2,3,4,5,6]
+iex> [1,2,3] -- [2]
+[1,3]
+使用<>进行字符串拼接：
+
+iex> "foo" <> "bar"
+"foobar"
+Elixir还提供了三个布尔运算符：or，and，not。这三个运算符只接受布尔值作为 第一个 参数：
+
+iex> true and true
+true
+iex> false or is_atom(:example)
+true
+如果提供了非布尔值作为第一个参数，会报异常：
+
+iex> 1 and true
+** (ArgumentError) argument error
+运算符or和and可短路，即它们仅在第一个参数无法决定整体结果的情况下才执行第二个参数：
+
+iex> false and error("This error will never be raised")
+false
+
+iex> true or error("This error will never be raised")
+true
+如果你是Erlang程序员，Elixir中的and和or其实就是andalso和orelse运算符。
+除了这几个布尔运算符，Elixir还提供||，&&和!运算符。它们可以接受任意类型的参数值。 在使用这些运算符时，除了 false 和 nil 的值都被视作 true：
+
+# or
+iex> 1 || true
+1
+iex> false || 11
+11
+
+# and
+iex> nil && 13
+nil
+iex> true && 17
+17
+
+# !
+iex> !true
+false
+iex> !1
+false
+iex> !nil
+true
+根据经验，当参数确定是布尔时，使用and，or和not； 如果非布尔值（或不确定是不是），用&&，||和!。
+
+Elixir还提供了 ==，!=，===，!==，<=，>=，<，> 这些比较运算符：
+
+iex> 1 == 1
+true
+iex> 1 != 2
+true
+iex> 1 < 2
+true
+其中==和===的不同之处是后者在判断数字时更严格：
+
+iex> 1 == 1.0
+true
+iex> 1 === 1.0
+false
+在Elixir中，可以判断不同类型数据的大小：
+
+iex> 1 < :atom
+true
+这很实用。排序算法不必担心如何处理不同类型的数据。总体上，不同类型的排序顺序是：
+
+number < atom < reference < functions < port < pid < tuple < maps < list < bitstring
+不用强记，只要知道有这么回事儿就可以。
+
+4-模式匹配
+
+本章起教程进入 不那么基础的 阶段，开始涉及函数式编程概念。 对之前没有函数式编程经验的人来说，这一章是一个基础，需要好好学习和理解。
+
+在Elixir中，=运算符实际上叫做 匹配运算符。 本章将讲解如何使用=运算符来对各种数据结构进行模式匹配。 最后本章还会讲解pin运算符(^)，用来访问某变量之前绑定的值。
+
+4.1-匹配运算符
+
+我们已经多次使用=符号进行变量的赋值操作：
+
+iex> x = 1
+1
+iex> x
+1
+在Elixir中，=作为 匹配运算符。下面来学习这样的概念：
+
+iex> 1 = x
+1
+iex> 2 = x
+** (MatchError) no match of right hand side value: 1
+注意1 = x是一个合法的表达式。 由于前面的例子给x赋值为1，因此在匹配时左右相同，所以它匹配成功了。而两侧不匹配的时候，MatchError将被抛出。
+
+变量只有在匹配操作符=的左侧时才被赋值：
+
+iex> 1 = unknown
+** (RuntimeError) undefined function: unknown/0
+错误原因是unknown变量没有被赋过值，Elixir猜你想调用一个名叫unknown/0的函数， 但是找不到这样的函数。
+
+变量名在等号左边，Elixir认为是赋值表达式；变量名放在右边，Elixir认为是拿该变量的值和左边的值做匹配。
+
+4.2-模式匹配
+
+匹配运算符不光可以匹配简单数值，还能用来 解构 复杂的数据类型。例如，我们在元组上使用模式匹配：
+
+iex> {a, b, c} = {:hello, "world", 42}
+{:hello, "world", 42}
+iex> a
+:hello
+iex> b
+"world"
+在两端不匹配的情况下，模式匹配会失败。比方说，匹配的两端的元组不一样长：
+
+iex> {a, b, c} = {:hello, "world"}
+** (MatchError) no match of right hand side value: {:hello, "world"}
+或者两端模式有区别（比如两端数据类型不同）：
+
+iex> {a, b, c} = [:hello, "world", "!"]
+** (MatchError) no match of right hand side value: [:hello, "world", "!"]
+利用“匹配”的这个概念，我们可以匹配特定值；或者在匹配成功时，为某些变量赋值。
+
+下面例子中先写好了匹配的左端，它要求右端必须是个元组，且第一个元素是原子:ok。
+
+iex> {:ok, result} = {:ok, 13}
+{:ok, 13}
+iex> result
+13
+
+iex> {:ok, result} = {:error, :oops}
+** (MatchError) no match of right hand side value: {:error, :oops}
+用在列表上：
+
+iex> [a, 2, 3] = [1, 2, 3]
+[1, 2, 3]
+iex> a
+1
+列表支持匹配自己的head和tail （这相当于同时调用hd/1和tl/1，给head和tail赋值）：
+
+iex> [head | tail] = [1, 2, 3]
+[1, 2, 3]
+iex> head
+1
+iex> tail
+[2, 3]
+同hd/1和tl/1函数一样，以上代码不能对空列表使用：
+
+iex> [h|t] = []
+** (MatchError) no match of right hand side value: []
+[head|tail]这种形式不光在模式匹配时可以用，还可以用作向列表插入前置数值：
+
+iex> list = [1, 2, 3]
+[1, 2, 3]
+iex> [0|list]
+[0, 1, 2, 3]
+模式匹配使得程序员可以容易地解构数据结构（如元组和列表）。 在后面我们还会看到，它是Elixir的一个基础，对其它数据结构同样适用，比如图和二进制。
+
+小结：
+
+模式匹配使用=符号
+匹配中等号左右的“模式”必须相同
+变量在等号左侧才会被赋值
+变量在右侧时必须有值，Elixir拿这个值和左侧相应位置的元素做匹配
+4.3-pin运算符
+
+在Elixir中，变量可以被重新绑定：
+
+iex> x = 1
+1
+iex> x = 2
+2
+Elixir可以给变量重新绑定（赋值）。 它带来一个问题，就是对一个单独变量（而且是放在左端）做匹配时， Elixir会认为这是一个重新绑定（赋值）操作，而不会当成匹配，执行匹配逻辑。 这里就要用到pin运算符。
+如果你不想这样，可以使用pin运算符(^)。 加上了pin运算符的变量，在匹配时使用的值是本次匹配前就赋予的值：
+
+iex> x = 1
+1
+iex> ^x = 2
+** (MatchError) no match of right hand side value: 2
+iex> {x, ^x} = {2, 1}
+{2, 1}
+iex> x
+2
+注意如果一个变量在匹配中被引用超过一次，所有的引用都应该绑定同一个模式：
+
+iex> {x, x} = {1, 1}
+1
+iex> {x, x} = {1, 2}
+** (MatchError) no match of right hand side value: {1, 2}
+有些时候，你并不在意模式匹配中的一些值。 可以把它们绑定到特殊的变量 “ _ ” (underscore)上。 例如，如果你只想要某列表的head，而不要tail值。你可以这么做：
+
+iex> [h | _ ] = [1, 2, 3]
+[1, 2, 3]
+iex> h
+1
+变量“ _ ”特殊之处在于它不能被读，尝试读取它会报“未绑定的变量”错误：
+
+iex> _
+** (CompileError) iex:1: unbound variable _
+尽管模式匹配看起来如此牛逼，但是语言还是对它的作用做了一些限制。 比如，你不能让函数调用作为模式匹配的左端。下面例子就是非法的：
+
+iex> length([1,[2],3]) = 3
+** (CompileError) iex:1: illegal pattern
+模式匹配介绍完了。 在以后的章节中，模式匹配是常用的语法结构。
+
+5-流程控制
+
+case
+卫兵子句中的表达式
+cond
+if和unless
+do语句块
+
+本章讲解case，cond和if的流程控制结构。
+
+5.1-case
+
+case将一个值与许多模式进行匹配，直到找到一个匹配成功的：
+
+iex> case {1, 2, 3} do
+...>   {4, 5, 6} ->
+...>     "This clause won't match"
+...>   {1, x, 3} ->
+...>     "This clause will match and bind x to 2 in this clause"
+...>   _ ->
+...>     "This clause would match any value"
+...> end
+如果与一个已赋值的变量做比较，要用pin运算符(^)标记该变量：
+
+iex> x = 1
+1
+iex> case 10 do
+...>   ^x -> "Won't match"
+...>   _  -> "Will match"
+...> end
+可以加上卫兵子句（guard clauses）提供额外的条件：
+
+iex> case {1, 2, 3} do
+...>   {1, x, 3} when x > 0 ->
+...>     "Will match"
+...>   _ ->
+...>     "Won't match"
+...> end
+于是上面例子中，第一个待比较的模式多了一个条件：x必须是正数。
+
+5.2-卫兵子句中的表达式
+
+Erlang中只允许以下表达式出现在卫兵子句中：
+
+比较运算符（==，!=，===，!==，>，<，<=，>=）
+布尔运算符（and，or）以及否定运算符（not，!）
+算数运算符（+，-，*，/）
+<>和++如果左端是字面值
+in运算符
+以下类型判断函数：
+is_atom/1
+is_binary/1
+is_bitstring/1
+is_boolean/1
+is_float/1
+is_function/1
+is_function/2
+is_integer/1
+is_list/1
+is_map/1
+is_number/1
+is_pid/1
+is_reference/1
+is_tuple/1
+外加以下函数：
+abs(number)
+bit_size(bitstring)
+byte_size(bitstring)
+div(integer, integer)
+elem(tuple, n)
+hd(list)
+length(list)
+map_size(map)
+node()
+node(pid | ref | port)
+rem(integer, integer)
+round(number)
+self()
+tl(list)
+trunc(number)
+tuple_size(tuple)
+记住，卫兵子句中出现的错误不会漏出，只会简单地让卫兵条件失败：
+
+iex> hd(1)
+** (ArgumentError) argument error
+    :erlang.hd(1)
+iex> case 1 do
+...>   x when hd(x) -> "Won't match"
+...>   x -> "Got: #{x}"
+...> end
+"Got 1"
+如果case中没有一条模式能匹配，会报错：
+
+iex> case :ok do
+...>   :error -> "Won't match"
+...> end
+** (CaseClauseError) no case clause matching: :ok
+匿名函数也可以像下面这样，用多个模式或卫兵条件来灵活地匹配该函数的参数：
+
+iex> f = fn
+...>   x, y when x > 0 -> x + y
+...>   x, y -> x * y
+...> end
+#Function<12.71889879/2 in :erl_eval.expr/5>
+iex> f.(1, 3)
+4
+iex> f.(-1, 3)
+-3
+需要注意的是，所有case模式中表示的参数个数必须一致，否则会报错。 上面的例子两个待匹配模式都是x，y。如果再有一个模式表示的参数是x，y，z，那就不行：
+
+iex(5)> f2 = fn
+...(5)>   x,y -> x+y
+...(5)>   x,y,z -> x+y+z
+...(5)> end
+** (CompileError) iex:5: cannot mix clauses with different arities in function definition
+    (elixir) src/elixir_translator.erl:17: :elixir_translator.translate/2
+5.3-cond
+
+case是拿一个值去同多个值或模式进行匹配，匹配了就执行那个分支的语句。 然而，许多情况下我们要检查不同的条件，找到第一个结果为true的，执行它的分支。 这时我们用cond：
+
+iex> cond do
+...>   2 + 2 == 5 ->
+...>     "This will not be true"
+...>   2 * 2 == 3 ->
+...>     "Nor this"
+...>   1 + 1 == 2 ->
+...>     "But this will"
+...> end
+"But this will"
+这样的写法和命令式语言里的else if差不多一个意思（尽管很少这么写）。
+
+如果没有一个条件结果为true，会报错。因此，实际应用中通常会使用true作为最后一个条件。 因为即使上面的条件没有一个是true，那么该cond表达式至少还可以执行这最后一个分支：
+
+iex> cond do
+...>   2 + 2 == 5 ->
+...>     "This is never true"
+...>   2 * 2 == 3 ->
+...>     "Nor this"
+...>   true ->
+...>     "This is always true (equivalent to else)"
+...> end
+用法就好像许多语言中，switch语句中的default一样。
+
+最后需要注意的是，cond视所有非false和nil的值为true：
+
+iex> cond do
+...>   hd([1,2,3]) ->
+...>     "1 is considered as true"
+...> end
+"1 is considered as true"
+5.4 if和unless
+
+除了case和cond，Elixir还提供了两很常用的宏：if/2和unless/2， 用它们检查单个条件：
+
+iex> if true do
+...>   "This works!"
+...> end
+"This works!"
+iex> unless true do
+...>   "This will never be seen"
+...> end
+nil
+如果给if/2的条件结果为false或者nil，那么它在do/end间的语句块就不会执行， 该表达式返回nil。unless/2相反。
+
+它们都支持else语句块：
+
+iex> if nil do
+...>   "This won't be seen"
+...> else
+...>   "This will"
+...> end
+"This will"
+有趣的是，if/2和unless/2是以宏的形式提供的，而不像在很多语言中那样是语句。 可以阅读文档或if/2的源码 （Kernel模块）。 Kernel 模块还定义了诸如+/2运算符和is_function/2函数。 它们默认被导入，因而在你的代码中可用。
+5.5-do语句块
+
+以上讲解的4种流程控制结构：case，cond，if和unless，它们都被包裹在do/end语句块中。 即使我们把if语句写成这样：
+
+iex> if true, do: 1 + 2
+3
+
+在Elixir中，do/end语句块方便地将一组表达式传递给do:。以下是等同的：
+
+iex> if true do
+...>   a = 1 + 2
+...>   a + 10
+...> end
+13
+iex> if true, do: (
+...>   a = 1 + 2
+...>   a + 10
+...> )
+13
+
+我们称第二种语法使用了 关键字列表（keyword lists）。我们可以这样传递else：
+
+iex> if false, do: :this, else: :that
+:that
+
+注意一点，do/end语句块永远是被绑定在最外层的函数调用上。例如：
+
+iex> is_number if true do
+...>  1 + 2
+...> end
+
+将被解析为：
+
+iex> is_number(if true) do
+...>  1 + 2
+...> end
+
+这使得Elixir认为你是要调用函数is_number/2（第一个参数是if true，第二个是语句块）。 这时就需要加上括号解决二义性：
+
+iex> is_number(if true do
+...>  1 + 2
+...> end)
+true
+
+关键字列表在Elixir语言中占有重要地位，在许多函数和宏中都有使用。后文中还会对其进行详解。
+
+:
+
+7-键值列表-图-字典
+
+键值列表
+图
+字典
+
+到目前还没有讲到任何关联性数据结构，即那种可以将一个或几个值关联到一个key上。 不同语言有不同的叫法，如字典，哈希，关联数组，图，等等。
+
+Elixir中有两种主要的关联性结构：键值列表（keyword list）和图（map）。
+
+7.1-键值列表
+
+在很多函数式语言中，常用二元元组的列表来表示关联性数据结构。在Elixir中也是这样。 当我们有了一个元组（不一定仅有两个元素的元组）的列表，并且每个元组的第一个元素是个 原子， 那就称之为键值列表：
+
+iex> list = [{:a, 1}, {:b, 2}]
+[a: 1, b: 2]
+iex> list == [a: 1, b: 2]
+true
+iex> list[:a]
+1
+当原子key和关联的值之间没有逗号分隔时，可以把原子的冒号拿到字母的后面。这时，原子与后面的数值之间要有一个空格。
+如你所见，Elixir使用比较特殊的语法来定义这样的列表，但实际上它们会映射到一个元组列表。 因为它们是简单的列表而已，所有针对列表的操作，键值列表也可以用。
+
+比如，可以用++运算符为列表添加元素：
+
+iex> list ++ [c: 3]
+[a: 1, b: 2, c: 3]
+iex> [a: 0] ++ list
+[a: 0, a: 1, b: 2]
+上面例子中重复出现了:a这个key，这是允许的。 以这个key取值时，取回来的是第一个找到的（因为有序）：
+
+iex> new_list = [a: 0] ++ list
+[a: 0, a: 1, b: 2]
+iex> new_list[:a]
+0
+键值列表十分重要，它有两大特点：
+
+有序
+key可以重复（！仔细看上面两个示例）
+例如，Ecto库使用这两个特点 写出了精巧的DSL（用来写数据库query）：
+
+query = from w in Weather,
+          where: w.prcp > 0,
+          where: w.temp < 20,
+        select: w
+这些特性使得键值列表成了Elixir中为函数提供额外选项的默认手段。 在第5章我们讨论了if/2宏，提到了下方的语法：
+
+iex> if false, do: :this, else: :that
+:that
+do: 和else: 就是键值列表！事实上代码等同于：
+
+iex> if(false, [do: :this, else: :that])
+:that
+当键值列表是函数最后一个参数时，方括号就成了可选的。
+
+为了操作关键字列表，Elixir提供了 键值（keyword）模块。 记住，键值列表就是简单的列表，和列表一样提供了线性的性能。 列表越长，获取长度或找到一个键值的速度越慢。 因此，关键字列表在Elixir中一般就作为函数调用的可选项。 如果你要存储大量数据，并且保证一个键只对应最多一个值，那就使用图。
+
+对键值列表做模式匹配：
+
+iex> [a: a] = [a: 1]
+[a: 1]
+iex> a
+1
+iex> [a: a] = [a: 1, b: 2]
+** (MatchError) no match of right hand side value: [a: 1, b: 2]
+iex> [b: b, a: a] = [a: 1, b: 2]
+** (MatchError) no match of right hand side value: [a: 1, b: 2]
+尽管如此，对列表使用模式匹配很少用到。因为不但要元素个数相等，顺序还要匹配。
+
+7.2-图（maps）
+
+无论何时想用键-值结构，图都应该是你的第一选择。Elixir中，用%{}定义图：
+
+iex> map = %{:a => 1, 2 => :b}
+%{2 => :b, :a => 1}
+iex> map[:a]
+1
+iex> map[2]
+:b
+和键值列表对比，图有两主要区别：
+
+图允许任何类型值作为键
+图的键没有顺序
+如果你向图添加一个已有的键，将会覆盖之前的键-值对：
+
+iex> %{1 => 1, 1 => 2}
+%{1 => 2}
+如果图中的键都是原子，那么你也可以用键值列表中的一些语法：
+
+iex> map = %{a: 1, b: 2}
+%{a: 1, b: 2}
+对比键值列表，图的模式匹配很是有用：
+
+iex> %{} = %{:a => 1, 2 => :b}
+%{:a => 1, 2 => :b}
+iex> %{:a => a} = %{:a => 1, 2 => :b}
+%{:a => 1, 2 => :b}
+iex> a
+1
+iex> %{:c => c} = %{:a => 1, 2 => :b}
+** (MatchError) no match of right hand side value: %{2 => :b, :a => 1}
+如上所示，图A与另一个图B做匹配。 图B中只要包含有图A的键，那么两个图就能匹配上。若图A是个空的，那么任意图B都能匹配上。 但是如果图B里不包含图A的键，那就匹配失败了。
+
+图还有个有趣的功能：它提供了特殊的语法来修改和访问原子键：
+
+iex> map = %{:a => 1, 2 => :b}
+%{:a => 1, 2 => :b}
+iex> map.a
+1
+iex> %{map | :a => 2}
+%{:a => 2, 2 => :b}
+iex> %{map | :c => 3}
+** (ArgumentError) argument error
+使用上面两种语法要求的前提是所给的键是切实存在的。最后一条语句错误的原因就是键:c不存在。
+
+未来几章中我们还将讨论结构体（structs）。结构体提供了编译时的保证，它是Elixir多态的基础。 结构体是基于图的，上面例子提到的修改键值的前提就变得十分重要。
+
+图模块提供了许多关于图的操作。 它提供了与键值列表许多相似的API，因为这两个数据结构都实现了字典的行为。
+
+图是最近连同EEP 43被引入Erlang虚拟机的。 Erlang 17提供了EEP的部分实现，只支持_一小部分_图功能。 这意味着图仅在存储不多的键时，图的性能还行。 为了解决这个问题，Elixir还提供了 HashDict模块。 该模块提供了一个字典来支持大量的键，并且性能不错。
+7.3-字典（Dicts）
+
+Elixir中，键值列表和图都被称作字典。 换句话说，一个字典就像一个接口（在Elixir中称之为行为behaviour）。 键值列表和图模块实现了该接口。
+
+这个接口定义于Dict模块， 该模块还提供了底层实现的一个API：
+
+iex> keyword = []
+[]
+iex> map = %{}
+%{}
+iex> Dict.put(keyword, :a, 1)
+[a: 1]
+iex> Dict.put(map, :a, 1)
+%{a: 1}
+字典模块允许开发者实现自己的字典形式，提供一些特殊的功能。 字典模块还提供了所有字典类型都可以使用的函数。 如，Dicr.equal?/2可以比较两个字典类型（可以是不同的实现）。
+
+你会疑惑些程序时用keyword，Map还是Dict模块呢？答案是：看情况。
+
+如果你的代码期望接受一个关键字作为参数，那么使用简直列表模块。 如果你想操作一个图，那就使用图模块。 如果你想你的API对所有字典类型的实现都有用， 那就使用字典模块（确保以不同的实现作为参数测试一下）。
