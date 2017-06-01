@@ -1824,6 +1824,20 @@ end
 params[:controller]
 params[:action]
 
+#!!如果想某个action使用独立的layout,可以这样
+class SomeController < ApplicationController
+  layout :layout_value
+  private
+  def layout_value
+    if action_name == "test_pay"
+      "test"
+    else
+      "application"
+    end
+  end
+end
+
+
 ----------------------------------------------------------------------
 十一, ActionView Helper & Asset
 Helper指的是可以在Template中使用的輔助方法，主要用途是可以將資料轉化成輸出用的HTML字串，例如我們已經用過了Rails內建的link_to方法，它可以將字串變成超連結。让我们更容易构建html
