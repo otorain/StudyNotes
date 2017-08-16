@@ -1081,6 +1081,12 @@ v = Integer(val) rescue 5 #如果传入的val是int类型，发生例外就取�
 
 ::如果整个方法里面都是以begin end结尾的话，begin end可以省略
 
+这样可以格式化输出好看点的exception
+puts "#{$@.first}: #{$!.message} (#{$!.class})", $@.drop(1).map{|s| "\t#{s}"}
+
+用e的话
+puts "#{e.backtrace.first}: #{e.message} (#{e.class})", e.backtrace.drop(1)
+
 (3)raise
 raise  # 会抛一个runtime error
 raise 'message' #抛出错误信息

@@ -10,6 +10,14 @@ rm -rf /etc/paths.d/go
 现在装go可以用gvm
 https://github.com/moovweb/gvm
 
+国内访问不了https://go.googlesource.com/go 可将 GO_SOURCE_URL修改为github上的源码镜像
+修改方法：
+vim ~/.gvm/scripts/install
+修改
+GO_SOURCE_URL=https://github.com/golang/go
+
+装go1.8.3
+
 安装lint代码检查器
 安装golint： shell $ go get github.com/golang/lint $ go install github.com/golang/lint
 安装gooracle shell $ go get code.google.com/p/go.tools/cmd/oracle
