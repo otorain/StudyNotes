@@ -43,3 +43,7 @@ rsync -avP yueren_staging:/home/deploy/onwall_server_production.sql ./
 导入数据库sql版
 /Applications/Postgres.app/Contents/Versions/9.6/bin/psql -h localhost -d onwall_server_development -U scott -f onwall_server_production.sql -W
 
+
+
+centos gem install pg失败时
+yum install postgresql-libs postgresql-devel

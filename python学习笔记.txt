@@ -1,0 +1,60 @@
+## 使用pyenv管理系统的python环境
+brew install pyenv
+
+安装完后，
+pyenv versions #可以看当前系统的python 版本
+pyenv install -l #列出支持可安装的python版本
+$ pyenv install 2.7.3   # 安装python
+$ pyenv uninstall 2.7.3 # 卸载python
+$ pyenv global 2.7.3  # 设置全局的 Python 版本，通过将版本号写入 ~/.pyenv/version 文件的方式。
+$ pyenv local 2.7.3 # 设置 Python 本地版本，通过将版本号写入当前目录下的 .python-version 文件的方式。通过这种方式设置的 Python 版本优先级较 global 高。
+
+python优先级
+shell > local > global
+pyenv 会从当前目录开始向上逐级查找 .python-version 文件，直到根目录为止。若找不到，就用 global 版本。
+$ pyenv shell 2.7.3 # 设置面向 shell 的 Python 版本，通过设置当前 shell 的 PYENV_VERSION 环境变量的方式。这个版本的优先级比 local 和 global 都要高。–unset 参数可以用于取消当前 shell 设定的版本。
+$ pyenv shell --unset
+$ pyenv rehash  # 创建垫片路径（为所有已安装的可执行文件创建 shims，如：~/.pyenv/versions/*/bin/*，因此，每当你增删了 Python 版本或带有可执行文件的包（如 pip）以后，都应该执行一次本命令）
+
+## pyenv-virtualenv
+这东西作用有点像gemset, 可以管理不同python环境包
+$ pyenv virtualenv 2.7.10 env-2.7.10 #创建虚拟环境 若不指定python 版本，会默认使用当前环境python版本。如果指定Python 版本，则一定要是已经安装过的版本，否则会出错。环境的真实目录位于 ~/.pyenv/versions 下
+
+pyenv virtualenvs #列出当前虚拟环境
+pyenv activate env-name  # 激活虚拟环境
+pyenv deactivate #退出虚拟环境，回到系统环境
+
+删除
+pyenv uninstall my-virtual-env
+rm -rf ~/.pyenv/versions/env-name  # 或者删除其真实目录
+
+## idel里输入
+dir(__builtins__) #查看内置函数列表
+
+例如有print这个builtins, 可以用help(print)去查看他的用法
+
+## 使用r来做字符串转义
+在字符串例如"c:\now"这种里面，打印出来 \n会变成个换行符，通常我们要打 c:\\now, python里有个r转义的方法:
+string = r"c:\now"
+
+这样就可以用原始字符串了
+但是要记得\反斜杠不能写在结尾, 写在结尾意思是这行没完成
+
+这种方式写法可以用在多行字符串
+""" str """
+
+while if 的例子，输入8就ok的小游戏
+print( "fuck" )
+
+guess = input("you fucking idot ")
+guess = int(guess)
+
+while guess != 8:
+    print("idiot try again!!")
+    guess = input("again! ")
+    guess = int(guess)
+    if guess == 8:
+        print("ok you freak!")
+
+
+

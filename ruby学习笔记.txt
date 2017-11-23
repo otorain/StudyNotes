@@ -2657,3 +2657,9 @@ User.where('preferences ?| array[:keys]', keys: ['twitter', 'github'])
 Users that live in San Francisco/California
 # preferences->state = 'SP' AND preferences->city = 'São Paulo'
 User.where('preferences @> ?', {city: 'San Francisco', state: 'CA'}.to_json)
+
+
+
+
+------------
+searchkick elasticsearch要删除所有的index重来, 用curl -X DELETE 'http://localhost:9200/_all'

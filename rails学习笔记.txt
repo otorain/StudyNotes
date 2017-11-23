@@ -5093,3 +5093,22 @@ config.generators do |g|
   g.view_specs      false
   g.helper_specs    false
 end
+
+
+------------------
+mina里不用rbev 不用 rvm时遇到bundle command not found的问题
+修改服务端 ~/.bashrc 
+
++
+source /etc/profile  
+
+
+----------------
+通过symobl type 获取首字母大写的Model类trick  
+type = :user
+Object.const_get(type.to_s.camelize)
+
+----------------
+前端微信验证签名失败，很有可能是https没有自动调回的问题, 一个字符的问题
+
+

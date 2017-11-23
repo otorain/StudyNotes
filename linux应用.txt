@@ -406,3 +406,7 @@ $ echo /dev/null > filename
 $ echo > filename
 $ cat /dev/null > filename
 $ cp /dev/null filename 
+
+----------
+multitail tail打开不同服务器日志
+ssh -n just_web2 "tail -f /data/just_jiang_server/current/log/production.log" | multitail -ci red --label ---web2--- -j  -ci green --label ---web1--- -I current/log/production.log
