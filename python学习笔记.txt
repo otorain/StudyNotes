@@ -24,6 +24,8 @@ pyenv virtualenvs #列出当前虚拟环境
 pyenv activate env-name  # 激活虚拟环境
 pyenv deactivate #退出虚拟环境，回到系统环境
 
+##这语言他妈布尔类型是首字母大写 True and False
+
 删除
 pyenv uninstall my-virtual-env
 rm -rf ~/.pyenv/versions/env-name  # 或者删除其真实目录
@@ -56,5 +58,245 @@ while guess != 8:
     if guess == 8:
         print("ok you freak!")
 
+## 简单的类型转换
+int('599') #字符串转整形
+float('5.0') #转float
+str(3.3) #转String
 
+##获取变量的类型
+
+a = 3.3
+type(a) #float
+
+用isinstance方法会更好
+isinstance(520, int)
+isinstance('hebe', str)
+isinstance(3.3, float)
+##简单的运算操作符
++ - * / %(求余数) ^ **(幂运算, 3**2 就是3的平方) //
+
+支持像c一样的 += -= *=等简化运算符
+python整数除法跟其他语言不一样，会精确的算出小数值
+
+10 / 3 # 3.3333333
+
+如果想用回其他语言的地板除法，只取整数，就用//来去除
+
+
+## 逻辑操作符，python用的是 and or not, 其中not是会返回一个相反的布尔值
+
+## 三元操作符，反正有点怪
+if x < y :
+  small = y
+else :
+  small = x
+
+写成
+
+small = y if x < y else x
+
+
+## assert 断言
+有点像其他语言测试用的断言，判断后面的表达式是否true 不是的话就抛错误
+
+assert 3 < 4 #ok, 什么都不会发生程序继续执行
+assert 3 < 4 #报错
+
+
+## for循环
+a = "fuck you shit"
+for each in a: 
+  print(each)
+  
+
+## range, 类似ruby的...， 不包含最后一个数
+for i in range(0, 9):
+  print(i) #打印出0到8
+
+## for循环里 break和continute 就和其他语言差不多，截断和调过下一个代码跳到下一个for循环
+
+## 数组(也叫列表)
+a = [1, 2, 3]
+a.append(4) # => [1, 2, 3, 4]  # append加一个元素
+a.extend([5, 6]) # => [1, 2, 3, 4, 5, 6]  # extend可以加多个元素，但是参数要是数组
+
+a.insert(0, 0) # [0, 1, 2, 3, 4, 5, 6] #insert 在第0(第一个参数)位插入一个0 
+
+##数组获取值
+a = [0, 1, 2]
+a[0] # => 0
+
+a[1], a[2] = a[2], a[1] #这样可以让第0和第1位互调
+
+##数组删除
+a.remove("shit") #这个是 删除"shit"这个元素, 只删除第一个，没有的话会报错
+del a[3] #这个是删除数组3下标的元素, 注意这是一个语句，并不是一个数组方法
+
+del a #如果不指定下标，可以整个数组变量都删除掉(手动节省内存)
+
+a.pop() #返回弹出最后一个元素, 同时数组里的元素会被删掉
+a.pop(2) #这样可以直接弹出某一个元素
+
+##数组分片，相当于slice
+a = [1, 2, 3]
+a[0:2] # => [1, 2] 不包含下标2的元素 
+a[:2] # => 简写
+a[1:] # => [2, 3] 直到最后
+a[:] # => 返回整个拷贝数组
+
+还可以置顶第三个数，步进
+a = [1,2,3,4,5]
+a[0:4:2] #=>  [1,3,5], 相当于跳两位才拿一个
+a[::-1] #=> [5,4,3,2,1] 取-1 相当于反转，向后拿
+
+#数组的运算
+[123] + [456] #=>[123, 456] 
+[123] *3 #=>[123, 123, 123] 
+
+#in操作符去判断元素是否在列表
+a = ["shit", "fuck"]
+"shit" in a #=>true
+"mother" not in a #=>true
+
+#count计算某个元素出现了多少次
+a = [1,2,3]
+a.count(2) #=> 1 
+
+#index就是算某个元素的下标
+#reverse 反转
+#sort 按从小到大排序 和ruby不同这些方法都会影响原数组
+a = [1,3,2]
+a.sort() #=> [1,2,3] 
+a.sort(reverse=true) #=> [3,2,1]，reverse默认是fasle
+
+#元祖, 比起列表就是不能排序不能修改, 可以slice可以复制
+a = (1, 2, 3) 
+等价于
+a = 1, 2, 3
+
+为了不搞混(1) 这种是整形优先级表达式，创建单个值的元祖加个逗号来搞
+a = (1, )
+
+##跟ruby一样，字符串也可以当做数组操作
+
+#join的用法好7奇怪
+a = ["i", "love", "hebe"]
+"_".join(a) #=> 他妈要这样用 i_love_hebe
+
+#字符串格式化，不像ruby方便
+ruby: "i love #{ a }" 可以直接引用a的值
+python "i love {a}".format(a="shit")
+不过他的格式化可以用像c的那种 %c %d %x %f这种格式化参数
+
+#转义符, 只记特别的
+\b 退格符
+\a 发出系统响声
+\n 换行
+\t 制表符tab
+\v 纵向制表符
+\r 回车符
+\o 八进制
+\x 十六进制
+\f 翻页符
+\0 空字符
+\\ 反斜杠
+
+#像列表数组，字符串，元祖这些，python统称为list，序列, 有个BIF list()可以把这些东西都转成列表
+a = (1, 2,3 )
+list(a) #=> [1, 2, 3] 
+
+b = "fish"
+list(b) #=> ["f", "i", "s", "h"] 
+
+#tuple([iterable]) 就是把其他序列转成元祖
+
+#str() 转成字符串
+
+#min max sorted这些就不说了,都是BIF。 reversed是返回一个迭代器，循环拿回反向排序的元素，作用不大
+
+#enumerate(iterable) 返回一个迭代器，迭代器每个元素是一个 二元组，二元组里第一个参数是下标，第二个是指，可以做key, value的遍历的样子
+str1 = "Fish"
+for each in enumerate(str1):
+  print(each) #=> (0, "F")  (1, "i") (2, "s") (3, "h")
+
+#函数 方法！
+def为创建函数的关键字, 后面加个 : 
+
+def main():
+  print("hello world")
+
+调用
+main()
+
+#return 后面就是函数返回值，好像不能最后一行自动return
+
+#写函数文档，在函数第一行的string可以变成文档，可以用 方法名.__doc__ 或者 help(方法名) 打印出来
+def main(): 
+  """
+    打印 hello world
+  """
+
+  print("hello world")
+
+main.__doc__
+help(main)
+
+#指定变量名的arguments, 可以无视函数的参数排序
+def a(shit, fuck):
+  print(shit + fuck)
+
+a(1, 2) #=> 3 
+a(fuck = 5, shit = 4) #=> 9 
+
+#形参默认值写法，跟ruby一样
+def b(shit="fuck"):
+  print(b)
+
+#用*号去收集参数
+def test(*params, extra="shit"):
+  print("%d个参数" % len(params))
+  print(extra)
+
+test(1,2,3) #=> 3个参数， extra= "shit" 
+test(1,2, extra = 3) #=> 2个参数， extra=  3
+
+#传入时用*可以结构序列
+a = [1,2,3]
+test(a)  #=> 1个参数， 因为相当于给了个数组变量
+test(*a)  #=> 3个参数， 把数组结构成 1,2,3这样传入
+
+#一般函数只能引用外部变量，不能修改，但是可以借用global关键字去强制修改 
+
+#闭包，就是函数内定义并返回内部函数，可以引用父函数的局部变量，跟js差不多，没什么大不了的
+
+def a(y):
+  def closure(x):
+    retrun x + y
+  return closure
+
+i = a(5)(6) #=> 11 
+
+# lambda表达式
+def add(a, b):
+  return a + b
+
+写成 add = lambda a, b : a + b
+
+# 两个BIF, filter, map, 干什么用跟ruby一样，主要是参数蛋疼和其他动态语言相反，第一个参数是迭代器，第二个参数时集合, 最后返回的是个迭代器，用list去转一下才会返回一个想要的集合, 妈比
+list( filter(lambda a : print(a), [1, 2, 3]) )
+list( map(lambda a : a * 2, [1, 2, 3]) )
+
+#字典 hash !
+好像键值只能像json一样用字符串，不能像ruby一样用symbo, stupid
+
+创建可以直接用大括号，或者用dict((2长度元祖), (), ())这样去创建
+或者用 dict(a=1, b=2)这样创建
+
+#fromkeys() 创建并赋值，不赋值时是None
+a = {}
+a.fromkeys(("a", "b", "c"), 1) #=>{a: 1, b: 1, c: 1} #懒得打一堆双引号，知道就好 
+
+#keys(), values(), items()顾名思义啦
+
+#他妈用[]去拿不存在的key时会抛错，要用get()去拿才会不存在时返回None
 
