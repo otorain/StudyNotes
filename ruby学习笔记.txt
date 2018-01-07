@@ -1382,6 +1382,7 @@ html.encode!("utf-8")
 doc = Nokogiri::HTML.parse html
 doc.css("body")
 
+多行注释也是这样使用
 ::编写，rdoc,在方法或类上面使用 =begin rdoc  =end
 例：
 =begin rdoc

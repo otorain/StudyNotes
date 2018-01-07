@@ -1,6 +1,17 @@
 ## 使用pyenv管理系统的python环境
 brew install pyenv
 
+##ubuntu 环境
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev
+
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+exec "$SHELL"
+
 安装完后，
 pyenv versions #可以看当前系统的python 版本
 pyenv install -l #列出支持可安装的python版本
@@ -105,9 +116,9 @@ assert 3 < 4 #报错
 
 ## for循环
 a = "fuck you shit"
-for each in a: 
+for each in a:
   print(each)
-  
+
 
 ## range, 类似ruby的...， 不包含最后一个数
 for i in range(0, 9):
@@ -120,7 +131,7 @@ a = [1, 2, 3]
 a.append(4) # => [1, 2, 3, 4]  # append加一个元素
 a.extend([5, 6]) # => [1, 2, 3, 4, 5, 6]  # extend可以加多个元素，但是参数要是数组
 
-a.insert(0, 0) # [0, 1, 2, 3, 4, 5, 6] #insert 在第0(第一个参数)位插入一个0 
+a.insert(0, 0) # [0, 1, 2, 3, 4, 5, 6] #insert 在第0(第一个参数)位插入一个0
 
 ##数组获取值
 a = [0, 1, 2]
@@ -139,7 +150,7 @@ a.pop(2) #这样可以直接弹出某一个元素
 
 ##数组分片，相当于slice
 a = [1, 2, 3]
-a[0:2] # => [1, 2] 不包含下标2的元素 
+a[0:2] # => [1, 2] 不包含下标2的元素
 a[:2] # => 简写
 a[1:] # => [2, 3] 直到最后
 a[:] # => 返回整个拷贝数组
@@ -150,8 +161,8 @@ a[0:4:2] #=>  [1,3,5], 相当于跳两位才拿一个
 a[::-1] #=> [5,4,3,2,1] 取-1 相当于反转，向后拿
 
 #数组的运算
-[123] + [456] #=>[123, 456] 
-[123] *3 #=>[123, 123, 123] 
+[123] + [456] #=>[123, 456]
+[123] *3 #=>[123, 123, 123]
 
 #in操作符去判断元素是否在列表
 a = ["shit", "fuck"]
@@ -160,17 +171,17 @@ a = ["shit", "fuck"]
 
 #count计算某个元素出现了多少次
 a = [1,2,3]
-a.count(2) #=> 1 
+a.count(2) #=> 1
 
 #index就是算某个元素的下标
 #reverse 反转
 #sort 按从小到大排序 和ruby不同这些方法都会影响原数组
 a = [1,3,2]
-a.sort() #=> [1,2,3] 
+a.sort() #=> [1,2,3]
 a.sort(reverse=true) #=> [3,2,1]，reverse默认是fasle
 
 #元祖, 比起列表就是不能排序不能修改, 可以slice可以复制
-a = (1, 2, 3) 
+a = (1, 2, 3)
 等价于
 a = 1, 2, 3
 
@@ -203,10 +214,10 @@ python "i love {a}".format(a="shit")
 
 #像列表数组，字符串，元祖这些，python统称为list，序列, 有个BIF list()可以把这些东西都转成列表
 a = (1, 2,3 )
-list(a) #=> [1, 2, 3] 
+list(a) #=> [1, 2, 3]
 
 b = "fish"
-list(b) #=> ["f", "i", "s", "h"] 
+list(b) #=> ["f", "i", "s", "h"]
 
 #tuple([iterable]) 就是把其他序列转成元祖
 
@@ -220,7 +231,7 @@ for each in enumerate(str1):
   print(each) #=> (0, "F")  (1, "i") (2, "s") (3, "h")
 
 #函数 方法！
-def为创建函数的关键字, 后面加个 : 
+def为创建函数的关键字, 后面加个 :
 
 def main():
   print("hello world")
@@ -231,7 +242,7 @@ main()
 #return 后面就是函数返回值，好像不能最后一行自动return
 
 #写函数文档，在函数第一行的string可以变成文档，可以用 方法名.__doc__ 或者 help(方法名) 打印出来
-def main(): 
+def main():
   """
     打印 hello world
   """
@@ -245,8 +256,8 @@ help(main)
 def a(shit, fuck):
   print(shit + fuck)
 
-a(1, 2) #=> 3 
-a(fuck = 5, shit = 4) #=> 9 
+a(1, 2) #=> 3
+a(fuck = 5, shit = 4) #=> 9
 
 #形参默认值写法，跟ruby一样
 def b(shit="fuck"):
@@ -257,7 +268,7 @@ def test(*params, extra="shit"):
   print("%d个参数" % len(params))
   print(extra)
 
-test(1,2,3) #=> 3个参数， extra= "shit" 
+test(1,2,3) #=> 3个参数， extra= "shit"
 test(1,2, extra = 3) #=> 2个参数， extra=  3
 
 #传入时用*可以结构序列
@@ -265,7 +276,15 @@ a = [1,2,3]
 test(a)  #=> 1个参数， 因为相当于给了个数组变量
 test(*a)  #=> 3个参数， 把数组结构成 1,2,3这样传入
 
-#一般函数只能引用外部变量，不能修改，但是可以借用global关键字去强制修改 
+# **可以解构字典
+def test(**params): #这样就会组成一个{}
+  print("有%d个参数" % len(params))
+
+a = {a: 1, b: 2}
+test(**a) #这样会解构成 a = 1 , b = 2 传参
+
+
+#一般函数只能引用外部变量，不能修改，但是可以借用global关键字去强制修改
 
 #闭包，就是函数内定义并返回内部函数，可以引用父函数的局部变量，跟js差不多，没什么大不了的
 
@@ -274,7 +293,7 @@ def a(y):
     retrun x + y
   return closure
 
-i = a(5)(6) #=> 11 
+i = a(5)(6) #=> 11
 
 # lambda表达式
 def add(a, b):
@@ -294,9 +313,154 @@ list( map(lambda a : a * 2, [1, 2, 3]) )
 
 #fromkeys() 创建并赋值，不赋值时是None
 a = {}
-a.fromkeys(("a", "b", "c"), 1) #=>{a: 1, b: 1, c: 1} #懒得打一堆双引号，知道就好 
+a.fromkeys(("a", "b", "c"), 1) #=>{a: 1, b: 1, c: 1} #懒得打一堆双引号，知道就好
 
 #keys(), values(), items()顾名思义啦
 
 #他妈用[]去拿不存在的key时会抛错，要用get()去拿才会不存在时返回None
 
+#也可以用in判断键值是否在字典里
+
+#用 {}.clear去清空字典，不要用指向新的{}这种方式
+
+#可以用pop(key)去拿走一个键值，popitem()随意拿出一个
+
+#update可以更新某一项 {a: 1}.update(a=3)
+
+# Set 集合
+set = { 1, 3, ,3 ,4 }
+#=> {3, 1, 4}  #=> 无序唯一
+
+list(set([1,3,3,4]) #帮数组去重，但是顺序会乱掉
+
+# set 可以遍历，add remove in not in
+
+# frozenset() 可以把set冻结起来不可变
+
+######### File读取 ############
+f = open("record", mode="rw")
+f.read
+f.read(size = -1)
+f.readline
+f.close
+
+#文件系统函数们
+getcwd() #拿当前目录
+chdir() #换工作目录
+listdir(path = '') #例如给到的目录的文件名
+mkdir() #创建目录
+makedirs(path)
+remove(path) # delete file
+rmdir(path)
+removedirs()
+rename(old, name)
+system(shell command) #执行系统命令
+os.curdir
+os.pardir
+os.sep
+os.linesep
+os.name
+
+#os.path模块里面还有一些实用的方法
+basename(path) #单独返回文件名
+dirname(path) #单独返回目录名，去掉文件名
+join(path, path2, path3) #会将文件组拼在一起，像ruby File.join
+split(path) #分离目录层级
+splitext(path) #分离文件名和扩展名
+getsize(file) #返回文件大小
+getatime(file) #返回文件最近访问时间
+getctime(file) #返回创建时间
+getmtime(file) #返回修改时间
+#以下返回True或False, 主要用于判
+exists(path) #目录是否存在
+isabs(path) #是否绝对路径
+isdir(path) #是否目录
+isfile(path) #是否个文件
+islink(path) #是否存在并且是个符号链接
+ismount(path) #判断目录是否是个挂载点
+samefile(path1, path2) #path1 path2是指向同一个文件
+
+##！！ pickle 序列化保存python对象
+import pickle
+my_list = [123, 3.14, "xxxx"]
+pickle_file = open("shit.txt", mode="wb")
+pickle.dump(my_list, pickle_file)
+pickle_file.close()
+
+#读取
+import pickle
+
+pickle_file = open("shit.txt", mode="r")
+my_list = pickle.load(pickle_file)
+print(my_list)
+
+
+## 异常处理 Exception
+
+#try expect
+try:
+  f = open("noshit.txt")
+  print(f.read())
+  f.close
+expect OSError: #OSError是最高级的Expection
+  print("open error")
+
+#还可以跟多个expect, as reason可以输出出错详细
+try:
+  sum = 1 + "1"
+  f = open("noshit.txt")
+  print(f.read())
+  f.close()
+expect OSError as reason:
+  print("出错:" + str(reason))
+expect TypeError as reason:
+  print("类型出错:" + str(reason))
+
+#还有一种写法, expect (OSError, TypeError)
+
+#如果无法确定类型，就只写expect: 
+
+# raise 就是自己扔个错误往上抛
+
+# finally 就是其他处理异常的最终必会执行的语句
+
+##!!! 面向对象
+class Fucker:
+  color = "green"
+  def been_fucked(self):
+    print("aaaaaaaaa")
+
+要注意定义类里面的实例方法，要显式写参数里面的self
+
+class BallL
+  def setName(self, name):
+    self.name = name
+
+  def kick(self)
+    print("kick %s" % self.name )
+
+## 构造方法是 def __init__(self, ****):
+
+## 私有属性双下划綫
+
+class Person:
+  def __init__(self, name):
+    self.__name = name
+
+  def fuck(self):
+    print(self.__name)
+
+其实python的是伪私有变量, 外部还可以用 _类名__变量名 这样去直接访问私有变量
+p = Person(name = "shit")
+p_Person__name
+
+#继承 
+class Parent:
+  def hello(self):
+    print("parent method")
+
+class Child(Parent):
+  pass
+
+c = Child()
+c.hello()

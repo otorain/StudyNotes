@@ -308,6 +308,11 @@ curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | IEVMS_VERSIONS="
 打开virtualbox登陆
  password is “Password1″
 
+ 10.13.2装virtualbox 5.2.4的时候装唔到，关闭安全隐私限制
+ sudo spctl --master-disable
+
+ brew cask reinstall --force virtualbox --verbose --debug
+
 -------------------
 brew install the_silver_searcher
 比ack更快的东西

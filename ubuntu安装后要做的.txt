@@ -5,6 +5,23 @@ sudo passwd
 alt+shift 上 分别查看当前桌面有那些窗口
 alt+ctrl 小键盘0-9 当前窗口变更位置
 
+---------------------------------
+ssh 遇到invalid LC_ALL, LC_CTYPE or LANG
+
+sudo apt-get install locales-all
+
+or putting this directly into /etc/environment
+Code: Select all
+
+LANGUAGE = en_GB
+LC_ALL = en_GB
+LANG = en_GB
+LC_TYPE = en_GB
+
+or
+
+dpkg-reconfigure locales
+
 -----------------------------------
 设置emacs系统按键绑定
 gconf by running gconf-editor, and chang­ing the /desktop/gnome/interface/gtk_key_theme key to Emacs.
@@ -30,6 +47,8 @@ pdf软件: foxitreader Okular(不错的pdf阅读) Evince xpdf epdfview
 fcitx(输入法替换，选用) 
 
 remmina（远程桌面）
+
+tightvncserver vnc远程工具，方便mac管理桌面
 
 scrot shutter(截图软件)
 

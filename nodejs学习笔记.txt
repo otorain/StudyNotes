@@ -62,6 +62,42 @@ sudo n 0.12.1
 所以跑 npm install -g prettyjson加个 --verbose
 再export NODE_PATH=/path/to/node_modules
 
+###########
+nvm 方式安装
+
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
+装完查看一下 bashrc zshrc之类有没有配好
+
+command -v nvm #见到没报错证明装好
+
+nvm ls-remote
+
+nvm install node
+
+nvm run node --version
+
+nvm exec 4.2 node --version
+
+nvm which 5.0 #看看装在哪里
+
+各种lts的安装方式
+nvm install --lts / nvm install --lts=argon / nvm install 'lts/*' / nvm install lts/argon
+nvm uninstall --lts / nvm uninstall --lts=argon / nvm uninstall 'lts/*' / nvm uninstall lts/argon
+nvm use --lts / nvm use --lts=argon / nvm use 'lts/*' / nvm use lts/argon
+nvm exec --lts / nvm exec --lts=argon / nvm exec 'lts/*' / nvm exec lts/argon
+nvm run --lts / nvm run --lts=argon / nvm run 'lts/*' / nvm run lts/argon
+nvm ls-remote --lts / nvm ls-remote --lts=argon nvm ls-remote 'lts/*' / nvm ls-remote lts/argon
+nvm version-remote --lts / nvm version-remote --lts=argon / nvm version-remote 'lts/*' / nvm version-remote lts/argon
+
+
+#If you want to install a new version of Node.js and migrate npm packages from a previous version: 装新版本时把旧的npm包都拿过来的话
+nvm install node --reinstall-packages-from=node
+nvm install 6 --reinstall-packages-from=5
+nvm install v4.2 --reinstall-packages-from=iojs
+
+
+##########
+
 #语言
 1.创建一个http服务器
 varhttp = require('http');
