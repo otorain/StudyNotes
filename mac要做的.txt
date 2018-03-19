@@ -309,7 +309,10 @@ curl -s https://raw.github.com/xdissent/ievms/master/ievms.sh | IEVMS_VERSIONS="
  password is “Password1″
 
  10.13.2装virtualbox 5.2.4的时候装唔到，关闭安全隐私限制
+
  sudo spctl --master-disable
+ sudo spctl --master-disable
+ 重启系统设置 安全隐私 通用， 安装来源设成任何来源
 
  brew cask reinstall --force virtualbox --verbose --debug
 

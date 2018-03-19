@@ -2827,6 +2827,13 @@ git remote show origin #顯示遠端 server 的 branch
 git remote add foobar git:// #可以新增別的 repo. 位置，於是 pull 的時候就可以指定要從哪一個遠端更新回來。
 git push origin :foobar #刪除遠端的 branch
 
+
+#为单独的本地分支关联线上分支，就不用每次拉和推时后面都要明确写明库和分支了
+git branch --set-upstream debug origin/debug  
+新版本这样写:
+在本地的debug分支下
+git branch --set-upstream-to=origin/debug
+
 #github官方例子#
 Global setup:
   git config --global user.name "JAS"

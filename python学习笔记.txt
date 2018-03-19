@@ -1,3 +1,6 @@
+python打开一个简单的http服务server
+python -m SimpleHTTPServer
+
 ## 使用pyenv管理系统的python环境
 brew install pyenv
 
@@ -40,6 +43,26 @@ pyenv deactivate #退出虚拟环境，回到系统环境
 删除
 pyenv uninstall my-virtual-env
 rm -rf ~/.pyenv/versions/env-name  # 或者删除其真实目录
+
+#安装时遇到zlib openssl 之类错误，这样解决
+# ~/.env-exporter
+# about zlib
+export CFLAGS="-I$(xcrun --show-sdk-path)/usr/include"
+# about readline
+export CFLAGS="-I$(brew --prefix readline)/include $CFLAGS"
+export LDFLAGS="-L$(brew --prefix readline)/lib $LDFLAGS"
+# about openssl
+export CFLAGS="-I$(brew --prefix openssl)/include $CFLAGS"
+export LDFLAGS="-L$(brew --prefix openssl)/lib $LDFLAGS"
+# about SQLite (maybe not necessary)
+export CFLAGS="-I$(brew --prefix sqlite)/include $CFLAGS"
+export LDFLAGS="-L$(brew --prefix sqlite)/lib $LDFLAGS"
+
+every time I want install a Python:
+> source ~/.env-exporter
+
+
+-------------------
 
 ## idel里输入
 dir(__builtins__) #查看内置函数列表
