@@ -978,6 +978,16 @@ l)group having
 #小复习,group by用于聚组函数: select deptno,sum(money) from table group by deptno;
 #having用于作为gourp by后的条件筛选 ：select deptno,sum(money) from table group by deptno having money>2000;
 
+TagRelation.group(:tag_id).where(target_type: "Article").order("count_all desc").limit(5).count
+#SELECT  COUNT(*) AS count_all, "tag_relations"."tag_id" AS tag_relations_tag_id FROM "tag_relations" WHERE "tag_relations"."target_type" = $1 GROUP BY "tag_relations"."tag_id" ORDER BY count_all desc LIMIT $2  [["target_type", "Article"], ["LIMIT", 5]]"
+#=> {6=>5, 2=>4, 7=>3, 5=>2}
+
+
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)").having("sum(price) > ?", 100)
+#This returns the date and total price for each order object, grouped by the day they were ordered and where the price is more than $100.
+
+
 m)find_or_create_by#!!!
 有时候要插入时先看看数据库有没有，有就更新，没有就create，可以使用这个
 # u = User.find_or_create_by_name_and_password_and_email(name:'jas',password:'fuck',email:'gmail') 一个例子
@@ -3359,6 +3369,7 @@ $ rails c
 >> {nested: {one: 1}}.deep_merge(nested: {two: 2})
 #=> {:nested=>{:one=>1, :two=>2}}
 
+去掉params里没用的东西
 8)hash的except，取反
 $ rails c
 >> params = {controller: "home", action: "index", from: "Google"}
@@ -5118,4 +5129,78 @@ Object.const_get(type.to_s.camelize)
 ----------------
 前端微信验证签名失败，很有可能是https没有自动调回的问题, 一个字符的问题
 
+
+----------------
+ActionCable 实战
+正式环境nginx部署
+server {
+  server_name ruby-china.org;
+
+  location /cable {
+    proxy_redirect     off;
+    proxy_set_header   Host $host;
+    proxy_set_header   X-Forwarded-Host $host;
+    proxy_set_header   X-Forwarded-Server $host;
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+    proxy_buffering    on;
+    proxy_http_version 1.1;
+    proxy_set_header   Upgrade $http_upgrade;
+    proxy_set_header   Connection "Upgrade";
+    proxy_set_header   X-Forwarded-Proto https;
+    proxy_pass         http://127.0.0.1:7001;
+    gzip off;
+  }
+}
+
+
+ActionCable 独立部署在单独的 Puma 进程上面，避免堵塞。另外，还有好多细节也会影响性能的，比如前端需要确保用户关闭页面或退出对应功能的时候，一定会 Unsubscribe 关掉连接，不然后端会保持很多 ActionCable Connection 无法释放。
+
+如果跑上一会就断开连接, 可能是origins影响浏览器安全策略的问题
+试试在config/environments/production.rb里修改配置：
+
+# Action Cable endpoint configuration
+config.action_cable.url = '/cable'
+config.action_cable.allowed_request_origins = [ 'http://ruby-china.org' ]
+
+正式环境linux可能还会有 ulimit限制了连接数的问题
+$ ulimit -Sn
+1024
+$ ulimit -Hn
+4096
+
+sudo vi /etc/security/limits.conf
+
+[用户名deploy] soft nofile 4096
+[用户名deploy] hard nofile 8192
+
+重新登录重启下
+
+* 目前 ActionCable 服务无法自动重新载入新代码，所以开发环境你改了需要硬重启，同理生产环境也是一样，需要硬重启；
+* Puma, Thin, Unicorn, Passenger 都是可以跑的，没必要非得是 Thread 的，因为 ActionCable 用了 Rack socket hijacking API 来控制连接；
+* 官方文档里面建议要独立部署 ActionCable 的进程（之前我看到有，现在那段被去掉了），最新的文档里面说如果是 Puma 或 Thin 可以让 ActionCable 和网站主进程在一起；
+* 要注意修改 config/environments/production.rb 里面的: config.action_cable.allowed_request_origins = ['http://youhostname.com'] 允许你的网站访问 ActionCable，不然连接会被拒绝，这里要注意要带上 http:// 或 https://;
+* 在 WebSockets 没法访问 Rails 的 Session，不过 Cookie 是可以的，所以如果你需要在 Channel 里面读取用户信息的话，请用 cookies.signed[:user_id] 的方式；
+* WEBrick 没法跑，因为它不支持 Rack socket hijacking AP，不过这个不用担心，Rails 5 默认开发环境已经是 Puma 了。
+* robots.txt 屏蔽搜索引擎!
+
+独立部署ActionCable的方式
+# cable/config.ru
+require ::File.expand_path('../../config/environment', __FILE__)
+Rails.application.eager_load!
+
+run ActionCable.server
+
+新建一个bin/cable
+bundle exec puma -p 28080 cable/config.ru
+
+---------------
+
+searchkick elasticsearch要删除所有的index重来, 用curl -X DELETE 'http://localhost:9200/_all'
+
+----------------
+distinct查询去重
+
+TagRelation.select("DISTINCT ( target_id )").where(tag_id: tag_ids, target_type: target_type, state: "show").order("target_id desc").page(page).per(per)<Paste>
+TagRelation.select("DISTINCT ( target_id )").count #=> {tag_id => count, tag_id2 => count2}
 

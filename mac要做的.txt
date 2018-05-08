@@ -459,3 +459,25 @@ build variables:
 LDFLAGS:  -L/usr/local/opt/openssl/lib
 CPPFLAGS: -I/usr/local/opt/openssl/include
 
+------------
+shadowsocks iterm terminal 翻墙
+装shadowsocksX-ng, 配置http代理服务器
+zshrc 或 bashrc加两个方法
+
+function proxy_off(){
+  unset http_proxy
+  unset https_proxy
+  echo -e "已关闭代理"
+
+}
+function proxy_on() {
+  export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
+  export http_proxy="http://127.0.0.1:1087"
+  export https_proxy=$http_proxy
+  echo -e "已开启代理"
+
+}
+
+之后就可以打开关闭
+------------
+

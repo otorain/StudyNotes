@@ -1,4 +1,8 @@
-
+neovim 用vimrc
+set runtimepath^=~/.vim runtimepath+=~/.vim/after
+let &packpath = &runtimepath
+source ~/.vimrc
+--------
 i 插入
 a 添加
 
