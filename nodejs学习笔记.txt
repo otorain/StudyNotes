@@ -776,3 +776,15 @@ $ nodemon --exec npm run babel-node -- path/to/script.js
 webstorm里的run设置
 Node Iterpreter: /usr/local/bin/node
 Node Parameters: /user/local/bin/nodemon --exec npm run babel-node -- 
+
+--------------------------------------------------
+妈比eslint默认不能写debugger, 特别vsc里开了fix on save，直接擦除掉，除了配置那些烦人的配置外，可以在简单点在代码
+debugger; // eslint-disable-line
+
+
+-----------------------------
+调试现在是 npm inspect xxxx.js， 可以在某些地方设debugger断点， 需要拿到变量交互数据的时候，键入repl， 就可以在当前行查看数据
+
+
+-----------------------------
+node 10.1.0开始，加入--experimental-repl-await运行参数，可以让repl直接支持await

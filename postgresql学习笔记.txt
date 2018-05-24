@@ -11,6 +11,13 @@ find /Application/ -name pg_conf, 可以找到以下项目
 #rails db:create 说权限不足时
 ALTER USER scott CREATEDB; #相当于给用户赋值创建db权限
 
+#创建数据库
+CREATE DATABASE exampledb OWNER dbuser;
+
+CREATE USER scott WITH PASSWORD 'tiger';
+CREATE DATABASE elephant_server_staging OWNER scott;
+GRANT ALL PRIVILEGES ON DATABASE elephant_server_staging to scott;
+
 #已存在db时
 GRANT ALL PRIVILEGES ON  DATABASE database_name to new_user;
 ALTER DATABASE database_name owner to new_user;
@@ -19,6 +26,20 @@ ALTER DATABASE database_name owner to new_user;
 
 
 \l查看所有数据库
+
+\c 数据库名 链接到数据库
+
+\d 表名 查看表格结构
+
+\h：查看SQL命令的解释，比如\h select。
+\?：查看psql命令列表。
+\l：列出所有数据库。
+\c [database_name]：连接其他数据库。
+\d：列出当前数据库的所有表格。
+\d [table_name]：列出某一张表格的结构。
+\du：列出所有用户。
+\e：打开文本编辑器。
+\conninfo：列出当前数据库和连接的信息。
 
 select pg_database_size('playboy');    //查看playboy数据库的大小  
 

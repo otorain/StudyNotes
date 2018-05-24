@@ -5204,3 +5204,6 @@ distinct查询去重
 TagRelation.select("DISTINCT ( target_id )").where(tag_id: tag_ids, target_type: target_type, state: "show").order("target_id desc").page(page).per(per)<Paste>
 TagRelation.select("DISTINCT ( target_id )").count #=> {tag_id => count, tag_id2 => count2}
 
+----------------
+!!!!查询where语句组合成的sql语句 to_sql
+User.where.not(name: "shit").to_sql

@@ -7476,6 +7476,10 @@ exports.sequelize = {
   }
 }
 
+!!!
+undo还可以指定返回到某一个文件
+sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
+
 把model文件都放在app/model, 约定
 user.js	=>  app.model.User
 person.js => 	app.model.Person
@@ -7546,6 +7550,7 @@ module.exports = app => {
     updated_at: DATE,
   });
 
+  //!!!!!!!!!!!!!要记得，下面的例子，关联 hasMany, belongsTo都要用这种Model.associate = function(){} 的写法！
   Post.associate = function() {
     app.model.Post.belongsTo(app.model.User, { as: 'user' });
   }
@@ -8000,6 +8005,13 @@ sequelize.sync()和在定义model时 { force: true }参数一样，如果遇到�
 	Foo.method1()
 	Foo.build().method2()
 
+  新版里增加类方法或者实例方法，直接用es6标准就好
+  User.classMethod = async function(argument) {
+    // body...
+  }
+
+  User.prototype.instanceMethod =  blahblahblah...
+
 	//实例方法里this就可以访问到字段
 	var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING  }, {
 		instanceMethods: {
@@ -8091,7 +8103,7 @@ sequelize.sync()和在定义model时 { force: true }参数一样，如果遇到�
 		// project.title will contain the name of the project
 	})
 
-	//findOrCreate, 对应first_or_create
+	//findOrCreate, 对应first_or_create, findOrBuild, 对应 first_or_initialize
 User
 	.findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
 	.spread(function(user, created) {
@@ -8225,6 +8237,51 @@ Project.findAll({
     }
   }
 })
+
+##新版Operator !!
+const Op = Sequelize.Op
+
+[Op.and]: {a: 5}           // AND (a = 5)
+[Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
+[Op.gt]: 6,                // > 6
+[Op.gte]: 6,               // >= 6
+[Op.lt]: 10,               // < 10
+[Op.lte]: 10,              // <= 10
+[Op.ne]: 20,               // != 20
+[Op.eq]: 3,                // = 3
+[Op.not]: true,            // IS NOT TRUE
+[Op.between]: [6, 10],     // BETWEEN 6 AND 10
+[Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
+[Op.in]: [1, 2],           // IN [1, 2]
+[Op.notIn]: [1, 2],        // NOT IN [1, 2]
+[Op.like]: '%hat',         // LIKE '%hat'
+[Op.notLike]: '%hat'       // NOT LIKE '%hat'
+[Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
+[Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
+[Op.regexp]: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
+[Op.notRegexp]: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
+[Op.iRegexp]: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
+[Op.notIRegexp]: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
+[Op.like]: { [Op.any]: ['cat', 'hat']}
+                       // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
+[Op.overlap]: [1, 2]       // && [1, 2] (PG array overlap operator)
+[Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
+[Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+[Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
+
+[Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+
+新版用法
+const Op = Sequelize.Op;
+Post.update({
+  updatedAt: null,
+}, {
+  where: {
+    deletedAt: {
+      [Op.ne]: null
+    }
+  }
+});
 
 //更复杂的filtering / or / not 
 Project.findOne({
@@ -9110,4 +9167,1058 @@ User.findById(1).then(function(user) {
 //有increment也有decrement
 --------------------------------------------------
 8)Relations / Assocation !!!
+后面的表述，User.hasOne(Project) //User是source, Project是target
 
+var User = this.sequelize.define('user', {/* attributes */})
+	, Company  = this.sequelize.define('company', {/* attributes */});
+
+User.belongsTo(Company); // Will add companyId to user
+var User = this.sequelize.define('user', {/* attributes */}, {underscored: true})
+	, Company  = this.sequelize.define('company', {
+		uuid: {
+			type: Sequelize.UUID,
+			primaryKey: true
+		}
+	});
+User.belongsTo(Company); // Will add company_uuid to user
+
+如果model定义的时候用了underscored: true, 那就不用驼峰标示法，另外company的primary_key id变了, 上面这种会生成company_uuid
+
+//可以用as去定义属于的model key_name
+User.belongsTo(UserRole, {as: 'role'}); // Adds roleId to user rather than userRoleId
+
+//可以重写foreignKey
+var User = this.sequelize.define('user', {/* attributes */})
+  , Company  = this.sequelize.define('company', {/* attributes */});
+
+User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
+
+//has_one情况
+var User = sequelize.define('user', {/* ... */})
+var Project = sequelize.define('project', {/* ... */})
+ 
+// One-way associations
+Project.hasOne(User)
+Project.hasOne(User, { foreignKey: 'initiator_id'  }) //这种会自动为user加个project_id
+
+/*
+Because Sequelize will use the model's name (first parameter of define) for
+the accessor methods, it is also possible to pass a special option to hasOne:
+*/
+
+Project.hasOne(User, { as: 'Initiator'  })
+// Now you will get Project#getInitiator and Project#setInitiator
+
+// Or let's define some self references
+var Person = sequelize.define('person', { /* ... */ })
+
+Person.hasOne(Person, {as: 'Father'})
+// this will add the attribute FatherId to Person
+
+// also possible:
+Person.hasOne(Person, {as: 'Father', foreignKey: 'DadId'}) //自关联
+// this will add the attribute DadId to Person
+
+// In both cases you will be able to do:
+Person#setFather //设好后可以用set 方法
+Person#getFather
+
+// If you need to join a table twice you can double join the same table
+Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
+Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
+
+Game.belongsTo(Team);
+
+//one to many, has many
+var User = sequelize.define('user', {/* ... */})
+var Project = sequelize.define('project', {/* ... */})
+ 
+// OK. Now things get more complicated (not really visible to the user :)).
+// // First let's define a hasMany association
+Project.hasMany(User, {as: 'Workers'})
+//这样添加后 project实例就有setWorker方法
+
+
+
+//source_key 把关联设到另一个column上
+var City = sequelize.define('city', { countryCode: Sequelize.STRING  });
+var Country = sequelize.define('country', { isoCode: Sequelize.STRING  });
+
+// Here we can connect countries and cities base on country code
+Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'}); //Country是source，设定关联时说明白用我的isoCode找到city里countryCode = 我的isoCode的那个
+City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'}); //City是target, foreignKey一样, targetKey是对应isoCode, 乱糟糟，最好不要这样配置啦
+
+
+//belongs to many， 通常用在中间表, Rails里是has_many + belongs_to 呀
+Project.belongsToMany(User, {through: 'UserProject'});
+User.belongsToMany(Project, {through: 'UserProject'});
+//auto sync会创建 UserProject表，里面有user_id, project_id
+//会创建这些方法, This will add methods getUsers, setUsers, addUser,addUsers to Project, and getProjects,  setProjects, addProject, and addProjects to User.
+
+//改名
+User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks', foreignKey: 'userId'  })
+Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks', foreignKey: 'projectId' })
+
+//otherKey用来设target的key
+User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks', foreignKey: 'userId', otherKey: 'projectId' })
+
+//也可以用自关联
+Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren'  })
+
+//手动自定义中间表 !!!! many_to_many
+User = sequelize.define('user', {})
+Project = sequelize.define('project', {})
+UserProjects = sequelize.define('userProjects', {
+	status: DataTypes.STRING
+})
+
+User.belongsToMany(Project, { through: UserProjects  })
+Project.belongsToMany(User, { through: UserProjects  })
+
+//增加关联的model中间表可以这样写，可以用add第二个参数传数据额外的参数
+user.addProject(project, { status: 'started'  })
+
+正常来说上面这个代码，会自动创建一条中间表记录，自动对应user_id和project_id。但不会定义primary_key??，所以primary_key还是要自定义一下...
+
+UserProjects = sequelize.define('userProjects', {
+	id: {
+				type: Sequelize.INTEGER,
+				primaryKey: true,
+				autoIncrement: true
+			
+	},
+		status: DataTypes.STRING
+
+})
+
+
+
+//association 里的 scoepe， 设好关系后会自动生成
+//例如有comment, image 和 post, comment属于commentable 多态的关联
+
+this.Comment = this.sequelize.define('comment', {
+	title: Sequelize.STRING,
+	commentable: Sequelize.STRING,
+	commentable_id: Sequelize.INTEGER
+}, {
+	instanceMethods: {
+		getItem: function() {
+			return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+		}
+	}
+});
+
+this.Post.hasMany(this.Comment, {
+	foreignKey: 'commentable_id',
+	constraints: false,
+	scope: {
+		commentable: 'post' //设定scope会自动拿post
+	}
+});
+this.Comment.belongsTo(this.Post, {
+	foreignKey: 'commentable_id',
+	constraints: false, //cancel掉引用
+	as: 'post'
+});
+
+this.Image.hasMany(this.Comment, {
+	foreignKey: 'commentable_id',
+	constraints: false,
+	scope: {
+		commentable: 'image'
+	}
+});
+this.Comment.belongsTo(this.Image, {
+	foreignKey: 'commentable_id',
+	constraints: false,
+	as: 'image'
+});
+
+所以有以下动态方法
+image.getComments()
+//SELECT * FROM comments WHERE commentable_id = 42 AND commentable = 'image';
+
+image.createComment({
+	title: 'Awesome!'
+})
+//INSERT INTO comments (title, commentable_id, commentable) VALUES ('Awesome!', 42, 'image');
+
+image.addComment(comment);
+//UPDATE comments SET commentable_id = 42, commentable = 'image'
+
+
+//下面也是多态例子, tag , 跟之前rails里just项目设计一样, 中间表属于 tag, 同时对打标签的各种model是多态
+ItemTag = sequelize.define('item_tag', {
+	tag_id: {
+		type: DataTypes.INTEGER,
+		unique: 'item_tag_taggable'
+	},
+	taggable: {
+		type: DataTypes.STRING,
+		unique: 'item_tag_taggable'
+	},
+	taggable_id: {
+		type: DataTypes.INTEGER,
+		unique: 'item_tag_taggable',
+		references: null
+	}
+});
+
+Tag = sequelize.define('tag', {
+	name: DataTypes.STRING
+});
+
+Post.belongsToMany(Tag, {
+	through: {
+		model: ItemTag,
+		unique: false,
+		scope: {
+			taggable: 'post'
+		}
+	},
+	foreignKey: 'taggable_id',
+	constraints: false
+});
+
+Tag.belongsToMany(Post, {
+	through: {
+		model: ItemTag,
+		unique: false
+	},
+	foreignKey: 'tag_id'
+});
+
+
+也可以指定别名, 或用scope限制tag的要求
+Post.hasMany(Tag, {
+	through: {
+		model: ItemTag,
+		unique: false,
+		scope: {
+			taggable: 'post'
+		}
+	},
+	scope: {
+		status: 'pending'
+
+	},
+	as: 'pendingTags',
+	foreignKey: 'taggable_id',
+	constraints: false
+});
+
+Post.getPendingTags();
+//constraints: false的意思是,taggable_id不能直接作为查询getTaggable()这样来获取model，因为他有可能是有很多其他类型的
+
+
+//Naming strategy 命名策略
+
+通常hasMany(User) 的类，会添加addUser setUser getUser这种方法, 可以用as去改变名称, 在单向例如hasOne 和 belongsTo的时候，as后面应该是单数，其他应该是复数，都跟rails一样啦。Sequelize有用一个叫 inflection 的库去处理单复数这些名字转换, 可以自由指定单复数，这样写
+
+User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks'  } })
+
+要注意的是，用了as，通常foreign_key也会变，最好自己显式指定一下
+所以像Invoice.belongsTo(Subscription, { as: 'TheSubscription'  })这种，sequelize会自动创建subscription_id和the_subscription_id,因为还没智能到知道你要找那个外键，所以记住，用as就要设外键，和rails一样
+
+//每次改完Association, 都要跑一次Sequelize.sync
+
+//Assciation Object, 关联实例的一些方便用法
+
+Project.belongsToMany(Task)
+Task.belongsToMany(Project)
+
+Project.create()...
+Task.create()...
+Task.create()...
+
+// save them... and then: 直接给多个数组
+project.setTasks([task1, task2]).then(function() {
+	// saved!
+})
+
+// ok, now they are saved... how do I get them later on? //返回数组
+project.getTasks().then(function(associatedTasks) {
+	// associatedTasks is an array of tasks
+})
+
+// You can also pass filters to the getter method.
+// They are equal to the options you can pass to a usual finder method. 条件查询
+project.getTasks({ where: 'id > 10'  }).then(function(tasks) {
+	// tasks with an id greater than 10 :)
+})
+
+// You can also only retrieve certain fields of a associated object. 只拿task的title和id
+project.getTasks({attributes: ['title']}).then(function(tasks) {
+	// retrieve tasks with the attributes "title" and "id"
+})
+
+// remove the association with task1
+project.setTasks([task2]).then(function(associatedTasks) { //关联只留下task2
+	// you will get task2 only
+})
+
+// remove 'em all
+project.setTasks([]).then(function(associatedTasks) { //把所有关联去掉
+	// you will get an empty array
+})
+
+// or remove 'em more directly
+project.removeTask(task1).then(function() { //删除task1
+	// it's gone
+})
+
+// and add 'em again
+project.addTask(task1).then(function() { //把task1又加回来
+	// it's back again
+})
+
+//project is associated with task1 and task2 反过来也行
+task2.setProject(null).then(function() {
+	// and it's gone
+})
+
+//中间表join table也可以指定只拿某些属性
+//This will select only name from the Projects table, and only status from the UserProjects table
+user.getProjects({ attributes: ['name'], joinTableAttributes: ['status'] })
+
+//有has方法去检查是否有关联
+// check if an object is one of associated ones:
+Project.create({ /* */  }).then(function(project) {
+	return User.create({ /* */  }).then(function(user) {
+		return project.hasUser(user).then(function(result) {
+			// result would be false
+			return project.addUser(user).then(function() {
+				return project.hasUser(user).then(function(result) {
+					// result would be true
+				})
+			})
+		})
+	})
+})
+
+// check if all associated objects are as expected:
+// let's assume we have already a project and two users
+project.setUsers([user1, user2]).then(function() {
+	return project.hasUsers([user1]);
+}).then(function(result) {
+	// result would be false
+	return project.hasUsers([user1, user2]);
+}).then(function(result) {
+	// result would be true
+})
+
+
+//ForeignKey相关
+var Task = this.sequelize.define('task', { title: Sequelize.STRING  })
+  , User = this.sequelize.define('user', { username: Sequelize.STRING  })
+ 
+User.hasMany(Task)
+Task.belongsTo(User)
+//不特别指定的时候, 默认会帮task创建user_id
+这是创建的语句
+CREATE TABLE IF NOT EXISTS `User` (
+	`id` INTEGER PRIMARY KEY,
+	`username` VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS `Task` (
+	`id` INTEGER PRIMARY KEY,
+	`title` VARCHAR(255),
+	`user_id` INTEGER REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+user_id是外键的时候，关联的user删除或者干嘛会自动变回null,看sql语句就知道了。hasOne和hasMany都是。cascade的意思是1:1 1:m的情况下user更新id这边user_id也会跟着变, 如果n:m的情况, 例如 user belongsToMany tags, 如果user删了，对应的中间表TagUser里的记录也会删除。默认的情况下1:1 1:m就是上面这种删除是set null, update cascade。 n:m的情况下就是删除 和 更新都是cascade
+
+设定constraints约束的意思是,创建表的时候一定要按照绝对的顺序。如果Task依赖User的user_id，就必须先创建User再创建Task表, 这个有时会造成环状无限调用的问题
+
+像这种
+var Document = this.sequelize.define('document', {
+	author: Sequelize.STRING
+
+})
+, Version = this.sequelize.define('version', {
+	timestamp: Sequelize.DATE
+})
+
+Document.hasMany(Version) // This adds document_id to version
+Document.belongsTo(Version, { as: 'Current', foreignKey: 'current_version_id' }) // This adds current_version_id to document
+
+这样就会报错,因为version属于document, 同时又拥有一个currentDocument
+  Cyclic dependency found. 'Document' is dependent of itself. Dependency Chain: Document -> Version => Document
+
+这种情况就要把constraints设为false
+Document.hasMany(Version)
+Document.belongsTo(Version, { as: 'Current', foreignKey: 'current_version_id', constraints: false })
+
+这样sync table的时候
+CREATE TABLE IF NOT EXISTS `Document` (
+	`id` INTEGER PRIMARY KEY,
+	`author` VARCHAR(255),
+	`current_version_id` INTEGER
+
+);
+CREATE TABLE IF NOT EXISTS `Version` (
+	`id` INTEGER PRIMARY KEY,
+	`timestamp` DATETIME,
+	`document_id` INTEGER REFERENCES `Document` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+//强制指定foreign_key 引用时不带constraints
+
+var Series, Trainer, Video
+ 
+// Series has a trainer_id=Trainer.id foreign reference key after we call Trainer.hasMany(series)
+Series = sequelize.define('series', {
+	title:        DataTypes.STRING,
+	sub_title:    DataTypes.STRING,
+	description:  DataTypes.TEXT,
+
+	// Set FK relationship (hasMany) with `Trainer`
+	trainer_id: {
+		type: DataTypes.INTEGER,
+		references: {
+			model: "trainers", //可以写表名String, 又可以写类名 model
+			key: "id"
+		}
+	}
+})
+
+Trainer = sequelize.define('trainer', {
+	first_name: DataTypes.STRING,
+	last_name:  DataTypes.STRING
+});
+
+// Video has a series_id=Series.id foreign reference key after we call Series.hasOne(Video)...
+Video = sequelize.define('video', {
+	title:        DataTypes.STRING,
+	sequence:     DataTypes.INTEGER,
+	description:  DataTypes.TEXT,
+
+	// set relationship (hasOne) with `Series`
+	series_id: {
+		type: DataTypes.INTEGER,
+		references: {
+			model: Series, // Can be both a string representing the table name, or a reference to the model
+			key:   "id"
+		}
+	}
+});
+
+Series.hasOne(Video);
+Trainer.hasMany(Series);
+
+
+//Association Creating
+var Product = this.sequelize.define('product', {
+	title: Sequelize.STRING
+
+});
+var User = this.sequelize.define('user', {
+	first_name: Sequelize.STRING,
+	last_name: Sequelize.STRING
+
+});
+
+Product.belongsTo(User);
+// Also works for `hasOne`
+
+这样就可以同时创建Product和User,并让他们关联
+return Product.create({
+	title: 'Chair',
+	user: {
+		first_name: 'Mick',
+		last_name: 'Broadstone'
+	}
+}, {
+	include: [ User  ]
+});
+
+as的情况
+var Creator = Product.belongsTo(User, {as: 'creator'});
+
+return Product.create({
+	title: 'Chair',
+	creator: {
+		first_name: 'Matt',
+		last_name: 'Hansen'
+	}
+}, {
+	include: [ Creator  ]
+});
+
+var Tag = this.sequelize.define('tag', {
+    name: Sequelize.STRING
+
+});
+
+//看看many的情况
+Product.hasMany(Tag);
+// Also works for `belongsToMany`.
+
+Product.create({
+	id: 1,
+	title: 'Chair',
+	tags: [ //同时创建多个
+		{ name: 'Alpha' },
+		{ name: 'Beta' }
+	]
+}, {
+	include: [ Tag  ]
+})
+
+as也一样
+var Categories = Product.hasMany(Tag, {as: 'categories'});
+
+Product.create({
+	id: 1,
+	title: 'Chair',
+	categories: [
+		{id: 1, name: 'Alpha'},
+		{id: 2, name: 'Beta'}
+	]
+}, {
+	include: [{
+		model: Categories,
+		as: 'categories'
+	}]
+})
+
+--------------------------------------------------
+9) callback hook, 各种after before的钩子吧
+
+有这些钩子,按顺序
+(1)
+  beforeBulkCreate(instances, options, fn)
+  beforeBulkDestroy(options, fn)
+  beforeBulkUpdate(options, fn)
+(2)
+  beforeValidate(instance, options, fn)
+(-)
+  validate
+(3)
+  afterValidate(instance, options, fn)
+  - or -
+    validationFailed(instance, options, error, fn)
+(4)
+  beforeCreate(instance, options, fn)
+  beforeDestroy(instance, options, fn)
+  beforeUpdate(instance, options, fn)
+(-)
+  create
+  destroy
+  update
+(5)
+  afterCreate(instance, options, fn)
+  afterDestroy(instance, options, fn)
+  afterUpdate(instance, options, fn)
+(6)
+  afterBulkCreate(instances, options, fn)
+  afterBulkDestroy(options, fn)
+  afterBulkUpdate(options, fn)
+
+加钩子的三种写法
+// Method 1 via the .define() method
+var User = sequelize.define('user', {
+	username: DataTypes.STRING,
+	mood: {
+		type: DataTypes.ENUM, //enum的写法 !!!!!
+		values: ['happy', 'sad', 'neutral']
+	}
+}, {
+	hooks: {
+		beforeValidate: function(user, options) {
+			user.mood = 'happy'
+		},
+		afterValidate: function(user, options) {
+			user.username = 'Toni'
+		}
+	}
+})
+
+// Method 2 via the .hook() method
+User.hook('beforeValidate', function(user, options) {
+	user.mood = 'happy'
+})
+
+User.hook('afterValidate', function(user, options) {
+	return sequelize.Promise.reject("I'm afraid I can't let you do that!")
+})
+
+// Method 3 via the direct method
+User.beforeCreate(function(user, options) {
+	return hashPassword(user.password).then(function (hashedPw) {
+		user.password = hashedPw;
+	});
+})
+
+User.afterValidate('myHookAfter', function(user, options, fn) {
+	user.username = 'Toni'
+})
+
+
+删除hook, 不知道有什么用
+var Book = sequelize.define('book', {
+    title: DataTypes.STRING
+})
+
+Book.addHook('afterCreate', 'notifyUsers', function(book, options) {
+	//
+})
+
+Book.removeHook('afterCreate', 'notifyUsers')
+
+
+
+全局default hook，所有model都会继承
+var sequelize = new Sequelize(..., {
+  define: {
+    hooks: {
+      beforeCreate: function () {
+        //             
+      }
+    }
+  }
+});
+
+
+但是default全局hook会被model的单个hook给覆盖...
+var User = sequelize.define('user');
+var Project = sequelize.define('project', {}, {
+  hooks: {
+    beforeCreate: function () {
+      //         
+    }
+  }
+});
+
+User.create() // Runs the global hook
+Project.create() // Runs its own hook (because the global hook is overwritten)
+
+全局持久premanent hook ,这种model有否定义beforeCreate都会执行
+sequelize.addHook('beforeCreate', function () {
+  // Do stuff
+});
+
+要注意是local hook永远会在global hook之前执行
+
+
+//Instane Hook
+以下这些hook当你在修改一个model时无论如何都会跑
+beforeValidate
+afterValidate or validationFailed
+beforeCreate / beforeUpdate  / beforeDestroy
+afterCreate / afterUpdate / afterDestroy
+
+//Example
+// ...define ...
+User.beforeCreate(function(user) {
+  if (user.accessLevel > 10 && user.username !== "Boss") {
+    throw new Error("You can't grant this user an access level above 10!")
+  }
+})
+
+User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
+  console.log(err) // You can't grant this user an access level above 10! 报错
+})
+
+//Model Class层面的hook , 例如操作bulkCreate, updaet , destroy批量处理一批数据的时候
+这些hook都会执行
+beforeBulkCreate / beforeBulkUpdate / beforeBulkDestroy
+afterBulkCreate / afterBulkUpdate / afterBulkDestroy
+
+如果想中间影响到的每个model都执行一次自己的callback, individualHooks: true 设这个
+Model.destroy({ where: {accessLevel: 0}, individualHooks: true})
+// Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
+
+Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: true})
+// Will select all records that are about to be updated and emit before- + after- Update on each instance
+
+根据类型不一样，可能给到hook的参数会不同, 这个限制得比较死，避免使用，Example
+Model.beforeBulkCreate(function(records, fields) {
+  // records = the first argument sent to .bulkCreate
+  // fields = the second argument sent to .bulkCreate
+})
+
+Model.bulkCreate([
+  {username: 'Toni'}, // part of records argument
+  {username: 'Tobi'} // part of records argument
+], ['username'] /* part of fields argument */)
+
+Model.beforeBulkUpdate(function(attributes, where) {
+  // attributes = first argument sent to Model.update
+  // where = second argument sent to Model.update
+})
+
+Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
+
+Model.beforeBulkDestroy(function(whereClause) {
+  // whereClause = first argument sent to Model.destroy
+})
+
+Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
+
+//updatesOnDuplicate
+// Bulk updating existing users with updatesOnDuplicate option
+Users.bulkCreate([{ id: 1, isMemeber: true}, 
+                 { id: 2, isMember: false}], 
+                 { updatesOnDuplicate: ['isMember']})
+
+User.beforeBulkCreate(function (users, options) {
+  users.forEach(function (user) {
+    if (user.isMember) {
+      user.memberSince = new Date()
+    }
+  })
+
+  // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
+  // saved to the database
+  options.updatesOnDuplicate.push('memberSince')
+})
+
+//association hook
+关联状态的时候, add/set会调起关联model的 beforeUpdate/afterUpdate, 但是不会自动调用 beforeDestroy afterDestroy, 除非加上onDelete: 'cascade' 和 hooks: true
+var Projects = sequelize.define('projects', {
+  title: DataTypes.STRING
+})
+
+var Tasks = sequelize.define('tasks', {
+  title: DataTypes.STRING
+})
+
+Projects.hasMany(Tasks, { onDelete: 'cascade', hooks: true })
+Tasks.belongsTo(Projects)
+
+然后会有如下url
+DELETE FROM `table` WHERE associatedIdentifier = associatedIdentifier.primaryKey
+
+如果加了hooks: true之后，优先跑的是bulk的hook， 如果要一条条跑，remove里加参数{individualHooks: true}, 会先把一条条关联model查出来，删除跑hook
+
+
+//transaction相关的hook
+// Here we use the promise-style of async hooks rather than
+// the callback.
+User.hook('afterCreate', function(user, options) {
+  // 'transaction' will be available in options.transaction
+
+  // This operation will be part of the same transaction as the
+  // original User.create call.
+  return User.update({
+    mood: 'sad'
+  }, {
+    where: {
+      id: user.id
+    },
+    transaction: options.transaction //这里的options.transaction就是下面t传递过来的transaction
+  });
+});
+
+
+sequelize.transaction(function(t) {
+  User.create({
+    username: 'someguy',
+    mood: 'happy',
+    transaction: t //这里会把transaction传递下去
+  });
+});
+
+这些要注意的是，如果上面的User.update不把transaction参数设好，会变成什么操作都没有
+
+要注意官方推荐，在hook里如果要改到一些需要持久化数据的时候, always add  { transaction: options.transaction }
+--------------------------------------------------
+9) transaction
+用sequelize.transaction去包装一笔事务，不需要显式的调t.commit() 或 t.rollback，只要事务里的各种promise都resolve就会自动commit
+
+return sequelize.transaction(function (t) {
+
+  // chain all your queries here. make sure you return them.
+  return User.create({
+    firstName: 'Abraham',
+    lastName: 'Lincoln'
+  }, {transaction: t}).then(function (user) {
+    return user.setShooter({
+      firstName: 'John',
+      lastName: 'Boothe'
+    }, {transaction: t});
+  });
+
+}).then(function (result) {
+  // Transaction has been committed
+  // result is whatever the result of the promise chain returned to the transaction callback
+}).catch(function (err) {
+  // Transaction has been rolled back
+  // err is whatever rejected the promise chain returned to the transaction callback
+});
+
+如果不想每次显式存 transaction: t的参数，可以装cls
+var cls = require('continuation-local-storage'),
+namespace = cls.createNamespace('my-very-own-namespace'); //配好namespace
+
+var Sequelize = require('sequelize');
+Sequelize.cls = namespace;
+
+new Sequelize(....); //这样下面的代码都不用写，感觉没鸟用
+
+可以用嵌套的方式控制并发时使用分离的事务
+sequelize.transaction(function (t1) {
+  return sequelize.transaction(function (t2) {
+    // With CLS enable, queries here will by default use t2
+    // Pass in the `transaction` option to define/alter the transaction they belong to.
+    return Promise.all([
+        User.create({ name: 'Bob' }, { transaction: null }),
+        User.create({ name: 'Mallory' }, { transaction: t1 }),
+        User.create({ name: 'John' }) // this would default to t2 有cls的话这里用的默认t2
+    ]);
+  });
+});
+
+可以指定事务类型，有如下选项
+Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED // "READ UNCOMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED // "READ COMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ  // "REPEATABLE READ" //默认
+Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE // "SERIALIZABLE"
+
+使用
+return sequelize.transaction({
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+  }, function (t) {
+
+});
+
+Unmanaged Transaction, 这东西是这事务一定要commit或rollback，不然就hang住等到超时报错
+
+return sequelize.transaction().then(function (t) { //这样用，在then里的方法用
+  return User.create({
+    firstName: 'Homer',
+    lastName: 'Simpson'
+  }, {transaction: t}).then(function (user) {
+    return user.addSibling({
+      firstName: 'Lisa',
+      lastName: 'Simpson'
+    }, {transaction: t});
+  }).then(function () {
+    return t.commit(); //要显式地去commit
+  }).catch(function (err) {
+    return t.rollback();//或rollback
+  });
+});
+
+
+Transaction的Options, 第一个参数是可以传很多东西配置
+例如, sequelize({..options}, function(t){ .. }), options里
+{
+  autocommit: true,
+  isolationLevel: 'REPEATABLE_READ',
+  deferrable: 'NOT DEFERRABLE' // implicit default of postgres
+}
+
+--------------------------------------------------
+10) Raw Query，直接执行sql
+sequelize.query("UPDATE users SET y = 42 WHERE x = 12").spread(function(results, metadata) {
+  // Results will be an empty array and metadata will contain the number of affected rows.
+})
+
+sequelize.query("SELECT * FROM `users`", { type: sequelize.QueryTypes.SELECT})
+  .then(function(users) {
+    // We don't need spread here, since only the results will be returned for select queries
+  })
+
+// Callee is the model definition. This allows you to easily map a query to a predefined model 指定model的方式
+sequelize.query('SELECT * FROM projects', { model: Projects }).then(function(projects){
+  // Each record will now be a instance of Project
+})
+
+//replacement 防注入
+sequelize.query('SELECT * FROM projects WHERE status = ?',
+  { replacements: ['active'], type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+
+sequelize.query('SELECT * FROM projects WHERE status = :status ',
+  { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+
+sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $1',
+  { bind: ['active'], type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+
+sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $status',
+  { bind: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
+).then(function(projects) {
+  console.log(projects)
+})
+
+--------------------------------------------------
+11) Migration !
+sequelize-cli提供如下命令(egg下用egg-sequelize), yarn run egg-sequelize
+
+$ sequelize db:migrate        # Run pending migrations.
+$ sequelize db:migrate:undo   # Revert the last migration run.
+$ sequelize help              # Display this help text.
+$ sequelize init              # Initializes the project.
+$ sequelize migration:create  # Generates a new migration file.
+$ sequelize version           # Prints the version number.
+
+用help可以看到更详细的用法
+$ sequelize help:init
+$ sequelize help:db:migrate
+$ sequelize help:db:migrate:undo
+
+#skeleton
+所有migrations文件都要放在项目根目录migrations
+
+//一般文件结构
+module.exports = {
+  up: function(queryInterface, Sequelize) {
+    // logic for transforming into the new state
+  },
+ 
+  down: function(queryInterface, Sequelize) {
+    // logic for reverting the changes
+  }
+}
+
+queryInterface是可以用来修改数据库的, Sequelize参数里面包含STRING啊INTEGER之类的类型,up down返回promise
+
+module.exports = {
+  up: function(queryInterface, Sequelize) {
+    return queryInterface.dropAllTables(); //......删所有的table
+  }
+}
+
+## createTable, 第二个参数跟在model里定义一撚样
+
+queryInterface.createTable(
+  'nameOfTheNewTable',
+  {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    createdAt: {
+      type: Sequelize.DATE
+    },
+    updatedAt: {
+      type: Sequelize.DATE
+    },
+    attr1: Sequelize.STRING,
+    attr2: Sequelize.INTEGER,
+    attr3: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
+    },
+    //foreign key usage
+    attr4: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: 'another_table_name',
+            key: 'id'
+        },
+        onUpdate: 'cascade',
+        onDelete: 'cascade'
+    }
+  },
+  {
+    engine: 'MYISAM', // default: 'InnoDB'
+    charset: 'latin1' // default: null
+  }
+)
+
+## dropTable(tableName, options)
+queryInterface.dropTable('nameOfTheExistingTable')
+
+## dropAllTables(options) 用来都是傻的
+
+## renameTable(before, after, options)
+
+## showAllTables(options) 用在migration文件?? excuse me?
+queryInterface.showAllTables().then(function(tableNames) {})
+
+## describeTable(tableName, options) 会返回这个table的所有信息
+
+queryInterface.describeTable('Person').then(function(attributes) {
+  /*
+    attributes will be something like:
+ 
+    {
+      name: {
+        type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
+        allowNull:    true,
+        defaultValue: null
+      },
+      isBetaMember: {
+        type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
+        allowNull:    false,
+        defaultValue: false
+      }
+    }
+  */
+})
+
+
+## addColumn(tableName, attributeName, dataTypeOrOptions, options) 这个常用增加列
+
+queryInterface.addColumn(
+  'nameOfAnExistingTable',
+  'nameOfTheNewAttribute',
+  Sequelize.STRING
+)
+ 
+// or
+ 
+queryInterface.addColumn(
+  'nameOfAnExistingTable',
+  'nameOfTheNewAttribute',
+  {
+    type: Sequelize.STRING,
+    allowNull: false
+  }
+)
+
+## removeColumn(tableName, attributeName, options) 删除列
+queryInterface.removeColumn('Person', 'signature')
+
+## changeColumn(tableName, attributeName, dataTypeOrOptions, options) 这个重要 ,注意要完整描述好新类型
+queryInterface.changeColumn(
+  'nameOfAnExistingTable',
+  'nameOfAnExistingAttribute',
+  {
+    type: Sequelize.FLOAT,
+    allowNull: false,
+    defaultValue: 0.0
+  }
+)
+
+## renameColumn(tableName, attrNameBefore, attrNameAfter, options)
+queryInterface.renameColumn('Person', 'signature', 'sig') 
+
+## addIndex(tableName, attributes, options)
+// This example will create the index person_firstname_lastname
+queryInterface.addIndex('Person', ['firstname', 'lastname'])
+
+// This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
+// Possible options:
+// - indicesType: UNIQUE|FULLTEXT|SPATIAL
+// - indexName: The name of the index. Default is __
+// - parser: For FULLTEXT columns set your parser
+// - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
+// - logging: A function that receives the sql query, e.g. console.log
+queryInterface.addIndex(
+  'Person',
+  ['firstname', 'lastname'],
+  {
+    indexName: 'SuperDuperIndex',
+    indicesType: 'UNIQUE'
+  }
+)
+
+## removeIndex(tableName, indexNameOrAttributes, options)
+queryInterface.removeIndex('Person', 'SuperDuperIndex')
+// or
+queryInterface.removeIndex('Person', ['firstname', 'lastname'])
