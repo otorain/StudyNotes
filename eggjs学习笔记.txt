@@ -8238,7 +8238,7 @@ Project.findAll({
   }
 })
 
-##新版Operator !!
+##新版Operator !! where查询条件语句 operator where symbol
 const Op = Sequelize.Op
 
 [Op.and]: {a: 5}           // AND (a = 5)
@@ -10222,3 +10222,87 @@ queryInterface.addIndex(
 queryInterface.removeIndex('Person', 'SuperDuperIndex')
 // or
 queryInterface.removeIndex('Person', ['firstname', 'lastname'])
+
+----------------------------
+类似Rails的pluck 再uniq
+shows = await app.model.Show.findAll({attributes: ['film_id'], group: ['film_id']})
+这样拿出来还是会有show，但是已经按film_id group过
+
+---------------------------
+裸sql，手写sql
+
+sequelize.query('sql goes here', null, { raw: plain }).success(function(data){
+  console.log(data)
+})
+
+
+---------------------------
+分页的蛋疼写法: 
+result =   await Show.findAndCountAll({
+    where: {...},
+    limit: 10, //per
+    offset: 250, //per * page
+  });  //findAndCountAll 返回 count: 符合查询条件的总数, rows: models
+
+total_pages = Math.ceil( result.count / per )
+offset = limit * (page - 1);
+
+
+------------------------
+egg 在prod环境下(自己搞的staging)默认 日志是在 $HOME目录, 更多的运行信息可以查 run/application.json
+
+
+await 使用transaction的方式
+let transaction;    
+
+try {
+  // get transaction
+  transaction = await sequelize.transaction();
+
+  // step 1
+  await Model.destroy({where: {id}, transaction});
+
+  // step 2
+  await Model.create({}, {transaction});
+
+  // commit
+  await transaction.commit();
+
+} catch (err) {
+  // Rollback transaction if any errors were encountered
+  await transaction.rollback();
+}
+
+------------------------
+切记Sequelize BigInt出来的是 String
+
+---------------------
+定时任务 0 0  21 * * *
+这种格式可以用cron parser去测试
+var parser = require('cron-parser');
+
+try {
+  var interval = parser.parseExpression('*/2 * * * *');
+
+  console.log('Date: ', interval.next().toString()); // Sat Dec 29 2012 00:42:00 GMT+0200 (EET)
+  console.log('Date: ', interval.next().toString()); // Sat Dec 29 2012 00:44:00 GMT+0200 (EET)
+
+  console.log('Date: ', interval.prev().toString()); // Sat Dec 29 2012 00:42:00 GMT+0200 (EET)
+  console.log('Date: ', interval.prev().toString()); // Sat Dec 29 2012 00:40:00 GMT+0200 (EET)
+} catch (err) {
+  console.log('Error: ' + err.message);
+}
+
+每五分钟执行  */5 * * * *
+
+每小时执行     0 * * * *
+
+每天执行        0 0 * * *
+
+每周执行       0 0 * * 0
+
+每月执行        0 0 1 * *
+
+每年执行       0 0 1 1 *
+
+

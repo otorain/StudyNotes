@@ -5207,3 +5207,7 @@ TagRelation.select("DISTINCT ( target_id )").count #=> {tag_id => count, tag_id2
 ----------------
 !!!!查询where语句组合成的sql语句 to_sql
 User.where.not(name: "shit").to_sql
+
+----------------
+  5.x版本开始, 开发环境要手动开开缓存
+rails dev:cache
