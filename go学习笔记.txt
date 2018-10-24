@@ -16,6 +16,14 @@ vim ~/.gvm/scripts/install
 修改
 GO_SOURCE_URL=https://github.com/golang/go
 
+安装1.5+的时候，要用这种方式，加 -B 去直接用binary，不用compile
+
+gvm install go1.4 -B
+gvm use go1.4
+export GOROOT_BOOTSTRAP=$GOROOT
+gvm install go1.5
+
+
 装go1.8.3
 
 安装lint代码检查器
