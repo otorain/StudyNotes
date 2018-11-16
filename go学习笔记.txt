@@ -39,11 +39,23 @@ gofmt 自动代码整理
 golint 代码语法检查
 goimports 自动整理imports
 
+o get -u -v github.com/nsf/gocode
+go get -u -v github.com/rogpeppe/godef
+go get -u -v github.com/golang/lint/golint
+go get -u -v github.com/lukehoban/go-outline
+go get -u -v sourcegraph.com/sqs/goreturns
+go get -u -v golang.org/x/tools/cmd/gorename
+go get -u -v github.com/tpng/gopkgs
+go get -u -v github.com/newhook/go-symbols
+go get -u -v golang.org/x/tools/cmd/guru
+
 go之前的包管理版本以来问题，现在有了官方的解决方案 dep
 brew install dep
 brew upgrade dep
 或者
 go get -u github.com/golang/dep/cmd/dep
+
+go1.11开始使用go module，原生内置解决了版本依赖的问题，详情计在evernoe
 
 
 //hello.go
