@@ -23,6 +23,10 @@ or
 dpkg-reconfigure locales
 
 -----------------------------------
+连接windows远程桌面,
+sudo apt-get install rdesktop -y
+记得在windows允许所有版本计算机都可以链接
+-----------------------------------
 设置emacs系统按键绑定
 gconf by running gconf-editor, and chang­ing the /desktop/gnome/interface/gtk_key_theme key to Emacs.
 
