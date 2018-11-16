@@ -181,6 +181,11 @@ for i, ch := range str{
   fmt.Println(i, ch)
 }
 
+//这里遍历出来的ch会是数字,是string的start byte, For a string value, the "range" clause iterates over the Unicode code points in the string starting at byte index 0. On successive iterations, the index value will be the index of the first byte of successive UTF-8-encoded code points in the string, and the second value, of type rune, will be the value of the corresponding code point. If the iteration encounters an invalid UTF-8 sequence, the second value will be 0xFFFD, the Unicode replacement character, and the next iteration will advance a single byte in the string.
+
+//用string函数转换一下就可以
+c := string(ch)
+
 数组
 和其他语言一样, -1下标为数组最后一个元素
 [32]byte
