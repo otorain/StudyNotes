@@ -727,3 +727,38 @@ dpkg-reconfigure locales
 ------------
 14.04 lts 软件源有校验不符导致apt-get update出错 再导致rvm 出错的解决办法
 ubuntu内搜索软件源，在"其他软件"把所有钩去掉
+
+-----------
+翻墙
+sudo apt-get install shadowsocks-qt5
+配置好后,再配置系统代理
+
+
+
+
+
+
+
+###Deepin
+
+---------------
+交换caps和ctrl
+创建配置文件
+
+在用户当前目录 ~ 下创建 .xmodmap 文件，如果有，直接编辑。
+$ cd ~
+$ touch .xmodmap
+$ vim .xmodmap
+将如下配置复制进文件，然后保存退出
+remove Lock = Caps_Lock
+remove Control = Control_L
+keysym Control_L = Caps_Lock
+keysym Caps_Lock = Control_L
+add Lock = Caps_Lock
+add Control = Control_L
+使用文件生效
+
+$ xmodmap .xmodmap
+如果执行后没有报错，此时两个键位已经交换成功
+
+
