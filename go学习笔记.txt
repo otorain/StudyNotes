@@ -214,7 +214,7 @@ go数组有一个值类型（value type）, 在函数内不能对原数组进行
 
 slice有两种创建方式
 1）基于数组
-array := int[5]{1,2,3,4,5}
+array := [5]int{1,2,3,4,5}
 slice := array[:3] //所以这里会生成头三个,Go语言支持用myArray[first:last]这样的方式来基于数组生成一 个数组切片 还可以 array[:]全部， array[2:], 数组2个之后的
 2)直接创建, 用自带的make()方法创建
 创建一个初始元素个数为5的数组切片,元素初始值为0:
@@ -225,7 +225,7 @@ mySlice2 := make([]int, 5, 10)
 mySlice3 := []int{1, 2, 3, 4, 5}
 当然,事实上还会有一个匿名数组被创建出来,只是不需要我们来操心而已。
 遍历和数组一样，可以用长度或者range
-两个有用方法cap()是返回分配了占用了的内存空间，len()是返回已有元素个数(长度)
+两个有用方法cap()是返回分配了占用了的内存空间(最长用多少个)，len()是返回已有元素个数(长度)
 
 为slice增加元素
 mySlice = append(mySlice, 1, 2, 3)
@@ -245,6 +245,11 @@ mySlice = myArray[:]
 mySlice = myArray[:5]
 基于从第5个元素开始的所有元素创建数组切片:
 mySlice = myArray[5:]
+
+下标表示
+numbers := []int{0,1,2,3,4,5}
+numbers[1:4] 表示由小标1到3（不包含4） //=> [ 1, 2, 3 ]
+
 
 所以例如要达到数组pop的效果
 pop := mySlice[len(mySlice) -1 ]
@@ -336,7 +341,7 @@ func main() {
   // 往这个map里插入几条数据
   personDB["12345"] = PersonInfo{"12345", "Tom", "Room 203,..."}
   personDB["1"] = PersonInfo{"1", "Jack", "Room 101,..."}
-  // 从这个map查找键为"1234"的信息 
+  // 从这个map查找键为"1234"的信息  !!! 这个可以判断是否存在该键
   person, ok := personDB["1234"]
   // ok是一个返回的bool型,返回true表示找到了对应的数据 if ok {
   if ok {
@@ -418,7 +423,7 @@ import "errors"
 func Add(a int, b int) (ret int, err error) {
   if a < 0 || b < 0 { // 假设这个函数只支持两个非负数字的加法
     err= errors.New("Should be non-negative numbers!")
-    return
+    return 0, err
   }
   return a + b, nil // 支持多重返回值 
 }
