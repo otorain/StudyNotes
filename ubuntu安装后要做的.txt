@@ -54,6 +54,8 @@ remmina（远程桌面）
 
 tightvncserver vnc远程工具，方便mac管理桌面
 
+视频压缩工具 handbrake 方便youtube视频上传到微信
+
 scrot shutter(截图软件)
 
 tmux shell窗口管理好用工具 #解决不读取bashrc的问题，cat ~/.bashrc > ~/.bash_profile
@@ -760,5 +762,4 @@ add Control = Control_L
 
 $ xmodmap .xmodmap
 如果执行后没有报错，此时两个键位已经交换成功
-
 
