@@ -180,4 +180,15 @@ $ sudo docker run -v /dbdata --name dbdata2 ubuntu /bin/bash
 然后创建另一个新的容器，挂载dbdata2的容器，并使用untar解压备份文件到所挂载的容器卷中即可：
 $ sudo docker run --volumes-from dbdata2 -v $(pwd):/backup busybox tar xvf/backup/backup.tar
 
-
+############### Emby ###############
+sudo docker run -d \
+    --volume /media/jojo/Media/config \
+    --volume /media/jojo/Media/media/电影 \
+    --volume /media/jojo/Media/media/动画 \
+    --device /dev/dri/renderD128 \
+    --publish 8096:8096 \
+    --publish 8920:8920 \
+    --env UID=1000 \
+    --env GID=100 \
+    --env GIDLIST=100 \
+    emby/embyserver:latest
