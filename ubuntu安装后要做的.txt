@@ -53,6 +53,10 @@ fcitx(输入法替换，选用)
 remmina（远程桌面）
 
 tightvncserver vnc远程工具，方便mac管理桌面
+$ vncserver :1 然后输入密码就行，一些配置要修改~/.vnc/xstartup
+
+deepin下装x11vnc, 装完直接程序界面配置 
+
 
 视频压缩工具 handbrake 方便youtube视频上传到微信
 
@@ -318,7 +322,10 @@ delete some unsafe root user
 grant all on *.* to scott@localhost identified by 'tiger';
 flush privileges;
 
-##
+## 5.7 debian
+在这个系统下安装好后mysqladmin改密码是不行的，你要打开
+/etc/mysql/debian.cnf 记住他的用户名密码，再mysql -u -p进去创建自己的用户密码
+######
 
 build-essential 这个包也要装
 
