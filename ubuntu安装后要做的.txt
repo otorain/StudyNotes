@@ -65,6 +65,9 @@ deepin下装x11vnc, 装完直接程序界面配置
 scrot shutter(截图软件)
 
 tmux shell窗口管理好用工具 #解决不读取bashrc的问题，cat ~/.bashrc > ~/.bash_profile
+-------------------------------------
+支持exfat
+sudo apt-get install exfat-fuse exfat-utils
 
 --------------------------------------
 11.10开始要用经典界面要装 个gnome-shell，不然有些软件没法用

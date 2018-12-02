@@ -33,6 +33,25 @@ $ $(boot2docker shellinit)
 注意：如果在命令行中看到如下提示信息：To connect the Docker client to the Docker daemon, please set: export  DOCKER_HOST=tcp://192.168.59.103:2375可以执行提示信息中的语句：
 exportDOCKER_HOST=tcp://192.168.59.103：2375。此语句的作用是在系统环境变量中设置Docker的主机地址。
 
+------------------------
+更换中科大的源
+https://lug.ustc.edu.cn/wiki/mirrors/help/docker
+新版的 Docker 使用 /etc/docker/daemon.json（Linux） 或者 %programdata%\dockerconsole.log(onfig\daemon.json（Windows） 来配置 Daemon。
+
+请在该配置文件中加入（没有该文件的话，请先建一个）：
+
+{
+  "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]
+}
+
+Docker Daemon configuration file 文档： https://docs.docker.com/engine/reference/commandline/dockerd/#/daemon-configuration-file
+
+Docker for Windows 文档: https://docs.docker.com/docker-for-windows/#/docker-daemon
+
+)
+------------------------
+
+
 
 ##三大核心概念 镜像(只读，相当于模板，限制了边界), 容器(镜像跑起来的一个实例，里面的操作就在容器里玩), 仓库（简单理解就是github一样存放镜像就好）
 
