@@ -46,6 +46,8 @@ sudo encyng -t
 ------------------------------------
 2 emacs chrome firebug ssh iptux unrar cmake libncurses5-dev bison chkconfig filezilla(ftp客户端) kchmviewer chmsee Cairo-Dock gimp pidgin skype tree nautilus(命令行可以调用打开图形界面)
 
+18.04 gnome-tweak-tool
+
 pdf软件: foxitreader Okular(不错的pdf阅读) Evince xpdf epdfview 
 
 fcitx(输入法替换，选用) 
