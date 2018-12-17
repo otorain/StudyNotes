@@ -1,3 +1,97 @@
+SSH无密码登录
+
+
+ssh-keygen -t rsa
+远端服务器创建authorized_keys, 把本地的~/.ssh/id_rsa.pub内容复制到authorized_keys (或者本地使用ssh-copy-id)
+远端 sudo service sshd restart
+
+
+还要注意远端的权限
+chmod 700 ~/.ssh 必须
+chmod 600 ~/.ssh/authorized_keys 非必须
+
+---------
+其他ssh妙用
+【例1】
+
+将$HOME/src/目录下面的所有文件，复制到远程主机的$HOME/src/目录。
+
+　　$ cd && tar czv src | ssh user@host 'tar xz'
+
+【例2】
+
+将远程主机$HOME/src/目录下面的所有文件，复制到用户的当前目录。
+
+　　$ ssh user@host 'tar cz src' | tar xzv
+
+【例3】
+
+查看远程主机是否运行进程httpd。
+
+　　$ ssh user@host 'ps ax | grep [h]ttpd'
+
+
+---------------
+ssh端口转发 !!!
+
+本地转发:
+假定host1是本地主机，host2是远程主机。由于种种原因，这两台主机之间无法连通。但是，另外还有一台host3，可以同时连通前面两台主机。因此，很自然的想法就是，通过host3，将host1连上host2。
+
+我们在host1执行下面的命令：
+
+$ ssh -L 2121:host2:21 host3
+
+命令中的L参数一共接受三个值，分别是"本地端口:目标主机:目标主机端口"，它们之间用冒号分隔。这条命令的意思，就是指定SSH绑定本地端口2121，然后指定host3将所有的数据，转发到目标主机host2的21端口（假定host2运行FTP，默认端口为21）。
+
+这样一来，我们只要连接host1的2121端口，就等于连上了host2的21端口。
+
+$ ftp localhost:2121
+
+##
+要注意2121:host2:21 中间参数host2的ip是相对于host3的目标主机,所以
+$ ssh -L 9001:host2:22 host3
+
+这个是相当于访问本机的9001的时候，相当于登录host2的22
+
+
+-----------------
+远程端口转发
+
+既然"本地端口转发"是指绑定本地端口的转发，那么"远程端口转发"（remote forwarding）当然是指绑定远程端口的转发。
+
+还是接着看上面那个例子，host1与host2之间无法连通，必须借助host3转发。但是，特殊情况出现了，host3是一台内网机器，它可以连接外网的host1，但是反过来就不行，外网的host1连不上内网的host3。这时，"本地端口转发"就不能用了，怎么办？
+
+解决办法是，既然host3可以连host1，那么就从host3上建立与host1的SSH连接，然后在host1上使用这条连接就可以了。
+
+我们在host3执行下面的命令：
+
+$ ssh -R 2121:host2:21 host1 #去到自己组网的时候相当于在zbox上 ssh -R 8089:nuc:8089 just_staging
+
+R参数也是接受三个值，分别是"远程主机端口:目标主机:目标主机端口"。这条命令的意思，就是让host1监听它自己的2121端口，然后将所有数据经由host3，转发到host2的21端口。由于对于host3来说，host1是远程主机，所以这种情况就被称为"远程端口绑定"。
+
+绑定之后，我们在host1就可以连接host2了：
+
+$ ftp localhost:2121
+
+这里必须指出，"远程端口转发"的前提条件是，host1和host3两台主机都有sshD和ssh客户端。
+
+_________
+iptables的转发
+
+echo 1 >/proc/sys/net/ipv4/ip_forward
+修改ip_forward文件，立即生效，重启失效。
+
+本机80转到8080
+[root@localhost sbin]# iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
+[root@localhost sbin]# service iptables save
+[root@localhost sbin]# service iptables restart
+
+注：如果你用的是一个没有开启的端口，比如小与1024的端口，假如说是800，而不是8080，那么要记着打开这些端口。
+方式如下：
+
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 800 -j ACCEPT
+
+_________
 创建用户
 假设用户名是deploy
 用root用户
@@ -329,6 +423,13 @@ rsync -av ./xxxx ssh@xxx.xxx.xx:/aaa/yyyy 同步xxxx/下所有文件到服务器
 
 -P 现示传输速率
 
+如果需要密码时，可以用sshpass
+
+sshapass -p "password" rsync -avp root@shitshitshit.com
+
+太长的文件名可以用单引号
+rsync -avP jojo@192.168.2.198:'/home/jojo/4tb/美剧日剧港剧/bigbang.s12/The.Big.Bang.Theory.S12E02.720p.HDTV.x264-AVS[rarbg]/The.Big.Bang.Theory.S12E02.720p.HDTV.x264-AVS.mkv' ./
+
 -----------------------------
 curl　不断提交表单
 先在浏览器随便填填然后用 $(form).serialize()获取表单数据
@@ -414,3 +515,38 @@ $ cp /dev/null filename
 ----------
 multitail tail打开不同服务器日志
 ssh -n just_web2 "tail -f /data/just_jiang_server/current/log/production.log" | multitail -ci red --label ---web2--- -j  -ci green --label ---web1--- -I current/log/production.log
+
+_________
+查看被占用端口号
+lsof -i
+netstat -anp|grep 80 
+
+---------
+查看系统版本信息 
+$ uname -a
+$ cat /proc/version
+
+--------
+挂在windows共享 samba
+
+安装cifs=utils
+
+sudo apt-get install cifs-utils
+
+# mount -t cifs -o username=Bob,password=123456 //192.168.0.102/Share /usr/local/bin/code
+# df -h 查看状态
+# umount /usr/local/bin/code 写在
+如果提示有target is busy的情况，用fuser
+
+# fuser -m /usr/local/bin/code
+/usr/local/bin/code:  2806c
+
+# ps aux | grep 2806
+# kill -9 2806
+# unmount /user/locsl/bin/code
+
+如果要开机自启动的话，就修改/etc/fstab
+最后添加一行:
+
+//172.17.1.200/share(远程共享目录)   /mnt/share(本地那个目录)    cifs(文件系统类型)  defaults,uid=1000,gid=1000,username=登陆用户名, passwd=登陆密码      0   0 
+

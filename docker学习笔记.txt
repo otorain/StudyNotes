@@ -33,6 +33,11 @@ $ $(boot2docker shellinit)
 注意：如果在命令行中看到如下提示信息：To connect the Docker client to the Docker daemon, please set: export  DOCKER_HOST=tcp://192.168.59.103:2375可以执行提示信息中的语句：
 exportDOCKER_HOST=tcp://192.168.59.103：2375。此语句的作用是在系统环境变量中设置Docker的主机地址。
 
+-----------------------
+不想一直sudo的话，把用户加入docker组
+$ sudo usermod -aG docker jojo
+注销退出后就生效
+
 ------------------------
 更换中科大的源
 https://lug.ustc.edu.cn/wiki/mirrors/help/docker
@@ -73,6 +78,9 @@ $ sudo docker images
 可以看到诸如此类的信息,其中id标明唯一
 REPOSITORY                    TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
 kalilinux/kali-linux-docker   latest              e49f6054690a        9 weeks ago         420.3 MB
+
+$ docker history
+查看历史信息 
 
 有时打个tag会挺方便的
 $ sudo docker tag dl.dockerpool.com:5000/ubuntu:latest ubuntu:latest
@@ -143,6 +151,10 @@ $ docker restart ce5 #先stop再start
 $ docker attach id或容器names
 $ docker exec -ti 容器id /bin/bash
 
+停止了的容器，可以先start在attach
+$ docker start 容器id
+$ docker attach 容器id
+
 导入导出容器
 导出容器
 $ docker export 容器id > xxx.tar
@@ -199,6 +211,143 @@ $ sudo docker run -v /dbdata --name dbdata2 ubuntu /bin/bash
 然后创建另一个新的容器，挂载dbdata2的容器，并使用untar解压备份文件到所挂载的容器卷中即可：
 $ sudo docker run --volumes-from dbdata2 -v $(pwd):/backup busybox tar xvf/backup/backup.tar
 
+--------------------------
+更新镜像两种方式
+
+1. 在容器里执行后commit
+$ docker run -t -i ubuntu:15.10 /bin/bash
+root@e218edb10161: apt-get update
+root@e218edb10161: exit
+
+容器里跑完东西后
+$ docker commit -m="has update" -a="runoob" e218edb10161 runoob/ubuntu:v2
+-m 是commit message
+-a 是作者
+e218edb10161 是进入容器操作时root@xxxxx里面的这个xxxxx
+
+
+2. 以Dockerfile的方式是去build一个
+创建Dockerfile:
+
+FROM    centos:6.7
+MAINTAINER      Fisher "fisher@sudops.com"
+
+RUN     /bin/echo 'root:123456' |chpasswd
+RUN     useradd runoob
+RUN     /bin/echo 'runoob:123456' |chpasswd
+RUN     /bin/echo -e "LANG=\"en_US.UTF-8\"" >/etc/default/local
+EXPOSE  22
+EXPOSE  80
+CMD     /usr/sbin/sshd -D
+
+###
+每一个指令都会在镜像上创建一个新的层，每一个指令的前缀都必须是大写的。
+
+第一条FROM，指定使用哪个镜像源
+
+RUN 指令告诉docker 在镜像内执行命令，安装了什么。。。
+
+然后，我们使用 Dockerfile 文件，通过 docker build 命令来构建一个镜像。
+
+$ docker build -t runoob/centos:6.7 .
+
+
+--------------------------
+网络端口映射
+runoob@runoob:~$ docker run -d -P training/webapp python app.py
+
+-P 参数创建一个容器，使用 docker ps 来看到端口5000绑定主机端口32768, 随机创建端口让他绑定的意思
+-p 小写p是指定端口, 例如:
+$ docker run -d -p 5000:5000 training/webapp python app.py
+
+还可以指定具体的网络地址
+$ docker run -d -p 127.0.0.1:5001:5000 training/webapp python app.py
+默认tcp, 可指定udp
+
+$ docker run -d -p 127.0.0.1:5001:5000/udp training/webapp python app.py
+
+端口映射并不是唯一把 docker 连接到另一个容器的方法。
+
+docker有一个连接系统允许将多个容器连接在一起，共享连接信息。
+
+docker连接会创建一个父子关系，其中父容器可以看到子容器的信息。
+
+容器命名
+当我们创建一个容器的时候，docker会自动对它进行命名。另外，我们也可以使用--name标识来命名容器，例如：
+$ docker run -d -P --name runoob training/webapp python app.py
+43780a6eabaaf14e590b6e849235c75f3012995403f97749775e38436db9a441
+
+我们可以使用 docker ps 命令来查看容器名称。
+$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+43780a6eabaa        training/webapp     "python app.py"     3 minutes ago       Up 3 minutes        0.0.0.0:32769->5000/tcp   runoob
+
+--------------------------
+nginx实例
+$ docker pull nginx
+
+创建几个挂载点
+$ docker run -p 80:80 --name mynginx -v $PWD/www:/www -v $PWD/conf/nginx.conf:/etc/nginx/
+命令说明：
+
+-p 80:80：将容器的80端口映射到主机的80端口
+--name mynginx：将容器命名为mynginx
+-v $PWD/www:/www：将主机中当前目录下的www挂载到容器的/www
+-v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf：将主机中当前目录下的nginx.conf挂载到容器的/etc/nginx/nginx.conf
+-v $PWD/logs:/wwwlogs：将主机中当前目录下的logs挂载到容器的/wwwlogs
+
+--------------------------
+mysql 实例
+runoob@runoob:~/mysql$ docker pull mysql:5.6
+
+runoob@runoob:~$ mkdir -p ~/mysql/data ~/mysql/logs ~/mysql/conf
+#
+data目录将映射为mysql容器配置的数据文件存放路径
+
+logs目录将映射为mysql容器的日志目录
+
+conf目录里的配置文件将映射为mysql容器的配置文件
+
+进入创建的mysql目录，创建Dockerfile
+
+运行
+
+runoob@runoob:~/mysql$ docker run -p 3306:3306 --name mymysql -v $PWD/conf:/etc/mysql/conf.d -v $PWD/logs:/logs -v $PWD/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.6
+#
+-p 3306:3306：将容器的 3306 端口映射到主机的 3306 端口。
+
+-v -v $PWD/conf:/etc/mysql/conf.d：将主机当前目录下的 conf/my.cnf 挂载到容器的 /etc/mysql/my.cnf。
+
+-v $PWD/logs:/logs：将主机当前目录下的 logs 目录挂载到容器的 /logs。
+
+-v $PWD/data:/var/lib/mysql ：将主机当前目录下的data目录挂载到容器的 /var/lib/mysql 。
+
+-e MYSQL_ROOT_PASSWORD=123456：初始化 root 用户的密码。
+
+
+--------------------------
+搭建本地私有仓库
+通过官方registry镜像搭建本地私有仓库
+$ docker run -d -p 5000:5000 registry
+
+默认保存在 /tmp/registry 可以指定其他位置
+$ docker run -d -p 5000:5000 -v /opt/data/registry:/tmp/registry registry
+
+例如仓库机ip是 10.0.2.2:5000, 把远端标签打到本地
+$ docker tag ubuntu:14.04 10.0.2.2:5000/test
+$ docker push #上传就会自动用仓库机
+$ curl http://10.0.2.2:5000/v1/search #用curl可以简单查看远端有什么镜像
+
+现在什么都https，除了配证书也可以指定环境变量 
+$ DOCKER_OPTS="--insecure-registry 10.0.2.2:5000 #加入信任
+
+
+
+--------------------------
+--------------------------
+
+
+
 ############### Emby ###############
 sudo docker run -d \
     --volume /media/jojo/Media/config \
@@ -211,3 +360,4 @@ sudo docker run -d \
     --env GID=100 \
     --env GIDLIST=100 \
     emby/embyserver:latest
+
