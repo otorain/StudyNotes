@@ -775,3 +775,10 @@ add Control = Control_L
 $ xmodmap .xmodmap
 如果执行后没有报错，此时两个键位已经交换成功
 
+
+-----------
+手动设置proxy，当开了ss之后，例如是socks
+
+$ export http_proxy=socks5://localhost:1080
+$ export https_proxy=socks5://localhost:1080
+
