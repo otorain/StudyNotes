@@ -124,6 +124,8 @@ mysql.server start
 
 #用root登陆进去删掉没用的用户，创建新用户去
 
+homebrew安装的，停止可以是 brew services stop mysql (list出来还有其他服务)
+
 
 #To launch on startup:
 * if this is your first install:

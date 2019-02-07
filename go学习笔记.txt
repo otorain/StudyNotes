@@ -1175,3 +1175,8 @@ func Lcfirst(str string) string {
     }
     return ""
 }
+
+----------------
+在mac下cross compile Linux 版本
+
+env GOOS=linux GOARCH=amd64 go build -v .

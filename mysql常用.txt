@@ -9,7 +9,7 @@ a)格式：mysqladmin -u用户名 -p旧密码 password 新密码
 mysqladmin -uroot -pab12 password djg345
 
 b)直接修改user表的root用户口令：
-mysql> user mysql;
+mysql> use mysql;
 mysql> update user set pasword=password('21century') where user='root';
 mysql> flush privileges;
 #注：flush privileges的意思是强制刷新内存授权表，否则用的还是缓冲中的口令。
@@ -264,4 +264,11 @@ UPDATE [LOW_PRIORITY] [IGNORE] tbl_name SET col_name1=expr1 [, col_name2=expr2 .
 
 例子2，多表的UPDATE语句：
 UPDATE [LOW_PRIORITY] [IGNORE] table_references SET col_name1=expr1 [, col_name2=expr2 ...] [WHERE where_definition];
+
+
+------------
+改某个字段为unique
+
+alter table table_name add unique key(column_name);
+#有重复的属性时会提示创建失败，这时候修改一些内容就可以转换
 
