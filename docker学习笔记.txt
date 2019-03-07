@@ -61,6 +61,10 @@ Docker Daemon configuration file 文档： https://docs.docker.com/engine/refere
 Docker for Windows 文档: https://docs.docker.com/docker-for-windows/#/docker-daemon
 
 )
+
+阿里云自己也有加速源，同样修改配置文件配置好后，执行重启
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart docker
 ------------------------
 
 

@@ -3,6 +3,9 @@ SSH无密码登录
 
 ssh-keygen -t rsa
 远端服务器创建authorized_keys, 把本地的~/.ssh/id_rsa.pub内容复制到authorized_keys (或者本地使用ssh-copy-id)
+
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub deploy@45.76.205.27
+
 远端 sudo service sshd restart
 
 

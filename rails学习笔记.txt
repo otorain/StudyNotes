@@ -5211,3 +5211,9 @@ User.where.not(name: "shit").to_sql
 ----------------
   5.x版本开始, 开发环境要手动开开缓存
 rails dev:cache
+
+----------------
+5.x版本用docker部署后，puma运行要指定一下前后分离后public里html的问题
+
+在环境配置文件里把这个设成
+config.public_file_server.enabled = true
