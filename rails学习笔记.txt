@@ -3100,6 +3100,13 @@ sudo apt-get install libmagick9-dev libmagicwand-dev
 Can't' find MagickWand.h.的话
 sudo apt-get install libmagickwand-dev
 
+mac下c
+rmagick 提示要求版本6.4.9的有新方法（2019）
+brew unlink imagemagick
+brew install imagemagick@6
+brew link imagemagick@6 --force
+
+
 
 --------------------------------------
 表单form_tag check_box_tag
@@ -4858,6 +4865,8 @@ find /Application/ -name pg_conf, 可以找到以下项目
 
 然后 bundle config build.pg --with-pg-config=/Applications/Postgres.app/Contents/Versions/9.6/bin/pg_config
 
+用docker之后，也可以brew install postgres@9.6之后, 在 /usr/local/opt/postgresql@9.6/bin找到pg_config
+
 #rails db:create 说权限不足时
 ALTER USER scott CREATEDB; #相当于给用户赋值创建db权限
 
@@ -4881,6 +4890,13 @@ sudo find / -name pg_config
 安装pg gem
 gem install pg -- --with-pg-config=/usr/bin/pg_config
 到这里位置，数据库就安装完成了
+
+
+brew 的话
+brew install postgresql@9.6 #或者10都得
+brew info postgresql@9.6
+
+pg_config在安装目录bin下面, 再好似上面甘手动 gem install 一下,好嗨烦的
 
 
 
