@@ -640,3 +640,8 @@ context.drawImage(img_elem, sx, sy, sw, sh, dx, dy, dw, dh);
 父元素滚动到子元素
 首先父元素要设置position: relative
 $(parent).scrollTop($(child).position().top)
+
+---------------
+数组.splice(index, 个数，[是否需要替代的元素])
+splice(2,2) 从2的位置删除两个
+splice(2,2, 1, 1) 从2的位置替换两个为1

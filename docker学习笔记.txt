@@ -1095,3 +1095,20 @@ apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
 ---------------
+dockerfile build的时候是用环境变量
+The ARG instruction defines a variable that users can pass at build-time to the builder with the docker build command using the --build-arg <varname>=<value> flag.
+
+So your Dockerfile will have this line:
+
+直接定义一个外部变量
+ARG request_domain
+
+可以默认值
+ARG request_domain=127.0.0.1
+
+
+是用到的行
+ENV request_domain=$request_domain
+
+build的时候这样传入
+$ docker build --build-arg request_domain=mydomain Dockerfile

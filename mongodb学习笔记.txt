@@ -199,3 +199,16 @@ use somedb
 db.addUser
 
 记得修改/etc/mongodb.conf auth=true,重启, 然后登陆时用 mongo -u username admin -p
+
+---------------- mongoose ----------
+
+加索引注意也要加在schema级别，方便做复合索引
+var animalSchema = new Schema({
+  name: String,
+  type: String,
+  tags: { type: [String], index: true  } // field level
+});
+
+animalSchema.index({ name: 1, type: -1  }); // schema level
+
+prod
