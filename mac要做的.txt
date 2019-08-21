@@ -482,4 +482,39 @@ function proxy_on() {
 
 之后就可以打开关闭
 ------------
+pip3 install you-get
+下载所有在线视频
 
+you-get -i xxx.com/av1234 看有什么格式
+
+you-get --format=flv480 xxxx.url 下载那种格式
+
+转码
+
+（1）brew install ffmpeg   //安装ffmpeg
+
+（2）ffmpeg -i hahaha.flv -c:v libx264 -ar 22050 -crf 28 newyeah.mp4//转换格式，中间是一堆参数
+ffmpeg -i xxx.flv -o xxx.mp4
+
+--------------
+brew 更新国内镜像源
+第一步，替换brew.git
+cd "$(brew --repo)"
+git remote set-url origin https://mirrors.ustc.edu.cn/brew.git
+
+第二步：替换homebrew-core.git
+cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
+git remote set-url origin https://mirrors.ustc.edu.cn/homebrew-core.git
+
+最后使用
+  brew update
+
+
+复原
+cd "$(brew --repo)"
+git remote set-url origin https://github.com/Homebrew/brew.git
+ 
+cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
+git remote set-url origin https://github.com/Homebrew/homebrew-core
+  
+brew update
