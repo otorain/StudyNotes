@@ -782,3 +782,8 @@ $ xmodmap .xmodmap
 $ export http_proxy=socks5://localhost:1080
 $ export https_proxy=socks5://localhost:1080
 
+
+----------
+ydcv 词典,python 3.7
+bat cat的替代
+ncdu 目录情况

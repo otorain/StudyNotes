@@ -5233,3 +5233,20 @@ rails dev:cache
 
 在环境配置文件里把这个设成
 config.public_file_server.enabled = true
+
+
+
+
+-----------------
+ruby获取一下git的commit，方便用部署脚本
+
+git自己的命令
+
+git rev-parse HEAD
+
+又或者脚本直接这样
+
+commit = `git show --pretty=%H`
+puts commit
+
+还可以用--git-dir参数去指定 git的版本
