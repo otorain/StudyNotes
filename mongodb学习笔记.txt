@@ -212,3 +212,14 @@ var animalSchema = new Schema({
 animalSchema.index({ name: 1, type: -1  }); // schema level
 
 prod
+
+------------------
+
+有时遇到程序连接Authentication Failed ,例如yapi
+用 root
+> use yapi
+
+> db.createUser({user:"test1",pwd:"test1",roles:[{role:"readWrite",db:"yapi"}]}), db.auth('shit', 'fuck')
+
+> db.auth('shit', 'fuck') 犯贱，root都不能用
+
