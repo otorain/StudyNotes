@@ -496,6 +496,10 @@ you-get --format=flv480 xxxx.url 下载那种格式
 （2）ffmpeg -i hahaha.flv -c:v libx264 -ar 22050 -crf 28 newyeah.mp4//转换格式，中间是一堆参数
 ffmpeg -i xxx.flv -o xxx.mp4
 
+合并音频
+
+ffmpeg -i xxx.mp4 -i xxx.mp4 -o xxx.mp4
+
 --------------
 brew 更新国内镜像源
 第一步，替换brew.git
