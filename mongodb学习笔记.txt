@@ -223,3 +223,12 @@ prod
 
 > db.auth('shit', 'fuck') 犯贱，root都不能用
 
+
+----------------
+遇到本地开发时docker太多临时文件占用空间大时
+
+清理 docker 内部空间
+docker system prune
+
+刷新 docker 内部空间
+docker run --privileged --pid=host justincormack/nsenter1 /sbin/fstrim /var/lib/docker @fredomhu
