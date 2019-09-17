@@ -787,3 +787,25 @@ $ export https_proxy=socks5://localhost:1080
 ydcv 词典,python 3.7
 bat cat的替代
 ncdu 目录情况
+
+
+---------------
+服务器创建用户
+su
+useradd deploy
+usermod -aG root deploy
+passwd deploy
+
+vim /etc/sudoers 把deploy权限符到跟root一样
+
+sudo apt install zsh
+chsh $(which zsh)
+安装oh-my-zsh
+安装 nvm
+安装 python3
+
+sudo apt install docker.io
+sudo usermod -aG docker deploy
+推出登录让docker组生效
+
+
