@@ -66,6 +66,18 @@ every time I want install a Python:
 
 
 -------------------
+pip 更新包 
+
+删了又装
+$ pip uninstall xxx
+$ pip install xxx
+
+或者加 --upgrade -U 标示
+pip install Django --upgrade
+
+加版本
+pip install --upgrade somepackage django==1.2.4
+-------------------
 
 ## idel里输入
 dir(__builtins__) #查看内置函数列表
