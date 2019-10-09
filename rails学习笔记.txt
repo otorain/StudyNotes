@@ -5250,3 +5250,15 @@ commit = `git show --pretty=%H`
 puts commit
 
 还可以用--git-dir参数去指定 git的版本
+
+获取用户名
+git log -1 --pretty=format:'%an' | xargs
+
+pretty format的各种代表看文档
+
+
+git log -1 --pretty=%H,%an,%ae,%s | xargs
+代表 hash,作者,email,提交信息
+
+git config user.name 获取系统的git用户名
+git config --list 获取系统的git config
