@@ -2954,6 +2954,11 @@ git show HEAD:app/views/root/index.html.erb #直接查看历史版本的某个�
 22)git blame
 git blame routes.rb 详细查看哪个用户改了哪一行，针对单个文件
 
+23) 删除远程分支
+git branch -r -d origin/branch-name
+git push origin :branch-name
+gitlab 还要去除分支保护和default branch
+
 
 ----------------------------------
 自定义rails generate !!
@@ -5262,3 +5267,61 @@ git log -1 --pretty=%H,%an,%ae,%s | xargs
 
 git config user.name 获取系统的git用户名
 git config --list 获取系统的git config
+
+
+----------------
+  时间之间两种查询
+
+  Comment.where(:created_at => @selected_date.beginning_of_day..@selected_date.end_of_day)
+
+
+  Comment.where('created_at BETWEEN ? AND ?', @selected_date.beginning_of_day, @selected_date.end_of_day)
+
+
+----------------
+舒服看json_log jsonlog json log方法
+$ npm install -g bunyan
+$ tail -f xx.log | bunyan
+
+
+----------------
+ruby的排列组合算法
+排列
+a = [1, 2, 3]
+a.permutation.to_a    #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]] 默认数组长度
+a.permutation(1).to_a #=> [[1],[2],[3]] 1个不重复排列
+a.permutation(2).to_a #=> [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]
+a.permutation(3).to_a #=> [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+a.permutation(0).to_a #=> [[]] # one permutation of length 0
+a.permutation(4).to_a #=> []   # no permutations of length 4
+
+combination 组合，用法和permutation一样
+
+加repeated_就是可重复的排列和可重复的组合
+
+repeated_combination和repeated_permutation方法类似，除了相同的元素可以重复多次。
+
+例如，序列[1,1] ， [1,3,3,1] ， [3,3,3]在常规组合和排列中无效。
+
+例	#Combos
+[1,2,3].combination(3).to_a.length	1
+[1,2,3].repeated_combination(3).to_a.length	6
+[1,2,3,4,5].combination(5).to_a.length	1
+[1,2,3].repeated_combination(5).to_a.length
+
+
+
+
+-----------------
+新的Rspec 里 allow_any_instance新写法
+
+ user = create(:user)
+ inviter = create(:user)
+
+ allow_any_instance_of(User).to receive(:is_mti?).and_return(true)
+
+ post :bind_relation, params: {api_token: user.api_token, inviter_out_id: inviter.out_id}
+
+ expect(response.status).to eq 200
+ expect(user.inviter).to eq inviter
+ expect(inviter.customers.first).to eq user

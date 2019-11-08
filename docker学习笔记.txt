@@ -1112,3 +1112,40 @@ ENV request_domain=$request_domain
 
 build的时候这样传入
 $ docker build --build-arg request_domain=mydomain Dockerfile
+
+---------------
+线上删docker镜像，主要控制tail参数
+docker images |grep staging-just-ruby |tail -n200 | awk '{print $3}'| xargs docker rmi -f
+
+---------------
+multistage build
+使用多步骤编译
+多步骤编译解决了上面的问题，你不在需要写两个Dockerfile，也不在需要写两个Dockerfile了。你可以在Dockerfile中使用多个FROM指令。每一个FROM指令都开始一个新的编译流程。你可以使用COPY指令讲文件从一个步骤拷贝到另一个步骤中。我们来看一个例子：
+
+Dockerfile
+
+FROM golang:1.7.3
+WORKDIR /go/src/github.com/alexellis/href-counter/
+RUN go get -d -v golang.org/x/net/html  
+COPY app.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+
+FROM alpine:latest  
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=0 /go/src/github.com/alexellis/href-counter/app .
+CMD ["./app"]
+现在你只需要使用一个Dockerfile，就能搞定上面脚本做的事情，你执行你的编译命令: shell docker build -t alexellis2/href-counter:latest . 最终你还是能得到和上面一样的镜像，你不在需要创建任何中间的镜像和容器了。
+
+这是什么原理呢？这里的第二个FROM指令从alpine:latest的基础上编译了一个新的镜像，使用COPY --from=0从之前的编译步骤拷贝文件到新的镜像中。golang的标准库，编译器都不会被拷贝过来，这就保证了你创建的镜像会足够小。
+
+命名你的编译步骤
+当你编译镜像的时候，你在也不需要从头到位编译整个镜像了。你可以从某个特殊的地方开始编译，例如：下面这条命令就从之前的Dockerfile的builder步骤开始编译
+
+docker build --target builder -t alexellis2/href-counter:latest .
+也就是说builder步骤是之前已经编译好了的，这样做有什么好处呢 你可以调试一个特殊的编译不步骤了，而不需要从头开始编译，耗时巨长 你可以在你的编译步骤中完成测试的内容
+
+使用一个外部的镜像左右一个步骤
+当你是你多步骤编译的时候，并不限制你从当前Dockerfile的编译产物中拷贝文件，你可以使用COPY --from来从一个已经存在了的镜像中拷贝文件，如果这个镜像在本地仓库中不存在，Docker客户端会自动尝试从镜像服务器下载这个镜像。
+
+COPY --from=nginx:latest /etc/nginx/nginx.conf /nginx.conf
