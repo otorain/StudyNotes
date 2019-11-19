@@ -808,4 +808,7 @@ sudo apt install docker.io
 sudo usermod -aG docker deploy
 推出登录让docker组生效
 
+------------------
+wsl 
+------------------
 
