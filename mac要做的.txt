@@ -500,6 +500,12 @@ ffmpeg -i xxx.flv -o xxx.mp4
 
 ffmpeg -i xxx.mp4 -i xxx.mp4 -o xxx.mp4
 
+8.1 将输入的1920x1080缩小到960x540输出:
+
+ffmpeg -i input.mp4 -vf scale=960:540 output.mp4
+
+//ps: 如果540不写，写成-1，即scale=960:-1, 那也是可以的，ffmpeg会通知缩放滤镜在输出时保持原始的宽高比。
+
 --------------
 brew 更新国内镜像源
 第一步，替换brew.git

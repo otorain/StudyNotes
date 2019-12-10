@@ -2358,7 +2358,7 @@ target.should have(3).items # target.items.length == 3
      end
    end
 
-#期待丢出例外
+#期待丢出例外 记得用 block {}
 context "with paid" do
       it "should raise NotPaidError" do
        expect {
@@ -5145,7 +5145,7 @@ source /etc/profile
 ----------------
 通过symobl type 获取首字母大写的Model类trick  
 type = :user
-Object.const_get(type.to_s.camelize)
+Object.const_get(type.to_s.capitalize)
 
 ----------------
 前端微信验证签名失败，很有可能是https没有自动调回的问题, 一个字符的问题

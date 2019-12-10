@@ -54,6 +54,7 @@ mac 版在 ~/.docker/daemon.json
 
 {
   "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]
+  "registry-mirrors": ["http://hub-mirror.c.163.com"]
 }
 
 Docker Daemon configuration file 文档： https://docs.docker.com/engine/reference/commandline/dockerd/#/daemon-configuration-file
