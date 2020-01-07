@@ -5366,3 +5366,14 @@ end
 # 例如merchant_name搜索 like %Mr%
 # Model.where("merchant_name" => {"$regx": "Mr"})  "^Mr"之类不用加 //
 
+
+-------------
+join 表时用默认的方法
+例如User有很多个SummaryOrder，先拿出summery order, join到user,join的时候sum出来的字段可能为null，让他可以默认为0
+scope :with_already_paid_order_amount, ->() do
+    order_amount_sql = SummaryOrder.already_paid.group(:user_id).select("user_id, SUM(amount) as order_amount").to_sql
+    select("users.*, orders.user_id, COALESCE(orders.order_amount, 0) as order_amount").joins(" LEFT JOIN (#{order_amount_sql}) AS orders ON orders.user_id = users.id")
+end
+
+
+
