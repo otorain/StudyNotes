@@ -449,6 +449,9 @@ done;
 du找出占用率高最前１０个文件夹
 du --max-depth=1 | sort -k1 -nr
 
+df -Th 挂在的大目录情况
+du -sh * 当前目录统计
+
 
 ------------------
 format 硬盘

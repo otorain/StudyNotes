@@ -506,6 +506,19 @@ ffmpeg -i input.mp4 -vf scale=960:540 output.mp4
 
 //ps: 如果540不写，写成-1，即scale=960:-1, 那也是可以的，ffmpeg会通知缩放滤镜在输出时保持原始的宽高比。
 
+批量转
+for i in *.wav;do ffmpeg -i "$i" -f mp3 "${i}.mp3";done
+
+//截取从头开始的30s
+ffmpeg -ss 00:00:00 -t 00:00:30 -i keyoutput.mp4 -vcodec copy -acodec copy split.mp4
+
+//截取从30s开始的30s t是duration
+
+ffmpeg -ss 00:00:30 -t 00:00:30 -i keyoutput.mp4 -vcodec copy -acodec copy split1.mp4
+
+//进行视频的合并
+ffmpeg -f concat -i list.txt -c copy concat.mp4
+
 --------------
 brew 更新国内镜像源
 第一步，替换brew.git

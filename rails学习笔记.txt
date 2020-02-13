@@ -5366,6 +5366,12 @@ end
 # 例如merchant_name搜索 like %Mr%
 # Model.where("merchant_name" => {"$regx": "Mr"})  "^Mr"之类不用加 //
 
+# or查询
+Username.any_of({:username => @username},
+                {:email => @email})
+
+Username.or({username: @username}, {email: @email})
+
 
 -------------
 join 表时用默认的方法

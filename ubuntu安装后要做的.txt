@@ -811,4 +811,14 @@ sudo usermod -aG docker deploy
 ------------------
 wsl 
 ------------------
+mosh 比ssh稳定
+fzf fuzzyfind文件
+jq json pretty
+yapf python格式化
+mycli mysql更好client
+axel 多线程下载替代curl wget
+sz/rz：交互式文件传输，在多重跳板机下传输文件非常好用，不用一级一级传输。
+cloc：代码统计工具，能够统计代码的空行数、注释行、编程语言。
+owncloud：DropBox 的开源替代品，提供命令行客户端 owncloudcmd
+ncdu：可视化的空间分析程序
 
