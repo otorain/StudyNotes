@@ -821,4 +821,41 @@ sz/rz：交互式文件传输，在多重跳板机下传输文件非常好用，
 cloc：代码统计工具，能够统计代码的空行数、注释行、编程语言。
 owncloud：DropBox 的开源替代品，提供命令行客户端 owncloudcmd
 ncdu：可视化的空间分析程序
-
+glances：更强大的 htop / top 代替者
+tldr: 如果你经常不想详读man文档，那么你应该试试这个小工具。
+figlet: 将输入字符转换成艺术字体。
+wtf: wtf ttyl 网络流行词翻译
+screenfetch查看主机概要信息
+nethogs 按进程实时统计网络带宽
+nload 监控主机网络流量
+findmnt 树形结构列出所有已经加载的文件系统
+iotop 实时检测监视磁盘io信息使用状态
+bmon 实时监视指定网卡流量
+ngxtop：在命令行实时监控 Nginx 的神器
+Bash Getopts - 让你的脚本支持命令行参数
+httpry Linux 命令行下嗅探 HTTP 流量的工具
+httpie 更好的http客户端
+lazygit 好用的命令行git gui
+  go get github.com/jesseduffield/lazygit
+  sudo add-apt-repository ppa:lazygit-team/release
+  sudo apt-get update
+  sudo apt-get install lazygit
+wuzz 命令行类似postman
+  go get github.com/asciimoo/wuzz
+  "$GOPATH/bin/wuzz" --help
+annie go写的和you-get一样
+  go get github.com/iawia002/annie
+cointop 币圈查询
+  go get -u github.com/miguelmota/cointop
+httplab 伪造http请求和返回
+  go get github.com/gchaincl/httplab
+claws go写的调试websocket
+diagram 命令行画流程图
+terminews 命令行rss
+  go get github.com/antavelos/terminews
+  cd $GOPATH/src/github.com/antavelos/terminews
+  go build
+  ./terminews
+newsboat 这个readfeed好用
+  brew install newsboat
+  修改~/.newsboat/urls

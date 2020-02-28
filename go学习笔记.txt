@@ -16,6 +16,9 @@ vim ~/.gvm/scripts/install
 修改
 GO_SOURCE_URL=https://github.com/golang/go
 
+或者
+gvm install go1.13.8 --source=https://github.com/golang/go.git
+
 安装1.5+的时候，要用这种方式，加 -B 去直接用binary，不用compile
 
 gvm install go1.4 -B
@@ -24,6 +27,19 @@ export GOROOT_BOOTSTRAP=$GOROOT
 gvm install go1.5
 
 指针的主要作用就是在函数内部改变传递进来变量的值!!!!
+
+------------
+另一个go版本管理，g
+https://github.com/stefanmaric/g
+安装
+curl -sSL https://git.io/g-install | sh -s -- bash zsh
+安装完后默认的path
+GOROOT: $HOME/.go
+GOPATH: $HOME/go
+
+$GOPATH/bin is added to the PATH and there's where g is copied to.
+
+-----------
 
 
 装go1.8.3
@@ -41,7 +57,7 @@ gofmt 自动代码整理
 golint 代码语法检查
 goimports 自动整理imports
 
-o get -u -v github.com/nsf/gocode
+go get -u -v github.com/nsf/gocode
 go get -u -v github.com/rogpeppe/godef
 go get -u -v github.com/golang/lint/golint
 go get -u -v github.com/lukehoban/go-outline

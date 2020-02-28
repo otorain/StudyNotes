@@ -519,7 +519,18 @@ ffmpeg -ss 00:00:30 -t 00:00:30 -i keyoutput.mp4 -vcodec copy -acodec copy split
 //进行视频的合并
 ffmpeg -f concat -i list.txt -c copy concat.mp4
 
---------------
+//合并需要先转码成mpg
+ffmpeg -i 1.mp4 -sameq 1.mpg
+ffmpeg -i 2.mp4 -sameq 2.mpg
+cat 1.mpg 2.mpg | ffmpeg -f mpeg -i - -sameq -vcodec mpeg4 output.mp4
+// 或转成ts
+ffmpeg -i input1.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input1.ts
+ffmpeg -i input2.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input2.ts
+ffmpeg -i input3.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input3.ts
+ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -movflags +faststart output.mp4
+
+-------------
+
 brew 更新国内镜像源
 第一步，替换brew.git
 cd "$(brew --repo)"
@@ -541,3 +552,10 @@ cd "$(brew --repo)/Library/Taps/homebrew/homebrew-core"
 git remote set-url origin https://github.com/Homebrew/homebrew-core
   
 brew update
+
+----------
+brew update提示某些库找不到时
+brew tap
+brew untap 那个库
+
+brew update --debug --verbose --force

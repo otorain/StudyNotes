@@ -1,5 +1,6 @@
 python打开一个简单的http服务server
 python -m SimpleHTTPServer
+python3 -m http.server
 
 ## 使用pyenv管理系统的python环境
 brew install pyenv
